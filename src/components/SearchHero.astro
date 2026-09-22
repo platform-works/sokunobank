@@ -5,11 +5,26 @@ interface Props {
   keywords: NavLink[];
 }
 const { keywords } = Astro.props;
+
+const features = [
+  {
+    label: "複数社を横断比較",
+    icon: "M4 4h9v9H4zM11 11h9v9h-9z",
+  },
+  {
+    label: "最短納期を明示",
+    icon: "clock",
+  },
+  {
+    label: "要確認情報は明示",
+    icon: "check",
+  },
+];
 ---
 
 <section class="search-hero" id="search">
   <div class="container">
-    <h1>急ぎの発注先、すぐ見つかる。</h1>
+    <h1><span class="line">急ぎの発注先、</span><span class="line accent">すぐ見つかる。</span></h1>
     <p class="lead">
       マーケティング・総務・人事担当者向け。DM・印刷・販促物などの即納サービスを、納期・価格・対応条件から比較できます。
     </p>
@@ -41,6 +56,33 @@ const { keywords } = Astro.props;
         ))
       }
     </ul>
+
+    <ul class="feature-strip">
+      {
+        features.map((f) => (
+          <li>
+            <svg class="feature-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true">
+              {f.icon === "clock" && (
+                <>
+                  <circle cx="12" cy="12" r="9" />
+                  <path d="M12 7v5l3.5 2" stroke-linecap="round" stroke-linejoin="round" />
+                </>
+              )}
+              {f.icon === "check" && (
+                <>
+                  <circle cx="12" cy="12" r="9" />
+                  <path d="M8 12.5l2.5 2.5L16 9.5" stroke-linecap="round" stroke-linejoin="round" />
+                </>
+              )}
+              {f.icon !== "clock" && f.icon !== "check" && (
+                <path d={f.icon} stroke-linecap="round" stroke-linejoin="round" />
+              )}
+            </svg>
+            <span>{f.label}</span>
+          </li>
+        ))
+      }
+    </ul>
   </div>
 </section>
 
@@ -62,6 +104,12 @@ const { keywords } = Astro.props;
   .search-hero h1 {
     max-width: 720px;
     margin-bottom: 0.75rem;
+  }
+  .search-hero h1 .line {
+    display: block;
+  }
+  .search-hero h1 .line.accent {
+    color: var(--color-accent-dark);
   }
 
   .lead {
@@ -92,8 +140,32 @@ const { keywords } = Astro.props;
     display: flex;
     flex-wrap: wrap;
     gap: 0.6rem;
-    margin: 0;
+    margin: 0 0 2rem;
     padding: 0;
+  }
+
+  .feature-strip {
+    list-style: none;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1.75rem;
+    margin: 0;
+    padding: 1.25rem 0 0;
+    border-top: 1px solid var(--color-border);
+  }
+  .feature-strip li {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.88rem;
+    font-weight: 500;
+    color: var(--color-text);
+  }
+  .feature-icon {
+    width: 22px;
+    height: 22px;
+    color: var(--color-accent-dark);
+    flex-shrink: 0;
   }
 
   @media (max-width: 560px) {

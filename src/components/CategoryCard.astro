@@ -22,6 +22,13 @@ const isUrgentText = (v?: string) => !!v && /(当日|即日)/.test(v);
 ---
 
 <div class:list={["category-card", { "is-upcoming": !href }]}>
+  <span class="icon-badge" aria-hidden="true">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M3 7l9-4 9 4-9 4-9-4z" />
+      <path d="M3 7v10l9 4 9-4V7" />
+      <path d="M12 11v10" />
+    </svg>
+  </span>
   <h3>{name}</h3>
 
   {
@@ -80,6 +87,25 @@ const isUrgentText = (v?: string) => !!v && /(当日|即日)/.test(v);
   }
   .category-card.is-upcoming {
     background: var(--color-bg-soft);
+  }
+  .icon-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: var(--color-accent-soft);
+    color: var(--color-accent-dark);
+    margin-bottom: 0.75rem;
+  }
+  .icon-badge svg {
+    width: 18px;
+    height: 18px;
+  }
+  .category-card.is-upcoming .icon-badge {
+    background: var(--color-bg-soft-2);
+    color: var(--color-text-muted);
   }
   .category-card h3 {
     margin: 0 0 0.6rem;
