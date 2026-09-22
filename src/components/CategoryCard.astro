@@ -18,7 +18,7 @@ const {
   ctaLabel = "比較する",
 } = Astro.props;
 
-const isUrgentText = (v?: string) => !!v && /(当日|即日)/.test(v);
+const isUrgentText = (v?: string) => !!v && /(当日|即日|翌日)/.test(v);
 ---
 
 <div class:list={["category-card", { "is-upcoming": !href }]}>

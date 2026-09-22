@@ -12,7 +12,7 @@ const link = provider.affiliateUrl || provider.officialUrl;
 const highlightValue = highlightField ? provider.values[highlightField.key] : undefined;
 const highlightText =
   highlightValue === null || highlightValue === undefined ? undefined : String(highlightValue);
-const isUrgentText = (v?: string) => !!v && /(当日|即日)/.test(v);
+const isUrgentText = (v?: string) => !!v && /(当日|即日|翌日)/.test(v);
 ---
 
 <div class="card provider-card">

@@ -19,7 +19,7 @@ export const popularKeywords: NavLink[] = [
 
 /** 「急ぎの目的から探す」セクション */
 export const purposeFinder: NavLink[] = [
-  { label: "今日中に発送したい", href: "/categories/dm/" },
+  { label: "ダイレクトメールを明日までに発送したい", href: "/categories/dm/" },
   { label: "明日までに納品したい" },
   { label: "イベントに間に合わせたい" },
   { label: "急に名刺が必要" },

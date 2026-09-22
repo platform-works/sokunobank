@@ -15,7 +15,7 @@ function formatValue(v: string | number | boolean | null): string {
   return String(v);
 }
 
-const isUrgentText = (v: string) => /(当日|即日)/.test(v);
+const isUrgentText = (v: string) => /(当日|即日|翌日)/.test(v);
 
 function toKebab(key: string): string {
   return key.replace(/([a-z0-9])([A-Z])/g, "$1-$2").toLowerCase();
