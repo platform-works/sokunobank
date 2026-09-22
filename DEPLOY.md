@@ -23,6 +23,15 @@ Claude(AI)がこれらを代行して実行することはない(決済・アカ
 
 > **運営者秘匿の観点:** アカウント登録時のメールアドレスは、個人の普段使いのメールではなく事業用メールアドレス(README記載の `contact@example.com` を実際のものに差し替えたもの)を使うこと。
 
+### 既知の制約(重要・意思決定済み)
+
+本プロジェクトでは、selected-byで既に使用している既存のCloudflareアカウント(`importproducts55`)をそのまま使う判断をした(2026-09-22時点)。この判断に伴う既知のリスクと対策は以下の通り。
+
+- Cloudflareアカウント名 `importproducts55` は、ラクスル側に既知のアドレスである。同一アカウント内にWorkerを作ると、Worker URL(`*.importproducts55.workers.dev`)にこのアカウント名が含まれる
+- `*.workers.dev` のサブドメインはSSL証明書発行時にCertificate Transparency Log(crt.sh等で誰でも検索可能な公開記録)に記録される。**そのため「importproducts55アカウントにsokuno-bankという名前のWorkerが存在する」という事実は、後からworkers.devルートを無効化しても記録としては残り続ける**(通常の閲覧者が偶然たどり着く可能性は低いが、意図的に調べられた場合は見つかりうる)
+- 対策として、**workers.devルート(プロダクション・プレビュー双方)は無効化し、カスタムドメイン経由のみで運用する**こと(ダッシュボード → 該当Worker → ドメイン → トグルをオフ)。このURLを外部に一切共有・リンクしないこと
+- より確実な分離が必要になった場合は、SOKUNOBANK専用の別Cloudflareアカウント(別メールアドレス)への移行を再検討する
+
 ---
 
 ## 2. ドメイン取得(最重要:運営者情報の秘匿に直結)
@@ -63,6 +72,16 @@ npx wrangler deploy
 初回デプロイでは `sokuno-bank.<アカウント名>.workers.dev` のようなプレビューURLが払い出される。
 
 > **注意:** `wrangler deploy` は実際にCloudflare上へ公開される操作(外部への公開を伴う)。このプロジェクトの安全ルールにより、**本番相当の内容をデプロイする前には必ずチャットで確認を取ってから実行すること**。動作確認自体は都度相談の上で構わない。
+
+> **対応済み(2026-09-22):** 初回デプロイ完了。`https://sokuno-bank.importproducts55.workers.dev` が発行されたが、上記「既知の制約」に基づき、ダッシュボードの「ドメイン」タブでworkers.devルート(プロダクション)を無効化する運用とする。
+
+**Windows特有の既知の不具合:** wrangler実行時に `A permission error occurred... Affected path: C:\Users\<user>\Application Data` というエラーが出ることがある。これはWindowsの互換用ジャンクションフォルダへのアクセス権が壊れている場合に発生する。管理者PowerShellで以下を実行して解消する。
+
+```powershell
+takeown /F "C:\Users\<ユーザー名>\Application Data" /A
+icacls "C:\Users\<ユーザー名>\Application Data" /reset
+icacls "C:\Users\<ユーザー名>\Application Data" /grant "<ユーザー名>:(F)"
+```
 
 ---
 
