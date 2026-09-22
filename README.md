@@ -24,9 +24,12 @@ selected-by(ファッション・美容EC比較サイト)とは完全に別プ�
 
 ---
 
-## Amazonの扱い(「レジ横」方式)※方針のみ・未実装
+## Amazonの扱い(「レジ横」方式)
 
-> **現状: コード上にAmazonリンクは実装されていない。** 以下は今後DM記事等にリンクを追加する際の方針。
+> **現状(2026-09-23〜)**: アソシエイト審査完了(StoreID: `sokunobank-22`)。第1弾として
+> [/guides/dm-self-shipping/](src/pages/guides/dm-self-shipping.astro)(少量のDMなら自分で発送する方法)を公開し、
+> はがき・封筒・宛名シール・コピー機・インクジェット用紙(チラシ用)へのリンクを実装済み。
+> **180日ルールの期限は2027-03-22**(このアソシエイトIDで3件以上の売上が必要)。
 
 - 独立したカテゴリーページ・比較ページは作らない
 - 各専業サービスの記事内で、文脈が自然な箇所にのみテキストリンクとして挿入する(例:DM記事内で「宛名シールも急ぎなら」)
@@ -188,4 +191,5 @@ src/
     categories/index.astro          # カテゴリー一覧
     categories/[slug]/index.astro   # カテゴリー比較ページ
     lp/[slug]/index.astro           # カテゴリー広告LP(noindex)
+    guides/dm-self-shipping.astro   # ガイド記事(Amazonアソシエイトリンクを含む)
 ```
