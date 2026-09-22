@@ -51,6 +51,8 @@ npm run cf:deploy    # 本番デプロイ(必ず内容を確認してから実�
 
 初回は `wrangler login` でCloudflareアカウントにログインしておく必要がある。
 
+ドメイン取得・Cloudflare接続・カスタムドメイン設定などコード以外の外部手続きの詳細な手順は [DEPLOY.md](DEPLOY.md) を参照。
+
 ---
 
 ## DMカテゴリーの内容について(重要)
