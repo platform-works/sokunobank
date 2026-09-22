@@ -42,18 +42,21 @@ const siteName = "SOKUNOBANK(即納バンク)";
   :root {
     color-scheme: light;
 
-    /* ベースカラー */
+    /* ベースカラー(2026-09-23:より明るく・グリーン寄りのトーンに調整) */
     --color-bg: #ffffff;
-    --color-bg-soft: #f7f9fb;
-    --color-bg-soft-2: #f3f6f8;
+    --color-bg-soft: #f3faf6;
+    --color-bg-soft-2: #edf8f1;
     --color-text: #10243e;
     --color-text-muted: #5b6b80;
-    --color-border: #e2e8f0;
+    --color-border: #dceee4;
 
-    /* ブランドアクセント(ティール) */
-    --color-accent: #0e8f7a;
-    --color-accent-dark: #0b7a67;
-    --color-accent-soft: #e6f4f1;
+    /* ブランドアクセント(グリーン)。--color-accent/--color-accent-dark は
+       白文字ボタン・リンクテキストにも使うため、コントラスト比を保った範囲で明るくしている。
+       --color-accent-vivid はテキストを乗せない装飾(アイコン・グラデーション背景)専用 */
+    --color-accent: #108a5f;
+    --color-accent-dark: #05815b;
+    --color-accent-vivid: #0c9a66;
+    --color-accent-soft: #e3f7ec;
     --color-accent-contrast: #ffffff;
 
     /* 即納・緊急性の強調(オレンジ)。即納に関係する情報だけに使う */

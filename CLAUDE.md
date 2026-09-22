@@ -19,10 +19,12 @@
 
 ### トークン(すべて `src/layouts/Layout.astro` の `:root` に集約。値を変える場合は必ずここを直す)
 
-- 背景:`--color-bg` #FFFFFF / `--color-bg-soft` #F7F9FB / `--color-bg-soft-2` #F3F6F8
+- 背景:`--color-bg` #FFFFFF / `--color-bg-soft` #F3FAF6 / `--color-bg-soft-2` #EDF8F1(2026-09-23:より明るいグリーン寄りのトーンに調整)
 - テキスト:`--color-text` #10243E(ダークネイビー) / `--color-text-muted` #5B6B80
-- 罫線:`--color-border` #E2E8F0
-- ブランドアクセント(ティール):`--color-accent` #0E8F7A / `--color-accent-dark` #0B7A67 / `--color-accent-soft` #E6F4F1
+- 罫線:`--color-border` #DCEEE4
+- ブランドアクセント(グリーン、2026-09-23調整):`--color-accent` #108A5F / `--color-accent-dark` #05815B / `--color-accent-soft` #E3F7EC / `--color-accent-vivid` #0C9A66
+  - `--color-accent` / `--color-accent-dark` は白文字ボタンやリンクテキストにも使うため、白背景に対してそれぞれ約4.35:1 / 4.89:1のコントラスト比を確保している。**この2つの値を変える場合は必ずコントラスト比を再計算すること**(`node -e` でWCAG相対輝度を計算するスクリプトをこれまで使用)
+  - `--color-accent-vivid` はテキストを乗せない装飾専用(アイコンのstroke、グラデーション背景など)。白背景に対し約3.6:1(非テキストの下限3:1をクリア)。ボタンやリンクの文字色には使わない
 - **即納・緊急性の強調(オレンジ)**:`--color-urgent` #F59E0B系。**「最短当日」「本日発送」など即納に関係する情報だけに使う**。装飾目的で多用しない
 - 角丸:6〜10px(`--radius-sm/md/lg`)。過度に丸くしない
 - シャドウ:`--shadow-sm` のみ、非常に弱く
