@@ -2,6 +2,7 @@
 import Layout from "../../../layouts/Layout.astro";
 import Breadcrumbs from "../../../components/Breadcrumbs.astro";
 import Hero from "../../../components/Hero.astro";
+import SummaryBox from "../../../components/SummaryBox.astro";
 import Disclaimer from "../../../components/Disclaimer.astro";
 import ComparisonFilter from "../../../components/ComparisonFilter.astro";
 import ComparisonTable from "../../../components/ComparisonTable.astro";
@@ -43,6 +44,8 @@ if (!category.lastVerifiedAt) {
       subheadline={category.heroSubheadline}
       statHighlight={category.statHighlight}
     />
+
+    {category.summary && <SummaryBox text={category.summary} />}
 
     <Disclaimer />
 

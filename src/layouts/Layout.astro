@@ -10,6 +10,24 @@ interface Props {
 
 const { title, description = "急ぎ発注・最短納期の比較サイト", noindex = false } = Astro.props;
 const siteName = "SOKUNOBANK(即納バンク)";
+const canonicalURL = new URL(Astro.url.pathname, Astro.site);
+
+const websiteJsonLd = {
+  "@context": "https://schema.org",
+  "@type": "WebSite",
+  name: siteName,
+  url: Astro.site?.toString(),
+  description: "法人の発注担当者向け「急ぎ発注・最短納期比較サイト」。DM発送代行・印刷・販促物などの即納サービスを、最短納期・料金・対応条件から比較する。",
+  inLanguage: "ja",
+};
+
+const organizationJsonLd = {
+  "@context": "https://schema.org",
+  "@type": "Organization",
+  name: "SOKUNOBANK運営事務局",
+  url: Astro.site?.toString(),
+  email: "dmsales29@gmail.com",
+};
 ---
 
 <!doctype html>
@@ -19,14 +37,28 @@ const siteName = "SOKUNOBANK(即納バンク)";
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>{title} | {siteName}</title>
     <meta name="description" content={description} />
+    <link rel="canonical" href={canonicalURL} />
     {noindex && <meta name="robots" content="noindex, nofollow" />}
     <!-- 個人を特定できる情報(氏名・個人メール等)はメタデータに含めない -->
+
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content={siteName} />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={canonicalURL} />
+    <meta property="og:locale" content="ja_JP" />
+    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:title" content={title} />
+    <meta name="twitter:description" content={description} />
+
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
       href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+JP:wght@400;500;700&display=swap"
       rel="stylesheet"
     />
+    <script type="application/ld+json" set:html={JSON.stringify(websiteJsonLd)} />
+    <script type="application/ld+json" set:html={JSON.stringify(organizationJsonLd)} />
   </head>
   <body>
     <a class="skip-link" href="#main">本文へスキップ</a>

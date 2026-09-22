@@ -156,6 +156,18 @@ npm run cf:deploy    # 本番デプロイ(必ず内容を確認してから実�
 
 ---
 
+## SEO / AI検索最適化(GEO)
+
+検索エンジンに加えて、ChatGPT等のAI回答エンジンに引用・選定されることも意識している。詳細な運用ルールは [CLAUDE.md](CLAUDE.md) 参照。
+
+- `public/robots.txt`: 主要AIクローラー(GPTBot、PerplexityBot、ClaudeBot等)を明示的に許可
+- `public/llms.txt`: サイト概要・主要ページのAI向け要約
+- `/sitemap.xml`: 公開カテゴリーを自動集計する動的生成([src/pages/sitemap.xml.ts](src/pages/sitemap.xml.ts))
+- 全ページ共通の canonical・OGP・Twitter Card・`WebSite`/`Organization` 構造化データ
+- カテゴリーページ冒頭の「結論」要約ボックス、`HowTo`/`FAQPage`/`BreadcrumbList`/`Article` 構造化データ
+
+---
+
 ## ディレクトリ構成
 
 ```
@@ -185,6 +197,7 @@ src/
     FaqSection.astro
     GuideCard.astro
     CtaButton.astro
+    SummaryBox.astro          # カテゴリーページ冒頭の「結論」要約ボックス
   pages/
     index.astro                     # トップページ
     about.astro                     # 運営者情報
@@ -194,4 +207,9 @@ src/
     categories/[slug]/index.astro   # カテゴリー比較ページ
     lp/[slug]/index.astro           # カテゴリー広告LP(noindex)
     guides/dm-self-shipping.astro   # ガイド記事(Amazonアソシエイトリンクを含む)
+    sitemap.xml.ts                  # sitemap.xmlの動的生成
+public/
+  robots.txt                        # AIクローラーを含むクロール許可設定
+  llms.txt                          # AI向けサイト概要
+  images/hero-banner.webp           # トップページヒーロー背景
 ```

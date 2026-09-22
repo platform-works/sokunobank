@@ -97,6 +97,11 @@ export interface CategoryData {
   status: "draft" | "published";
   heroHeadline: string;
   heroSubheadline?: string;
+  /**
+   * ページ冒頭に表示する短い結論・要約(1〜2文)。人間の速読と、AI検索エンジンが
+   * ページの要点を引用・抽出する際の両方を意識し、単独で読んで意味が通る文章にする。
+   */
+  summary?: string;
   statHighlight?: StatHighlight;
   /** 想定検索意図(ロングテールKW等)。SEO設計・コンテンツ確認用 */
   searchIntents?: string[];

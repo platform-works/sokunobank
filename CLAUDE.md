@@ -24,6 +24,20 @@
 - Creators APIは**直近30日で10件以上の販売実績**がないと利用できない(取得後も実績が切れると自動停止)。この条件を継続的に満たすようになるまでは、上記アイコン運用を続ける
 - 2027年3月が近づいても対象アソシエイトタグでの売上実績が確認できない場合は、180日ルールによるアカウント閉鎖リスクをユーザーに知らせること
 
+## SEO / AI検索最適化(GEO)ルール(2026-09-23 導入)
+
+「検索エンジン」だけでなく「ChatGPT等のAI回答エンジンに引用・選定される」ことも最適化目標に含める。
+
+- `astro.config.mjs` の `site: "https://sokunobank.com"` を必ず維持する(canonical URL・sitemap生成に使用)
+- `public/robots.txt`:GPTBot / ChatGPT-User / OAI-SearchBot / PerplexityBot / ClaudeBot / Google-Extended 等の主要AIクローラーを明示的に許可する。新しいAIクローラーが登場したら追記する
+- `public/llms.txt`:サイト概要・主要ページ・注意事項をMarkdownで要約したAI向け案内。**新しいカテゴリー・ページを追加したら必ずここにも追記する**
+- `src/pages/sitemap.xml.ts`:静的ページ+公開カテゴリーを自動集計する動的生成。カテゴリー追加時の変更は不要だが、`guidePaths` の配列だけは新しいガイド記事追加時に手動追加が必要
+- `Layout.astro` で全ページ共通の `canonical` / OGP / Twitter Card / `WebSite`・`Organization` JSON-LDを出力済み。個人名は一切含めない(`Organization` は屋号「SOKUNOBANK運営事務局」のみ)
+- カテゴリーページ:`CategoryData.summary`(1〜2文の結論)を `SummaryBox.astro` で比較表より前に表示する。**単独で読んで意味が通る、直接引用できる文章にする**(AIが抜き出して回答に使うことを想定)。新しいカテゴリーを追加したら必ず `summary` を書く
+- `ProcessSteps.astro` は `HowTo` 構造化データを自動出力する。`FaqSection.astro` は `FAQPage`、`Breadcrumbs.astro` は `BreadcrumbList` を自動出力済み。新しい記事ページを追加する場合は `Article` 構造化データ(`headline`/`description`/`datePublished`/`author`/`publisher`)も追加する(実装例: [dm-self-shipping.astro](src/pages/guides/dm-self-shipping.astro))
+- 比較表の「要確認」は欠落ではなく「未検証であることの明示」である旨を `llms.txt` に明記している。AI側に誤って「情報がない」と解釈されないようにするため、この位置づけを崩す表現に変えない
+- **運営者匿名化との兼ね合い**:E-E-A-T(専門性・権威性・信頼性)の観点では実名の著者情報があった方が有利だが、本プロジェクトは「運営者情報の秘匿」を優先方針としている(本ファイル冒頭・README参照)。個人名を出さずに信頼性を担保する(一次情報の出典明記、「要確認」の透明性、屋号での一貫した発信)方針を継続する
+
 ## デザインルール(2026-09-22 全面リニューアルで確立)
 
 コンセプト:「価格.com × BtoB SaaS比較サイト × 即納サービス」。法人担当者が仕事中に使う検索・比較ツールであり、
