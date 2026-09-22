@@ -11,3 +11,36 @@
 - メイン事業者以外は**比較・信頼性のための参考情報としてのみ掲載**し、アフィリエイトリンク等の送客導線は付けない。
 - 広告LP(`/lp/<slug>/`)のCTAは常にメイン事業者(`lp.ctaProviderId`)のみを対象とする。参考事業者向けのCTAは作らない。
 - 新しいカテゴリーを追加する際も、この「メイン1社+比較参考複数社」の構成を踏襲する。
+
+## デザインルール(2026-09-22 全面リニューアルで確立)
+
+コンセプト:「価格.com × BtoB SaaS比較サイト × 即納サービス」。法人担当者が仕事中に使う検索・比較ツールであり、
+企業サイトでもブログでもない。**装飾 < 検索性 < 比較性 < 意思決定のしやすさ**の優先順位を常に守ること。
+
+### トークン(すべて `src/layouts/Layout.astro` の `:root` に集約。値を変える場合は必ずここを直す)
+
+- 背景:`--color-bg` #FFFFFF / `--color-bg-soft` #F7F9FB / `--color-bg-soft-2` #F3F6F8
+- テキスト:`--color-text` #10243E(ダークネイビー) / `--color-text-muted` #5B6B80
+- 罫線:`--color-border` #E2E8F0
+- ブランドアクセント(ティール):`--color-accent` #0E8F7A / `--color-accent-dark` #0B7A67 / `--color-accent-soft` #E6F4F1
+- **即納・緊急性の強調(オレンジ)**:`--color-urgent` #F59E0B系。**「最短当日」「本日発送」など即納に関係する情報だけに使う**。装飾目的で多用しない
+- 角丸:6〜10px(`--radius-sm/md/lg`)。過度に丸くしない
+- シャドウ:`--shadow-sm` のみ、非常に弱く
+- コンテナ幅:`--container-width` 1200px
+- フォント:Noto Sans JP + Inter(Google Fonts、Layout.astroでpreconnect+読み込み済み)。見出し600〜700、本文400〜500
+
+### コンポーネント規約
+
+- ボタンは共通クラス `.btn` `.btn-primary`(ティール)`.btn-secondary`(アウトライン)`.btn-disabled` を使う。個別コンポーネントでボタンCSSを再定義しない。高さ44px、`.btn-lg`は48px
+- カードは `.card`、チップ(キーワード等)は `.chip`(`.is-disabled`で非活性)、バッジは `.badge`(メイン事業者用)と `.badge-urgent`(即納強調・オレンジ)、`.badge-soon`(準備中)を使い分ける
+- 比較表は `ComparisonTable.astro` を使い、`table.responsive-table` クラスでモバイル時にJSなし(CSSのみ)でカード表示に変換する。新しい比較データを出す時もこのコンポーネントを再利用し、独自の表を作らない
+- 条件検索は `ComparisonFilter.astro` + `provider.facets` + `category.filterFields`(schema.ts参照)で実装。値が不明な項目は絞り込みで除外せず常に表示する設計(誤って対象外に見せない)
+- パンくずは全ページ `Breadcrumbs.astro` で統一(BreadcrumbList構造化データも自動出力)
+- 未公開のリンク先(将来カテゴリー・関連記事など)は**リンクを張らず「準備中」(`.badge-soon`)表示にする**。存在しないページへのリンクは作らない
+- モバイルメニューは `<details>/<summary>` によるJS不要の実装を維持する(不要なJSを増やさない方針)
+- クリック領域は44px以上を確保する(チップ・ナビリンク・フィルタ操作すべて)
+
+### 避けるべきこと(ユーザー指定)
+
+派手なLP、安売りEC風、金融機関のような重いデザイン、過度なグラデーション・アニメーション、意味のない大きな写真、
+カードを大量に並べただけのUI、AI生成サイト特有の過剰な丸角。
