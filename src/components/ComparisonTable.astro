@@ -1,0 +1,59 @@
+---
+import type { ComparisonField, Provider } from "../data/schema";
+
+interface Props {
+  fields: ComparisonField[];
+  providers: Provider[];
+}
+const { fields, providers } = Astro.props;
+
+function formatValue(v: string | number | boolean | null): string {
+  if (v === null || v === undefined) return "要確認";
+  if (typeof v === "boolean") return v ? "あり" : "なし";
+  return String(v);
+}
+---
+
+<div class="table-wrap">
+  <table>
+    <thead>
+      <tr>
+        <th>事業者</th>
+        {fields.map((f) => <th>{f.label}{f.unit ? `(${f.unit})` : ""}</th>)}
+      </tr>
+    </thead>
+    <tbody>
+      {
+        providers.map((p) => (
+          <tr class={p.isPrimary ? "primary-row" : ""}>
+            <th scope="row">
+              {p.name}
+              {p.isPrimary && <span class="badge">メイン</span>}
+            </th>
+            {fields.map((f) => <td>{formatValue(p.values[f.key])}</td>)}
+          </tr>
+        ))
+      }
+    </tbody>
+  </table>
+</div>
+
+<style>
+  .table-wrap {
+    overflow-x: auto;
+    margin: 1.5rem 0;
+  }
+  .primary-row {
+    background: var(--color-accent-bg);
+  }
+  .badge {
+    display: inline-block;
+    margin-left: 0.4rem;
+    font-size: 0.7rem;
+    background: var(--color-primary);
+    color: var(--color-primary-contrast);
+    border-radius: 999px;
+    padding: 0.1rem 0.5rem;
+    vertical-align: middle;
+  }
+</style>

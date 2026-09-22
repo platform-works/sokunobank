@@ -1,0 +1,47 @@
+---
+import Layout from "../layouts/Layout.astro";
+import { getPublishedCategories } from "../data/loadCategories";
+
+const categories = getPublishedCategories();
+---
+
+<Layout
+  title="急ぎ発注・最短納期の比較サイト"
+  description="「今日中/明日までに欲しい」法人の発注担当者向けに、各カテゴリーの最短納期を比較します。"
+>
+  <section class="hero">
+    <h1>SOKUNOBANK(即納バンク)</h1>
+    <p>「今日中/明日までに◯◯が欲しい」——そんな法人の発注担当者のための、最短納期比較サイトです。</p>
+  </section>
+
+  <section>
+    <h2>カテゴリー一覧</h2>
+    <ul class="category-list">
+      {
+        categories.map((c) => (
+          <li>
+            <a href={`/categories/${c.slug}/`}>{c.name}</a>
+          </li>
+        ))
+      }
+    </ul>
+  </section>
+</Layout>
+
+<style>
+  .hero {
+    padding: 2rem 0;
+  }
+  .category-list {
+    list-style: none;
+    padding: 0;
+  }
+  .category-list li {
+    margin: 0.5rem 0;
+  }
+  .category-list a {
+    font-size: 1.1rem;
+    font-weight: 600;
+    text-decoration: none;
+  }
+</style>

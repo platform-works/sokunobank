@@ -1,0 +1,44 @@
+---
+import type { ReaderPathway } from "../data/schema";
+
+interface Props {
+  pathways: ReaderPathway[];
+  title?: string;
+}
+const { pathways, title = "あなたはどちらのタイプ?" } = Astro.props;
+---
+
+<section>
+  <h2>{title}</h2>
+  <div class="grid">
+    {
+      pathways.map((p) => (
+        <div class="pathway">
+          <h3>{p.title}</h3>
+          <p>{p.description}</p>
+          <ul>
+            {p.bestFor.map((b) => (
+              <li>{b}</li>
+            ))}
+          </ul>
+        </div>
+      ))
+    }
+  </div>
+</section>
+
+<style>
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 1rem;
+  }
+  .pathway {
+    border: 1px solid var(--color-border);
+    border-radius: 0.75rem;
+    padding: 1rem 1.25rem;
+  }
+  .pathway h3 {
+    margin-top: 0;
+  }
+</style>

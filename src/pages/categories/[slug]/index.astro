@@ -1,0 +1,55 @@
+---
+import Layout from "../../../layouts/Layout.astro";
+import Hero from "../../../components/Hero.astro";
+import Disclaimer from "../../../components/Disclaimer.astro";
+import ComparisonTable from "../../../components/ComparisonTable.astro";
+import ProviderCard from "../../../components/ProviderCard.astro";
+import ReaderPathways from "../../../components/ReaderPathways.astro";
+import ProcessSteps from "../../../components/ProcessSteps.astro";
+import { getPublishedCategories } from "../../../data/loadCategories";
+
+export function getStaticPaths() {
+  // 公開対象(status: "published")のカテゴリーのみルートを生成する。
+  // カテゴリーを追加してもこのファイル自体の変更は不要。
+  return getPublishedCategories().map((category) => ({
+    params: { slug: category.slug },
+    props: { category },
+  }));
+}
+
+const { category } = Astro.props;
+
+if (!category.lastVerifiedAt) {
+  console.warn(
+    `[categories/${category.slug}] lastVerifiedAt が未設定です。公開前に料金・納期情報を確認してください。`
+  );
+}
+---
+
+<Layout title={category.name} description={category.heroHeadline}>
+  <Hero
+    headline={category.heroHeadline}
+    subheadline={category.heroSubheadline}
+    statHighlight={category.statHighlight}
+  />
+
+  <Disclaimer />
+
+  <section>
+    <h2>比較表</h2>
+    <ComparisonTable fields={category.comparisonFields} providers={category.providers} />
+  </section>
+
+  <section>
+    <h2>各社の詳細</h2>
+    {category.providers.map((p) => <ProviderCard provider={p} />)}
+  </section>
+
+  {category.readerPathways && category.readerPathways.length > 0 && (
+    <ReaderPathways pathways={category.readerPathways} />
+  )}
+
+  {category.processSteps && category.processSteps.length > 0 && (
+    <ProcessSteps steps={category.processSteps} />
+  )}
+</Layout>

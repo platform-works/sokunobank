@@ -1,0 +1,17 @@
+{
+  "slug": "printing",
+  "name": "印刷",
+  "shortName": "印刷",
+  "status": "draft",
+  "heroHeadline": "(未作成)印刷の最短納期比較",
+  "comparisonFields": [
+    { "key": "speed", "label": "最短納期" },
+    { "key": "minQuantity", "label": "最低依頼数" },
+    { "key": "priceRange", "label": "単価帯(目安)" }
+  ],
+  "providers": [],
+  "todos": [
+    "このファイルはカテゴリー追加時の雛形。DMカテゴリー(dm.json)と同じスキーマで実データを埋めてから status を published にする"
+  ],
+  "lastVerifiedAt": null
+}

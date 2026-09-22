@@ -1,0 +1,11 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "sokuno-bank",
+  "compatibility_date": "2025-01-01",
+  // Astro は静的ビルド (dist/) を出力する。Cloudflare Workers の
+  // Static Assets 機能でそのまま配信する構成。
+  "assets": {
+    "directory": "./dist",
+    "not_found_handling": "404-page"
+  }
+}

@@ -1,0 +1,166 @@
+{
+  "slug": "dm",
+  "name": "DM(ダイレクトメール)発送代行",
+  "shortName": "DM発送代行",
+  "status": "published",
+  "heroHeadline": "DM発送代行、最短で頼めるのはどこ?",
+  "heroSubheadline": "「今日中・明日までに発送したい」法人担当者向けに、最短スピード軸で比較しました。",
+  "statHighlight": {
+    "label": "DMの平均開封率",
+    "value": "75.4%",
+    "source": "日本ダイレクトメール協会調べ(参考:メルマガの開封率は一般に約30%と言われる)"
+  },
+  "searchIntents": [
+    "DM 即日発送",
+    "DM 発送代行 最短",
+    "DM 印刷 当日",
+    "ラクスルDM便",
+    "DM発送代行 比較"
+  ],
+  "comparisonFields": [
+    { "key": "speed", "label": "最短発送スピード" },
+    { "key": "minQuantity", "label": "最低依頼数" },
+    { "key": "priceRange", "label": "単価帯(目安)" },
+    { "key": "apiIntegration", "label": "API連携" },
+    { "key": "listRental", "label": "企業リストのレンタル" },
+    { "key": "coverage", "label": "対応エリア" }
+  ],
+  "providers": [
+    {
+      "id": "raksul",
+      "name": "ラクスル(ラクスルDM便)",
+      "isPrimary": true,
+      "officialUrl": "",
+      "affiliateUrl": "",
+      "description": "地区宅便との提携により、見積もり〜注文完了までのプロセスを自動化し、リードタイムを短縮したことを謳う。非信書のDM発送代行。",
+      "values": {
+        "speed": "最短当日発送を謳う(要確認:データ入稿の締切時刻・対象エリア)",
+        "minQuantity": "500通〜(非信書のみ)",
+        "priceRange": "定形ハガキ 45円(税込)〜を謳う(過去資料では56.1円〜の記載もあり変動の可能性)",
+        "apiIntegration": "要確認",
+        "listRental": "要確認",
+        "coverage": "一都三県・関西エリアは地区宅便の配送網、それ以外は日本郵便「ゆうメール」経由で全国対応"
+      },
+      "sourceNote": "料金・納期は変動する可能性が高いため、公開前に必ず公式サイトで一次情報を確認すること。「ラクスルDM便」と「ラクスルダイレクトメール(一般プラン)」が同一サービスか別プランかも要確認。"
+    },
+    {
+      "id": "selmarke",
+      "name": "セルマーケ",
+      "isPrimary": false,
+      "officialUrl": "",
+      "description": "比較・信頼性のための参考情報として掲載(送客リンクなし)。",
+      "values": {
+        "speed": "要確認",
+        "minQuantity": "要確認",
+        "priceRange": "要確認",
+        "apiIntegration": "要確認",
+        "listRental": "要確認",
+        "coverage": "要確認"
+      },
+      "sourceNote": "公開前に公式サイトで一次情報を確認すること。"
+    },
+    {
+      "id": "nexlink",
+      "name": "NEXLINK(ネクスウェイ)",
+      "isPrimary": false,
+      "officialUrl": "",
+      "description": "比較・信頼性のための参考情報として掲載(送客リンクなし)。",
+      "values": {
+        "speed": "要確認",
+        "minQuantity": "要確認",
+        "priceRange": "要確認",
+        "apiIntegration": "要確認",
+        "listRental": "要確認",
+        "coverage": "要確認"
+      },
+      "sourceNote": "公開前に公式サイトで一次情報を確認すること。"
+    },
+    {
+      "id": "zenrin-marketing-solutions",
+      "name": "ゼンリンマーケティングソリューションズ",
+      "isPrimary": false,
+      "officialUrl": "",
+      "description": "比較・信頼性のための参考情報として掲載(送客リンクなし)。",
+      "values": {
+        "speed": "要確認",
+        "minQuantity": "要確認",
+        "priceRange": "要確認",
+        "apiIntegration": "要確認",
+        "listRental": "要確認",
+        "coverage": "要確認"
+      },
+      "sourceNote": "公開前に公式サイトで一次情報を確認すること。"
+    },
+    {
+      "id": "mediabox",
+      "name": "DM発送代行センター(メディアボックス)",
+      "isPrimary": false,
+      "officialUrl": "",
+      "description": "比較・信頼性のための参考情報として掲載(送客リンクなし)。",
+      "values": {
+        "speed": "要確認",
+        "minQuantity": "要確認",
+        "priceRange": "要確認",
+        "apiIntegration": "要確認",
+        "listRental": "要確認",
+        "coverage": "要確認"
+      },
+      "sourceNote": "公開前に公式サイトで一次情報を確認すること。"
+    }
+  ],
+  "processSteps": [
+    { "title": "相談・見積もり依頼" },
+    { "title": "発送物の仕様確定", "description": "はがき/圧着ハガキ/封筒+同梱物、サイズ、部数を決める" },
+    { "title": "宛名リストの準備", "description": "自社リスト、または業者から購入・レンタル" },
+    { "title": "デザイン・原稿データの準備", "description": "テンプレート活用、またはゼロから作成" },
+    { "title": "データ入稿" },
+    { "title": "校正確認" },
+    { "title": "印刷・封入・宛名印字" },
+    { "title": "発送" }
+  ],
+  "readerPathways": [
+    {
+      "id": "full-outsource",
+      "title": "フルおまかせ型",
+      "description": "宛名リストやデザインもまだ手元にない場合。業者に相談しながら一から準備するため、即日〜翌日発送は基本的に難しい。",
+      "bestFor": [
+        "宛名リストが未整備",
+        "デザイン案がまだない",
+        "初めてDM発送を依頼する"
+      ]
+    },
+    {
+      "id": "data-in-hand",
+      "title": "データ持ち込み型",
+      "description": "宛名リスト・デザインデータをすでに用意できている場合。即日〜翌日発送を狙うなら、この状態で入稿できるかが鍵になる。",
+      "bestFor": [
+        "宛名リストが自社にある",
+        "デザインデータが完成している",
+        "とにかく最短で発送したい"
+      ]
+    }
+  ],
+  "lp": {
+    "headline": "今日中にDMを発送したい方へ",
+    "subheadline": "宛名リストとデザインデータがあれば、最短当日発送を狙えます。",
+    "ctaLabel": "ラクスルDM便を見てみる",
+    "ctaProviderId": "raksul",
+    "highlights": [
+      "非信書のDMなら500通から依頼可能",
+      "一都三県・関西は地区宅便網、その他は全国のゆうメールで対応",
+      "既存テンプレートを活用すればデザインをゼロから作らなくてよい(要確認:テンプレート数・対象プランの最新情報)"
+    ],
+    "hookNote": "見積もり〜注文完了までのプロセスが自動化され、以前より大幅に短縮されたとのこと",
+    "hookVerified": false
+  },
+  "todos": [
+    "ラクスルの「最短当日発送」の正確な条件(データ入稿の締め切り時刻、対応エリア等)を公式サイトで確認する",
+    "「ラクスルDM便」と「ラクスルダイレクトメール(一般プラン)」が同一サービスか別プランかを確認する",
+    "単価(45円〜/56.1円〜)など料金情報を公式サイトの最新表示で確認する",
+    "セルマーケ・NEXLINK等がA8.net/ValueCommerceに広告主登録されているか確認する(管理画面で確認予定)",
+    "参考掲載の他社4社(セルマーケ/NEXLINK/ゼンリンマーケティングソリューションズ/メディアボックス)の一次情報を公式サイトで確認し、要確認項目を埋める",
+    "ラクスルの公式URL・アフィリエイトリンク(ValueCommerce)を確定し、officialUrl / affiliateUrl に設定する",
+    "LPのhookNote(最短1日短縮の訴求)を公式情報で最終確認し、hookVerified を true にする"
+  ],
+  "lastVerifiedAt": null
+}

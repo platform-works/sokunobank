@@ -1,0 +1,35 @@
+---
+import type { ProcessStep } from "../data/schema";
+
+interface Props {
+  steps: ProcessStep[];
+  title?: string;
+}
+const { steps, title = "発注〜到着までの流れ" } = Astro.props;
+---
+
+<section>
+  <h2>{title}</h2>
+  <ol class="steps">
+    {
+      steps.map((s) => (
+        <li>
+          <strong>{s.title}</strong>
+          {s.description && <span class="desc"> — {s.description}</span>}
+        </li>
+      ))
+    }
+  </ol>
+</section>
+
+<style>
+  .steps {
+    padding-left: 1.4rem;
+  }
+  .steps li {
+    margin: 0.4rem 0;
+  }
+  .desc {
+    color: var(--color-muted);
+  }
+</style>

@@ -1,0 +1,21 @@
+---
+interface Props {
+  text?: string;
+}
+const {
+  text = "掲載している料金・納期等の情報は変動する可能性があります。ご発注前に必ず各社公式サイトで最新情報をご確認ください。",
+} = Astro.props;
+---
+
+<div class="disclaimer">{text}</div>
+
+<style>
+  .disclaimer {
+    background: var(--color-warn-bg);
+    border: 1px solid var(--color-warn-border);
+    border-radius: 0.5rem;
+    padding: 0.8rem 1rem;
+    font-size: 0.85rem;
+    margin: 1.5rem 0;
+  }
+</style>

@@ -1,0 +1,82 @@
+---
+import Header from "../components/Header.astro";
+import Footer from "../components/Footer.astro";
+
+interface Props {
+  title: string;
+  description?: string;
+  noindex?: boolean;
+}
+
+const { title, description = "急ぎ発注・最短納期の比較サイト", noindex = false } = Astro.props;
+const siteName = "SOKUNOBANK(即納バンク)";
+---
+
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{title} | {siteName}</title>
+    <meta name="description" content={description} />
+    {noindex && <meta name="robots" content="noindex, nofollow" />}
+    <!-- 個人を特定できる情報(氏名・個人メール等)はメタデータに含めない -->
+  </head>
+  <body>
+    <Header siteName={siteName} />
+    <main>
+      <slot />
+    </main>
+    <Footer siteName={siteName} />
+  </body>
+</html>
+
+<style is:global>
+  :root {
+    color-scheme: light;
+    --color-bg: #ffffff;
+    --color-text: #1a1a1a;
+    --color-muted: #6b7280;
+    --color-border: #e5e7eb;
+    --color-primary: #0f5f4c;
+    --color-primary-contrast: #ffffff;
+    --color-accent-bg: #f3f8f6;
+    --color-warn-bg: #fff8e6;
+    --color-warn-border: #f2c94c;
+    font-family: -apple-system, BlinkMacSystemFont, "Hiragino Sans", "Noto Sans JP", sans-serif;
+  }
+
+  * {
+    box-sizing: border-box;
+  }
+
+  body {
+    margin: 0;
+    background: var(--color-bg);
+    color: var(--color-text);
+    line-height: 1.7;
+  }
+
+  main {
+    max-width: 960px;
+    margin: 0 auto;
+    padding: 0 1.25rem;
+  }
+
+  a {
+    color: var(--color-primary);
+  }
+
+  table {
+    border-collapse: collapse;
+    width: 100%;
+  }
+
+  th,
+  td {
+    border: 1px solid var(--color-border);
+    padding: 0.6rem 0.8rem;
+    text-align: left;
+    vertical-align: top;
+  }
+</style>

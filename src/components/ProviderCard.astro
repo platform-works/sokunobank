@@ -1,0 +1,64 @@
+---
+import type { Provider } from "../data/schema";
+
+interface Props {
+  provider: Provider;
+}
+const { provider } = Astro.props;
+const link = provider.affiliateUrl || provider.officialUrl;
+---
+
+<div class="card">
+  <h3>
+    {provider.name}
+    {provider.isPrimary && <span class="badge">メイン</span>}
+  </h3>
+  {provider.description && <p>{provider.description}</p>}
+  {
+    link ? (
+      <a class="cta" href={link} rel={provider.affiliateUrl ? "sponsored noopener" : "noopener"} target="_blank">
+        公式サイトを見る
+      </a>
+    ) : (
+      <p class="pending">公式サイトURL:準備中(要確認)</p>
+    )
+  }
+  {provider.sourceNote && <p class="note">{provider.sourceNote}</p>}
+</div>
+
+<style>
+  .card {
+    border: 1px solid var(--color-border);
+    border-radius: 0.75rem;
+    padding: 1rem 1.25rem;
+    margin: 1rem 0;
+  }
+  h3 {
+    margin: 0 0 0.4rem;
+    font-size: 1.05rem;
+  }
+  .badge {
+    display: inline-block;
+    margin-left: 0.4rem;
+    font-size: 0.7rem;
+    background: var(--color-primary);
+    color: var(--color-primary-contrast);
+    border-radius: 999px;
+    padding: 0.1rem 0.5rem;
+    vertical-align: middle;
+  }
+  .cta {
+    display: inline-block;
+    margin-top: 0.5rem;
+    font-weight: 600;
+  }
+  .pending {
+    color: var(--color-muted);
+    font-size: 0.85rem;
+  }
+  .note {
+    color: var(--color-muted);
+    font-size: 0.8rem;
+    margin-top: 0.6rem;
+  }
+</style>

@@ -1,0 +1,76 @@
+---
+import Layout from "../../../layouts/Layout.astro";
+import CtaButton from "../../../components/CtaButton.astro";
+import { getPublishedCategories } from "../../../data/loadCategories";
+import type { CategoryData } from "../../../data/schema";
+
+export function getStaticPaths() {
+  // lp データを持つ公開カテゴリーのみ広告LPルートを生成する。
+  return getPublishedCategories()
+    .filter((category) => category.lp)
+    .map((category) => ({
+      params: { slug: category.slug },
+      props: { category },
+    }));
+}
+
+const { category } = Astro.props as { category: CategoryData };
+const lp = category.lp!;
+const ctaProvider = category.providers.find((p) => p.id === lp.ctaProviderId);
+const ctaHref = ctaProvider?.affiliateUrl || ctaProvider?.officialUrl;
+
+if (lp.hookNote && !lp.hookVerified) {
+  console.warn(
+    `[lp/${category.slug}] hookNote が公式情報で未確認(hookVerified: false)です。公開前に確認してください: "${lp.hookNote}"`
+  );
+}
+---
+
+<Layout title={lp.headline} description={lp.subheadline ?? category.heroHeadline} noindex>
+  <section class="lp-hero">
+    <h1>{lp.headline}</h1>
+    {lp.subheadline && <p class="sub">{lp.subheadline}</p>}
+    <CtaButton label={lp.ctaLabel} href={ctaHref} sponsored={Boolean(ctaProvider?.affiliateUrl)} />
+  </section>
+
+  <ul class="highlights">
+    {lp.highlights.map((h) => <li>{h}</li>)}
+  </ul>
+
+  {lp.hookNote && <p class="hook">{lp.hookNote}</p>}
+
+  <div class="cta-bottom">
+    <CtaButton label={lp.ctaLabel} href={ctaHref} sponsored={Boolean(ctaProvider?.affiliateUrl)} />
+  </div>
+</Layout>
+
+<style>
+  .lp-hero {
+    text-align: center;
+    padding: 3rem 0 2rem;
+  }
+  .lp-hero h1 {
+    font-size: 2rem;
+  }
+  .sub {
+    color: var(--color-muted);
+    margin-bottom: 1.5rem;
+  }
+  .highlights {
+    max-width: 480px;
+    margin: 2rem auto;
+    padding-left: 1.2rem;
+  }
+  .highlights li {
+    margin: 0.5rem 0;
+  }
+  .hook {
+    text-align: center;
+    color: var(--color-muted);
+    font-size: 0.9rem;
+  }
+  .cta-bottom {
+    text-align: center;
+    margin: 2.5rem 0;
+  }
+</style>

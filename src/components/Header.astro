@@ -1,0 +1,35 @@
+---
+interface Props {
+  siteName: string;
+}
+const { siteName } = Astro.props;
+---
+
+<header class="site-header">
+  <a class="brand" href="/">{siteName}</a>
+  <nav>
+    <a href="/categories/dm/">DM発送代行比較</a>
+    <a href="/about/">運営者情報</a>
+  </nav>
+</header>
+
+<style>
+  .site-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    max-width: 960px;
+    margin: 0 auto;
+    padding: 1rem 1.25rem;
+  }
+  .brand {
+    font-weight: 700;
+    text-decoration: none;
+    color: var(--color-text);
+  }
+  nav {
+    display: flex;
+    gap: 1rem;
+    font-size: 0.9rem;
+  }
+</style>

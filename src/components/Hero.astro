@@ -1,0 +1,47 @@
+---
+import type { StatHighlight } from "../data/schema";
+
+interface Props {
+  headline: string;
+  subheadline?: string;
+  statHighlight?: StatHighlight;
+}
+const { headline, subheadline, statHighlight } = Astro.props;
+---
+
+<section class="hero">
+  <h1>{headline}</h1>
+  {subheadline && <p class="subheadline">{subheadline}</p>}
+  {
+    statHighlight && (
+      <p class="stat">
+        <strong>{statHighlight.label}: {statHighlight.value}</strong>
+        {statHighlight.source && <span class="source"> ({statHighlight.source})</span>}
+      </p>
+    )
+  }
+</section>
+
+<style>
+  .hero {
+    padding: 2.5rem 0 1.5rem;
+  }
+  h1 {
+    font-size: 1.9rem;
+    margin: 0 0 0.5rem;
+  }
+  .subheadline {
+    color: var(--color-muted);
+    margin: 0 0 1rem;
+  }
+  .stat {
+    display: inline-block;
+    background: var(--color-accent-bg);
+    padding: 0.6rem 1rem;
+    border-radius: 0.5rem;
+  }
+  .source {
+    color: var(--color-muted);
+    font-weight: 400;
+  }
+</style>
