@@ -10,31 +10,40 @@ function amazonSearch(keyword: string) {
   return `https://www.amazon.co.jp/s?k=${encodeURIComponent(keyword)}&tag=${amazonTag}`;
 }
 
+// 商品画像はAmazon公式API(旧PA-API、現Creators API)経由でのみ使用が許可されており、
+// 検索結果ページからの画像取得・自社ホスティングは規約違反となるため行わない。
+// Creators APIは直近30日で10件以上の販売実績がないと利用できないため、
+// 実績が付くまではサイトの既存デザインに合わせた線画アイコン(SVG)で代替する。
 const items = [
   {
     name: "はがき",
     note: "私製はがき用紙。郵便料金分の切手を別途貼る前提のもの、料額印刷済みのものなど種類があるので用途に合わせて選ぶ。",
     keyword: "はがき 用紙",
+    icon: "postcard",
   },
   {
     name: "封筒",
     note: "角2・長3などサイズ違いがある。同梱物のサイズに合わせて選ぶ。",
     keyword: "封筒",
+    icon: "envelope",
   },
   {
     name: "宛名シール",
     note: "プリンターで宛名を印字して貼るタイプ。差込印刷(はがき/封筒印刷ソフト)対応のものが作業しやすい。",
     keyword: "宛名シール 印刷用",
+    icon: "label",
   },
   {
     name: "コピー機・プリンター",
     note: "手元に印刷環境がない場合。部数が多いとコンビニ印刷より家庭用複合機の方が割安になることがある。",
     keyword: "コピー機 複合機",
+    icon: "printer",
   },
   {
     name: "インクジェット用紙(チラシ用)",
     note: "同梱するチラシ・案内状を自分で印刷する場合の用紙。",
     keyword: "インクジェット用紙 チラシ",
+    icon: "paper",
   },
 ];
 ---
@@ -71,6 +80,46 @@ const items = [
       {
         items.map((item) => (
           <li>
+            <span class="icon-badge" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+                {item.icon === "postcard" && (
+                  <>
+                    <rect x="3" y="6" width="18" height="12" rx="1" />
+                    <line x1="13.5" y1="6" x2="13.5" y2="18" />
+                    <rect x="16" y="8" width="3.5" height="3" />
+                  </>
+                )}
+                {item.icon === "envelope" && (
+                  <>
+                    <rect x="3" y="5" width="18" height="14" rx="1" />
+                    <path d="M3 6l9 7 9-7" />
+                  </>
+                )}
+                {item.icon === "label" && (
+                  <>
+                    <rect x="3" y="5" width="18" height="14" rx="2" />
+                    <line x1="6.5" y1="9.5" x2="14" y2="9.5" />
+                    <line x1="6.5" y1="13" x2="16.5" y2="13" />
+                    <line x1="6.5" y1="16.5" x2="12" y2="16.5" />
+                  </>
+                )}
+                {item.icon === "printer" && (
+                  <>
+                    <path d="M6 9V4h12v5" />
+                    <rect x="4" y="9" width="16" height="7" rx="1" />
+                    <path d="M7 16v4h10v-4" />
+                  </>
+                )}
+                {item.icon === "paper" && (
+                  <>
+                    <rect x="5" y="3" width="13" height="18" rx="1" />
+                    <line x1="8" y1="8" x2="15" y2="8" />
+                    <line x1="8" y1="12" x2="15" y2="12" />
+                    <line x1="8" y1="16" x2="12" y2="16" />
+                  </>
+                )}
+              </svg>
+            </span>
             <strong>{item.name}</strong>
             <p>{item.note}</p>
             <a class="btn btn-secondary" href={amazonSearch(item.keyword)} target="_blank" rel="sponsored noopener">
@@ -112,5 +161,23 @@ const items = [
     color: var(--color-text-muted);
     font-size: 0.9rem;
     margin: 0.4rem 0 0.75rem;
+  }
+  .item-list .icon-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: var(--color-accent-soft);
+    color: var(--color-accent-vivid);
+    margin-bottom: 0.6rem;
+  }
+  .item-list .icon-badge svg {
+    width: 18px;
+    height: 18px;
+  }
+  .item-list strong {
+    display: block;
   }
 </style>
