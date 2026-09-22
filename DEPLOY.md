@@ -43,7 +43,7 @@ Claude(AI)がこれらを代行して実行することはない(決済・アカ
 - Cloudflareでもドメイン登録(Cloudflare Registrar)を提供しているが、対応TLDや新規登録・移管の条件は変更されることがあるため、**申し込み時点でCloudflare公式サイトの最新情報を確認すること**
 
 チェックリスト:
-- [ ] レジストラを選定し、WHOISプライバシー保護が有効なプラン/オプションであることを確認した
+- [x] レジストラを選定し、WHOISプライバシー保護が有効なプラン/オプションであることを確認した(`sokunobank.com` をCloudflare Registrarで取得。「Privacy by default」によりWHOISプライバシー保護が自動適用される)
 - [ ] 登録完了後、実際に外部のWHOIS照会サービス(例:`whois` コマンドや `https://whois.icann.org/`)で自分の氏名・住所・電話番号が表示されないことを確認した
 
 ---
@@ -87,9 +87,11 @@ icacls "C:\Users\<ユーザー名>\Application Data" /grant "<ユーザー名>:(
 
 ## 5. カスタムドメインの紐付け
 
-Cloudflareダッシュボード → **Workers & Pages** → `sokuno-bank` → **Settings** → **Domains & Routes** から、取得したドメイン(例:`sokunobank.example`)を Custom Domain として追加する。
+Cloudflareダッシュボード → **Workers & Pages** → `sokuno-bank` → **ドメイン** タブ → 「カスタムドメインとルーティングする」の「+ ドメインを追加」から、取得したドメインを Custom Domain として追加する(サブドメインは空欄でルートドメインを指定)。
 
 > Cloudflareの設定画面・`wrangler.jsonc` の `routes` 記法は更新されることがあるため、実施時に [Cloudflare Workers公式ドキュメント](https://developers.cloudflare.com/workers/) の最新の手順を確認すること。
+
+> **対応済み(2026-09-22):** `sokunobank.com` をカスタムドメインとして追加し、`https://sokunobank.com` で正常に表示されることを確認済み。次のアクション:「1. Cloudflareアカウント作成」内の「既知の制約」に従い、Worker URLタブの workers.dev ルート(プロダクション・プレビュー)を無効化すること(未実施)。
 
 ---
 
