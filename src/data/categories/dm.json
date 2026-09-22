@@ -65,7 +65,6 @@
       "name": "セルマーケ",
       "isPrimary": false,
       "officialUrl": "",
-      "description": "比較・信頼性のための参考情報として掲載(送客リンクなし)。",
       "values": {
         "speed": "要確認",
         "minQuantity": "要確認",
@@ -81,7 +80,6 @@
       "name": "NEXLINK(ネクスウェイ)",
       "isPrimary": false,
       "officialUrl": "",
-      "description": "比較・信頼性のための参考情報として掲載(送客リンクなし)。",
       "values": {
         "speed": "要確認",
         "minQuantity": "要確認",
@@ -97,7 +95,6 @@
       "name": "ゼンリンマーケティングソリューションズ",
       "isPrimary": false,
       "officialUrl": "",
-      "description": "比較・信頼性のための参考情報として掲載(送客リンクなし)。",
       "values": {
         "speed": "要確認",
         "minQuantity": "要確認",
@@ -113,7 +110,6 @@
       "name": "DM発送代行センター(メディアボックス)",
       "isPrimary": false,
       "officialUrl": "",
-      "description": "比較・信頼性のための参考情報として掲載(送客リンクなし)。",
       "values": {
         "speed": "要確認",
         "minQuantity": "要確認",
