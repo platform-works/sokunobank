@@ -4,15 +4,14 @@ interface Props {
 }
 const { siteName } = Astro.props;
 const year = new Date().getFullYear();
-// 事業用の連絡先(要設定)。個人の本名・普段使いのメールアドレスは記載しない。
-const contactEmail = "contact@example.com";
+// 事業用の連絡先。個人の本名・普段使いのメールアドレスは記載しない。
+const contactEmail = "dmsales29@gmail.com";
 ---
 
 <footer class="site-footer">
   <p>
     運営:SOKUNOBANK運営事務局 / お問い合わせ:
     <a href={`mailto:${contactEmail}`}>{contactEmail}</a>
-    (要設定:事業用メールアドレスに差し替えること)
   </p>
   <p><a href="/about/">運営者情報</a></p>
   <p>&copy; {year} {siteName}</p>
