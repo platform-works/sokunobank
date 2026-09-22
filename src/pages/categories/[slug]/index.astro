@@ -1,11 +1,15 @@
 ---
 import Layout from "../../../layouts/Layout.astro";
+import Breadcrumbs from "../../../components/Breadcrumbs.astro";
 import Hero from "../../../components/Hero.astro";
 import Disclaimer from "../../../components/Disclaimer.astro";
+import ComparisonFilter from "../../../components/ComparisonFilter.astro";
 import ComparisonTable from "../../../components/ComparisonTable.astro";
 import ProviderCard from "../../../components/ProviderCard.astro";
 import ReaderPathways from "../../../components/ReaderPathways.astro";
 import ProcessSteps from "../../../components/ProcessSteps.astro";
+import FaqSection from "../../../components/FaqSection.astro";
+import GuideCard from "../../../components/GuideCard.astro";
 import { getPublishedCategories } from "../../../data/loadCategories";
 
 export function getStaticPaths() {
@@ -18,6 +22,8 @@ export function getStaticPaths() {
 }
 
 const { category } = Astro.props;
+const tableId = `comparison-${category.slug}`;
+const highlightField = category.comparisonFields[0];
 
 if (!category.lastVerifiedAt) {
   console.warn(
@@ -27,29 +33,65 @@ if (!category.lastVerifiedAt) {
 ---
 
 <Layout title={category.name} description={category.heroHeadline}>
-  <Hero
-    headline={category.heroHeadline}
-    subheadline={category.heroSubheadline}
-    statHighlight={category.statHighlight}
+  <Breadcrumbs
+    items={[{ label: "ホーム", href: "/" }, { label: "カテゴリー一覧", href: "/categories/" }, { label: category.name }]}
   />
 
-  <Disclaimer />
+  <div class="container">
+    <Hero
+      headline={category.heroHeadline}
+      subheadline={category.heroSubheadline}
+      statHighlight={category.statHighlight}
+    />
 
-  <section>
-    <h2>比較表</h2>
-    <ComparisonTable fields={category.comparisonFields} providers={category.providers} />
-  </section>
+    <Disclaimer />
 
-  <section>
-    <h2>各社の詳細</h2>
-    {category.providers.map((p) => <ProviderCard provider={p} />)}
-  </section>
+    {
+      category.filterFields && category.filterFields.length > 0 && (
+        <ComparisonFilter fields={category.filterFields} targetId={tableId} />
+      )
+    }
 
-  {category.readerPathways && category.readerPathways.length > 0 && (
-    <ReaderPathways pathways={category.readerPathways} />
-  )}
+    <section>
+      <h2>比較表</h2>
+      <ComparisonTable id={tableId} fields={category.comparisonFields} providers={category.providers} />
+    </section>
 
-  {category.processSteps && category.processSteps.length > 0 && (
-    <ProcessSteps steps={category.processSteps} />
-  )}
+    <section>
+      <h2>各社の詳細</h2>
+      {category.providers.map((p) => <ProviderCard provider={p} highlightField={highlightField} />)}
+    </section>
+
+    {category.readerPathways && category.readerPathways.length > 0 && (
+      <ReaderPathways title="選び方" pathways={category.readerPathways} />
+    )}
+
+    {category.processSteps && category.processSteps.length > 0 && (
+      <ProcessSteps steps={category.processSteps} />
+    )}
+
+    {category.faq && category.faq.length > 0 && <FaqSection items={category.faq} />}
+
+    {category.guides && category.guides.length > 0 && (
+      <section>
+        <h2>関連記事</h2>
+        <div class="guide-grid">
+          {category.guides.map((g) => (
+            <GuideCard guide={g} />
+          ))}
+        </div>
+      </section>
+    )}
+  </div>
 </Layout>
+
+<style>
+  section {
+    margin-block: 2.25rem;
+  }
+  .guide-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: 1.1rem;
+  }
+</style>

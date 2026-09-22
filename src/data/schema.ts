@@ -23,6 +23,11 @@ export interface Provider {
   description?: string;
   /** comparisonFields[].key をキーとした値。未確認の項目は "要確認" 等の文字列にする */
   values: Record<string, string | number | boolean | null>;
+  /**
+   * 条件検索(ComparisonFilter)用の構造化データ。values とは別に持つ。
+   * 未確認・非公開の項目はキーごと省略してよい(省略時は絞り込みで除外されず常に表示される)。
+   */
+  facets?: Record<string, string | number | boolean>;
   /** 出典・注意事項(料金変動の可能性など) */
   sourceNote?: string;
 }
@@ -58,6 +63,32 @@ export interface StatHighlight {
   source?: string;
 }
 
+export interface Faq {
+  question: string;
+  answer: string;
+}
+
+export interface Guide {
+  title: string;
+  description: string;
+  /** 記事ページが未公開の間は省略する(「準備中」表示になる) */
+  href?: string;
+}
+
+export interface FilterOption {
+  value: string;
+  label: string;
+}
+
+export interface FilterField {
+  /** providers[].facets のキーと対応する識別子 */
+  key: string;
+  label: string;
+  type: "select" | "checkbox";
+  /** type: "select" のときの選択肢 */
+  options?: FilterOption[];
+}
+
 export interface CategoryData {
   slug: string;
   name: string;
@@ -70,9 +101,13 @@ export interface CategoryData {
   /** 想定検索意図(ロングテールKW等)。SEO設計・コンテンツ確認用 */
   searchIntents?: string[];
   comparisonFields: ComparisonField[];
+  /** 条件検索UIに表示する項目。省略時はそのカテゴリーで条件検索セクションを表示しない */
+  filterFields?: FilterField[];
   providers: Provider[];
   processSteps?: ProcessStep[];
   readerPathways?: ReaderPathway[];
+  faq?: Faq[];
+  guides?: Guide[];
   lp?: LpContent;
   /** 公開前に確認が必要な事項。ページには描画せず、開発時の参照用 */
   todos?: string[];

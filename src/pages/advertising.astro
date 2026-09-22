@@ -1,0 +1,29 @@
+---
+import Layout from "../layouts/Layout.astro";
+import Breadcrumbs from "../components/Breadcrumbs.astro";
+const contactEmail = "dmsales29@gmail.com";
+---
+
+<Layout title="広告掲載について" description="SOKUNOBANKへの広告掲載・提携に関するご案内">
+  <Breadcrumbs items={[{ label: "ホーム", href: "/" }, { label: "広告掲載について" }]} />
+
+  <div class="container section-tight prose">
+    <h1>広告掲載について</h1>
+    <p>
+      SOKUNOBANKは、法人の発注担当者が「急ぎで発注できるサービス」を最短納期・価格・対応条件から比較できる情報サイトです。
+      掲載企業様のサービスをアフィリエイトプログラム経由でご紹介する場合があります。
+    </p>
+    <h2>掲載方針</h2>
+    <p>
+      各カテゴリーにはメインとなる送客先企業を1社定め、それ以外の企業様については比較・信頼性のための参考情報としてのみ掲載しています。
+      掲載内容の正確性を重視しており、確認が取れていない情報は「要確認」として明示しています。
+    </p>
+    <h2>掲載・提携に関するお問い合わせ</h2>
+    <p>
+      広告掲載・アフィリエイト提携等のご相談は、以下の連絡先までお願いします。
+    </p>
+    <p>
+      <a href={`mailto:${contactEmail}`}>{contactEmail}</a>
+    </p>
+  </div>
+</Layout>

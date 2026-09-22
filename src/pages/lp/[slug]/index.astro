@@ -27,20 +27,22 @@ if (lp.hookNote && !lp.hookVerified) {
 ---
 
 <Layout title={lp.headline} description={lp.subheadline ?? category.heroHeadline} noindex>
-  <section class="lp-hero">
-    <h1>{lp.headline}</h1>
-    {lp.subheadline && <p class="sub">{lp.subheadline}</p>}
-    <CtaButton label={lp.ctaLabel} href={ctaHref} sponsored={Boolean(ctaProvider?.affiliateUrl)} />
-  </section>
+  <div class="container">
+    <section class="lp-hero">
+      <h1>{lp.headline}</h1>
+      {lp.subheadline && <p class="sub">{lp.subheadline}</p>}
+      <CtaButton label={lp.ctaLabel} href={ctaHref} sponsored={Boolean(ctaProvider?.affiliateUrl)} />
+    </section>
 
-  <ul class="highlights">
-    {lp.highlights.map((h) => <li>{h}</li>)}
-  </ul>
+    <ul class="highlights">
+      {lp.highlights.map((h) => <li>{h}</li>)}
+    </ul>
 
-  {lp.hookNote && <p class="hook">{lp.hookNote}</p>}
+    {lp.hookNote && <p class="hook">{lp.hookNote}</p>}
 
-  <div class="cta-bottom">
-    <CtaButton label={lp.ctaLabel} href={ctaHref} sponsored={Boolean(ctaProvider?.affiliateUrl)} />
+    <div class="cta-bottom">
+      <CtaButton label={lp.ctaLabel} href={ctaHref} sponsored={Boolean(ctaProvider?.affiliateUrl)} />
+    </div>
   </div>
 </Layout>
 
@@ -50,10 +52,11 @@ if (lp.hookNote && !lp.hookVerified) {
     padding: 3rem 0 2rem;
   }
   .lp-hero h1 {
-    font-size: 2rem;
+    max-width: 640px;
+    margin-inline: auto;
   }
   .sub {
-    color: var(--color-muted);
+    color: var(--color-text-muted);
     margin-bottom: 1.5rem;
   }
   .highlights {
@@ -66,7 +69,7 @@ if (lp.hookNote && !lp.hookVerified) {
   }
   .hook {
     text-align: center;
-    color: var(--color-muted);
+    color: var(--color-text-muted);
     font-size: 0.9rem;
   }
   .cta-bottom {

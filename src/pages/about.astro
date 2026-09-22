@@ -1,24 +1,45 @@
 ---
 import Layout from "../layouts/Layout.astro";
+import Breadcrumbs from "../components/Breadcrumbs.astro";
 const contactEmail = "dmsales29@gmail.com";
 ---
 
 <Layout title="運営者情報" description="SOKUNOBANKの運営者情報・お問い合わせ先">
-  <h1>運営者情報</h1>
-  <dl>
-    <dt>運営</dt>
-    <dd>SOKUNOBANK運営事務局(屋号)</dd>
-    <dt>お問い合わせ</dt>
-    <dd>
-      <a href={`mailto:${contactEmail}`}>{contactEmail}</a>
-    </dd>
-  </dl>
-  <p>
-    本サイトは、法人の発注担当者向けに各種サービスの最短納期・料金等の比較情報を提供しています。
-    掲載情報の正確性には努めていますが、最新の料金・納期は必ず各社公式サイトでご確認ください。
-  </p>
-  <p>
-    本サイトはアフィリエイトプログラム(成果報酬型広告)を利用する場合があります。詳細は
-    <a href="/privacy/">プライバシーポリシー</a>をご確認ください。
-  </p>
+  <Breadcrumbs items={[{ label: "ホーム", href: "/" }, { label: "運営者情報" }]} />
+
+  <div class="container section-tight prose">
+    <h1>運営者情報</h1>
+    <dl>
+      <dt>運営</dt>
+      <dd>SOKUNOBANK運営事務局(屋号)</dd>
+      <dt>お問い合わせ</dt>
+      <dd>
+        <a href={`mailto:${contactEmail}`}>{contactEmail}</a>
+      </dd>
+    </dl>
+    <p>
+      本サイトは、法人の発注担当者向けに各種サービスの最短納期・料金等の比較情報を提供しています。
+      掲載情報の正確性には努めていますが、最新の料金・納期は必ず各社公式サイトでご確認ください。
+    </p>
+    <p>
+      本サイトはアフィリエイトプログラム(成果報酬型広告)を利用する場合があります。詳細は
+      <a href="/privacy/">プライバシーポリシー</a>をご確認ください。
+    </p>
+  </div>
 </Layout>
+
+<style>
+  dl {
+    margin: 1.5rem 0;
+  }
+  dt {
+    font-weight: 600;
+    color: var(--color-text-muted);
+    font-size: 0.85rem;
+    margin-top: 1rem;
+  }
+  dd {
+    margin: 0.25rem 0 0;
+    font-size: 1rem;
+  }
+</style>

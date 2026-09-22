@@ -1,0 +1,107 @@
+---
+import type { NavLink } from "../data/site-nav";
+
+interface Props {
+  keywords: NavLink[];
+}
+const { keywords } = Astro.props;
+---
+
+<section class="search-hero" id="search">
+  <div class="container">
+    <h1>急ぎの発注先、すぐ見つかる。</h1>
+    <p class="lead">
+      マーケティング・総務・人事担当者向け。DM・印刷・販促物などの即納サービスを、納期・価格・対応条件から比較できます。
+    </p>
+
+    <form class="search-form" action="/categories/" method="get">
+      <label class="visually-hidden" for="search-input">商品・サービス名を入力してください</label>
+      <input
+        id="search-input"
+        type="text"
+        name="q"
+        placeholder="商品・サービス名を入力してください(例:DM発送、チラシ)"
+        autocomplete="off"
+      />
+      <button type="submit" class="btn btn-primary btn-lg">検索</button>
+    </form>
+
+    <ul class="keywords">
+      {
+        keywords.map((k) => (
+          <li>
+            {k.href ? (
+              <a class="chip" href={k.href}>
+                {k.label}
+              </a>
+            ) : (
+              <span class="chip is-disabled">{k.label}</span>
+            )}
+          </li>
+        ))
+      }
+    </ul>
+  </div>
+</section>
+
+<style>
+  .visually-hidden {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+  }
+
+  .search-hero {
+    padding-block: 2.75rem 2rem;
+    background: linear-gradient(180deg, var(--color-accent-soft) 0%, var(--color-bg) 100%);
+  }
+
+  .search-hero h1 {
+    max-width: 720px;
+    margin-bottom: 0.75rem;
+  }
+
+  .lead {
+    max-width: 640px;
+    color: var(--color-text-muted);
+    font-size: 1.02rem;
+    margin-bottom: 1.75rem;
+  }
+
+  .search-form {
+    display: flex;
+    gap: 0.6rem;
+    max-width: 620px;
+    margin-bottom: 1.1rem;
+  }
+  .search-form input {
+    flex: 1;
+    height: 48px;
+    padding: 0 1rem;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    background: var(--color-bg);
+    font-size: 0.95rem;
+  }
+
+  .keywords {
+    list-style: none;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.6rem;
+    margin: 0;
+    padding: 0;
+  }
+
+  @media (max-width: 560px) {
+    .search-form {
+      flex-direction: column;
+    }
+    .search-form .btn {
+      width: 100%;
+    }
+  }
+</style>

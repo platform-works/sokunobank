@@ -1,0 +1,117 @@
+---
+import type { FilterField } from "../data/schema";
+
+interface Props {
+  fields: FilterField[];
+  /** 絞り込み対象となる ComparisonTable の id */
+  targetId: string;
+}
+const { fields, targetId } = Astro.props;
+const rootId = `filter-${targetId}`;
+---
+
+<div class="comparison-filter" id={rootId}>
+  <p class="filter-title">条件で絞り込む</p>
+  <div class="filter-fields">
+    {
+      fields.map((f) =>
+        f.type === "select" ? (
+          <div class="field">
+            <label for={`${rootId}-${f.key}`}>{f.label}</label>
+            <select id={`${rootId}-${f.key}`} data-filter-key={f.key} data-filter-type="select">
+              <option value="">指定なし</option>
+              {f.options?.map((o) => (
+                <option value={o.value}>{o.label}</option>
+              ))}
+            </select>
+          </div>
+        ) : (
+          <div class="field field-checkbox">
+            <label>
+              <input type="checkbox" data-filter-key={f.key} data-filter-type="checkbox" />
+              {f.label}
+            </label>
+          </div>
+        )
+      )
+    }
+  </div>
+  <p class="filter-note">
+    発送希望日・はがき/封書・印刷有無・宛名印字などの条件による絞り込みは今後追加予定です。
+  </p>
+</div>
+
+<script define:vars={{ targetId, rootId }}>
+  const root = document.getElementById(rootId);
+  const table = document.getElementById(targetId);
+  if (root && table) {
+    const controls = root.querySelectorAll("[data-filter-key]");
+    const applyFilters = () => {
+      const rows = table.querySelectorAll("[data-provider]");
+      rows.forEach((row) => {
+        let visible = true;
+        controls.forEach((control) => {
+          const key = control.dataset.filterKey;
+          const type = control.dataset.filterType;
+          const facetProp = "facet" + key.charAt(0).toUpperCase() + key.slice(1);
+          const facetRaw = row.dataset[facetProp];
+          if (type === "select") {
+            const selected = control.value;
+            if (selected && facetRaw !== undefined) {
+              const facetNum = Number(facetRaw);
+              const selectedNum = Number(selected);
+              if (!Number.isNaN(facetNum) && !Number.isNaN(selectedNum) && facetNum > selectedNum) {
+                visible = false;
+              }
+            }
+          } else if (type === "checkbox") {
+            if (control.checked && facetRaw === "false") {
+              visible = false;
+            }
+          }
+        });
+        row.style.display = visible ? "" : "none";
+      });
+    };
+    controls.forEach((c) => c.addEventListener("change", applyFilters));
+  }
+</script>
+
+<style>
+  .comparison-filter {
+    background: var(--color-bg-soft);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-lg);
+    padding: 1.25rem 1.4rem;
+    margin: 1.5rem 0;
+  }
+  .filter-title {
+    font-weight: 700;
+    margin: 0 0 0.9rem;
+  }
+  .filter-fields {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+  }
+  .field-checkbox {
+    justify-content: center;
+  }
+  .field-checkbox label {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    height: 44px;
+    font-weight: 500;
+    color: var(--color-text);
+  }
+  .field-checkbox input {
+    width: 18px;
+    height: 18px;
+  }
+  .filter-note {
+    margin: 0.9rem 0 0;
+    font-size: 0.78rem;
+    color: var(--color-text-muted);
+  }
+</style>

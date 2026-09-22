@@ -1,0 +1,121 @@
+---
+interface Props {
+  name: string;
+  href?: string;
+  speedLabel?: string;
+  speedValue?: string;
+  minQuantityValue?: string;
+  providerCount?: number;
+  ctaLabel?: string;
+}
+const {
+  name,
+  href,
+  speedLabel = "最短",
+  speedValue,
+  minQuantityValue,
+  providerCount,
+  ctaLabel = "比較する",
+} = Astro.props;
+
+const isUrgentText = (v?: string) => !!v && /(当日|即日)/.test(v);
+---
+
+<div class:list={["category-card", { "is-upcoming": !href }]}>
+  <h3>{name}</h3>
+
+  {
+    speedValue ? (
+      <p class="stat-row">
+        <span class="stat-label">{speedLabel}</span>
+        <span class:list={["stat-value", { urgent: isUrgentText(speedValue) }]}>{speedValue}</span>
+      </p>
+    ) : (
+      <p class="stat-row">
+        <span class="badge-soon">準備中</span>
+      </p>
+    )
+  }
+
+  {
+    minQuantityValue && (
+      <p class="stat-row secondary">
+        <span class="stat-label">対応</span>
+        <span class="stat-value-sm">{minQuantityValue}</span>
+      </p>
+    )
+  }
+
+  {
+    typeof providerCount === "number" && providerCount > 0 && (
+      <p class="stat-row secondary">
+        <span class="stat-label">比較サービス</span>
+        <span class="stat-value-sm">{providerCount}社</span>
+      </p>
+    )
+  }
+
+  {
+    href ? (
+      <a class="btn btn-secondary card-cta" href={href}>
+        {name}を比較 →
+      </a>
+    ) : (
+      <span class="btn btn-disabled card-cta" aria-disabled="true">
+        {ctaLabel}
+      </span>
+    )
+  }
+</div>
+
+<style>
+  .category-card {
+    display: flex;
+    flex-direction: column;
+    background: var(--color-bg);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-lg);
+    padding: 1.25rem 1.35rem;
+    height: 100%;
+  }
+  .category-card.is-upcoming {
+    background: var(--color-bg-soft);
+  }
+  .category-card h3 {
+    margin: 0 0 0.6rem;
+  }
+  .stat-row {
+    display: flex;
+    align-items: baseline;
+    gap: 0.5rem;
+    margin: 0 0 0.35rem;
+    font-size: 0.9rem;
+  }
+  .stat-row.secondary {
+    font-size: 0.82rem;
+  }
+  .stat-label {
+    color: var(--color-text-muted);
+    flex-shrink: 0;
+  }
+  .stat-value {
+    font-weight: 700;
+  }
+  .stat-value.urgent {
+    color: var(--color-urgent-text);
+    background: var(--color-urgent-soft);
+    border: 1px solid var(--color-urgent);
+    border-radius: 999px;
+    padding: 0.05rem 0.6rem;
+    font-size: 0.85rem;
+  }
+  .stat-value-sm {
+    font-weight: 600;
+    color: var(--color-text);
+  }
+  .card-cta {
+    margin-top: auto;
+    padding-top: 1rem;
+    width: 100%;
+  }
+</style>

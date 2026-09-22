@@ -12,10 +12,13 @@ const { steps, title = "発注〜到着までの流れ" } = Astro.props;
   <h2>{title}</h2>
   <ol class="steps">
     {
-      steps.map((s) => (
+      steps.map((s, i) => (
         <li>
-          <strong>{s.title}</strong>
-          {s.description && <span class="desc"> — {s.description}</span>}
+          <span class="step-num">{i + 1}</span>
+          <span class="step-body">
+            <strong>{s.title}</strong>
+            {s.description && <span class="desc">{s.description}</span>}
+          </span>
         </li>
       ))
     }
@@ -24,12 +27,43 @@ const { steps, title = "発注〜到着までの流れ" } = Astro.props;
 
 <style>
   .steps {
-    padding-left: 1.4rem;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    gap: 0.75rem;
   }
   .steps li {
-    margin: 0.4rem 0;
+    display: flex;
+    align-items: flex-start;
+    gap: 0.9rem;
+    padding: 0.6rem 0;
+    border-bottom: 1px solid var(--color-border);
+  }
+  .steps li:last-child {
+    border-bottom: none;
+  }
+  .step-num {
+    flex-shrink: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: var(--color-accent-soft);
+    color: var(--color-accent-dark);
+    font-weight: 700;
+    font-size: 0.85rem;
+  }
+  .step-body {
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+    padding-top: 0.15rem;
   }
   .desc {
-    color: var(--color-muted);
+    color: var(--color-text-muted);
+    font-size: 0.88rem;
   }
 </style>

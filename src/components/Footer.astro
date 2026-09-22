@@ -6,28 +6,145 @@ const { siteName } = Astro.props;
 const year = new Date().getFullYear();
 // 事業用の連絡先。個人の本名・普段使いのメールアドレスは記載しない。
 const contactEmail = "dmsales29@gmail.com";
+
+const linkGroups = [
+  {
+    title: "サイト",
+    links: [
+      { label: "サービスを探す", href: "/#search" },
+      { label: "カテゴリー一覧", href: "/categories/" },
+      { label: "比較記事", href: "/#guides" },
+    ],
+  },
+  {
+    title: "SOKUNOBANK",
+    links: [
+      { label: "SOKUNOBANKについて", href: "/#about" },
+      { label: "運営者情報", href: "/about/" },
+      { label: "お問い合わせ", href: `mailto:${contactEmail}` },
+    ],
+  },
+  {
+    title: "ポリシー",
+    links: [
+      { label: "プライバシーポリシー", href: "/privacy/" },
+      { label: "広告掲載について", href: "/advertising/" },
+    ],
+  },
+];
 ---
 
 <footer class="site-footer">
-  <p>
-    運営:SOKUNOBANK運営事務局 / お問い合わせ:
-    <a href={`mailto:${contactEmail}`}>{contactEmail}</a>
-  </p>
-  <p><a href="/about/">運営者情報</a> / <a href="/privacy/">プライバシーポリシー</a></p>
-  <p>本サイトはアフィリエイトプログラムを利用しています。詳細は<a href="/privacy/">プライバシーポリシー</a>をご確認ください。</p>
-  <p>&copy; {year} {siteName}</p>
+  <div class="container footer-top">
+    <div class="footer-brand">
+      <p class="brand-name">{siteName}</p>
+      <p class="brand-tagline">急ぎの発注先、すぐ見つかる。法人向け即納サービス比較サイト。</p>
+      <p class="disclosure">
+        本サイトはアフィリエイトプログラムを利用しています。詳細は<a href="/privacy/">プライバシーポリシー</a>をご確認ください。
+      </p>
+    </div>
+
+    <div class="footer-links">
+      {
+        linkGroups.map((group) => (
+          <div class="footer-col">
+            <p class="col-title">{group.title}</p>
+            <ul>
+              {group.links.map((link) => (
+                <li>
+                  <a href={link.href}>{link.label}</a>
+                </li>
+              ))}
+            </ul>
+          </div>
+        ))
+      }
+    </div>
+  </div>
+
+  <div class="container footer-bottom">
+    <p>&copy; {year} SOKUNOBANK</p>
+  </div>
 </footer>
 
 <style>
   .site-footer {
-    max-width: 960px;
-    margin: 3rem auto 0;
-    padding: 1.5rem 1.25rem 3rem;
+    margin-top: 3.5rem;
     border-top: 1px solid var(--color-border);
-    color: var(--color-muted);
-    font-size: 0.85rem;
+    background: var(--color-bg-soft);
   }
-  .site-footer p {
-    margin: 0.3rem 0;
+
+  .footer-top {
+    display: grid;
+    grid-template-columns: minmax(220px, 1fr) 2fr;
+    gap: 2.5rem;
+    padding-block: 2.75rem 2rem;
+  }
+
+  .brand-name {
+    font-weight: 700;
+    font-size: 1.05rem;
+    margin: 0 0 0.5rem;
+  }
+  .brand-tagline {
+    color: var(--color-text-muted);
+    font-size: 0.9rem;
+    margin: 0 0 1rem;
+  }
+  .disclosure {
+    font-size: 0.78rem;
+    color: var(--color-text-muted);
+    margin: 0;
+  }
+
+  .footer-links {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1.5rem;
+  }
+  .col-title {
+    font-weight: 600;
+    font-size: 0.85rem;
+    margin: 0 0 0.75rem;
+    color: var(--color-text);
+  }
+  .footer-col ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+  .footer-col li {
+    margin: 0.5rem 0;
+  }
+  .footer-col a {
+    display: inline-flex;
+    align-items: center;
+    min-height: 32px;
+    color: var(--color-text-muted);
+    text-decoration: none;
+    font-size: 0.88rem;
+  }
+  .footer-col a:hover {
+    color: var(--color-accent-dark);
+  }
+
+  .footer-bottom {
+    border-top: 1px solid var(--color-border);
+    padding-block: 1.25rem;
+    color: var(--color-text-muted);
+    font-size: 0.8rem;
+  }
+  .footer-bottom p {
+    margin: 0;
+  }
+
+  @media (max-width: 720px) {
+    .footer-top {
+      grid-template-columns: 1fr;
+      gap: 2rem;
+    }
+    .footer-links {
+      grid-template-columns: repeat(2, 1fr);
+    }
   }
 </style>

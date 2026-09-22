@@ -1,64 +1,94 @@
 ---
-import type { Provider } from "../data/schema";
+import type { ComparisonField, Provider } from "../data/schema";
 
 interface Props {
   provider: Provider;
+  /** カードの先頭に強調表示する比較項目(通常は最も重要な項目、DMなら「最短発送スピード」) */
+  highlightField?: ComparisonField;
 }
-const { provider } = Astro.props;
+const { provider, highlightField } = Astro.props;
 const link = provider.affiliateUrl || provider.officialUrl;
+
+const highlightValue = highlightField ? provider.values[highlightField.key] : undefined;
+const highlightText =
+  highlightValue === null || highlightValue === undefined ? undefined : String(highlightValue);
+const isUrgentText = (v?: string) => !!v && /(当日|即日)/.test(v);
 ---
 
-<div class="card">
-  <h3>
-    {provider.name}
-    {provider.isPrimary && <span class="badge">メイン</span>}
-  </h3>
-  {provider.description && <p>{provider.description}</p>}
-  {
-    link ? (
-      <a class="cta" href={link} rel={provider.affiliateUrl ? "sponsored noopener" : "noopener"} target="_blank">
-        公式サイトを見る
-      </a>
-    ) : (
-      <p class="pending">公式サイトURL:準備中(要確認)</p>
-    )
-  }
+<div class="card provider-card">
+  <div class="card-head">
+    <h3>
+      {provider.name}
+      {provider.isPrimary && <span class="badge">メイン</span>}
+    </h3>
+    {
+      highlightText && (
+        <p class="highlight-row">
+          <span class="highlight-label">{highlightField?.label}</span>
+          {isUrgentText(highlightText) ? (
+            <span class="badge-urgent">{highlightText}</span>
+          ) : (
+            <span class="highlight-value">{highlightText}</span>
+          )}
+        </p>
+      )
+    }
+  </div>
+
+  {provider.description && <p class="description">{provider.description}</p>}
+
+  <div class="card-actions">
+    {
+      link ? (
+        <a
+          class="btn btn-primary"
+          href={link}
+          rel={provider.affiliateUrl ? "sponsored noopener" : "noopener"}
+          target="_blank"
+        >
+          公式サイトを見る
+        </a>
+      ) : (
+        <span class="btn btn-disabled" aria-disabled="true">
+          公式サイトURL:準備中
+        </span>
+      )
+    }
+  </div>
+
   {provider.sourceNote && <p class="note">{provider.sourceNote}</p>}
 </div>
 
 <style>
-  .card {
-    border: 1px solid var(--color-border);
-    border-radius: 0.75rem;
-    padding: 1rem 1.25rem;
+  .provider-card {
     margin: 1rem 0;
   }
-  h3 {
-    margin: 0 0 0.4rem;
-    font-size: 1.05rem;
+  .card-head h3 {
+    margin: 0 0 0.5rem;
   }
-  .badge {
-    display: inline-block;
-    margin-left: 0.4rem;
-    font-size: 0.7rem;
-    background: var(--color-primary);
-    color: var(--color-primary-contrast);
-    border-radius: 999px;
-    padding: 0.1rem 0.5rem;
-    vertical-align: middle;
+  .highlight-row {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    margin: 0 0 0.75rem;
+    font-size: 0.92rem;
   }
-  .cta {
-    display: inline-block;
-    margin-top: 0.5rem;
-    font-weight: 600;
+  .highlight-label {
+    color: var(--color-text-muted);
   }
-  .pending {
-    color: var(--color-muted);
-    font-size: 0.85rem;
+  .highlight-value {
+    font-weight: 700;
+  }
+  .description {
+    color: var(--color-text);
+    margin-bottom: 1rem;
+  }
+  .card-actions {
+    margin-bottom: 0.5rem;
   }
   .note {
-    color: var(--color-muted);
+    color: var(--color-text-muted);
     font-size: 0.8rem;
-    margin-top: 0.6rem;
+    margin: 0.6rem 0 0;
   }
 </style>

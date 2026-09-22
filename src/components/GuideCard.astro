@@ -1,0 +1,60 @@
+---
+import type { Guide } from "../data/schema";
+
+interface Props {
+  guide: Guide;
+}
+const { guide } = Astro.props;
+---
+
+{
+  guide.href ? (
+    <a class="guide-card" href={guide.href}>
+      <h3>{guide.title}</h3>
+      <p>{guide.description}</p>
+      <span class="read-more">続きを読む →</span>
+    </a>
+  ) : (
+    <div class="guide-card is-soon">
+      <span class="badge-soon">準備中</span>
+      <h3>{guide.title}</h3>
+      <p>{guide.description}</p>
+    </div>
+  )
+}
+
+<style>
+  .guide-card {
+    display: block;
+    background: var(--color-bg);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-lg);
+    padding: 1.25rem 1.35rem;
+    text-decoration: none;
+    color: var(--color-text);
+    height: 100%;
+  }
+  a.guide-card:hover {
+    border-color: var(--color-accent);
+    box-shadow: var(--shadow-sm);
+  }
+  .guide-card h3 {
+    margin: 0.5rem 0 0.5rem;
+    font-size: 1rem;
+  }
+  .guide-card p {
+    color: var(--color-text-muted);
+    font-size: 0.88rem;
+    margin: 0;
+  }
+  .read-more {
+    display: inline-block;
+    margin-top: 0.75rem;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--color-accent-dark);
+  }
+  .guide-card.is-soon {
+    background: var(--color-bg-soft);
+  }
+</style>

@@ -1,47 +1,267 @@
 ---
 import Layout from "../layouts/Layout.astro";
+import SearchHero from "../components/SearchHero.astro";
+import CategoryCard from "../components/CategoryCard.astro";
+import ComparisonTable from "../components/ComparisonTable.astro";
+import GuideCard from "../components/GuideCard.astro";
 import { getPublishedCategories } from "../data/loadCategories";
+import { popularKeywords, purposeFinder, departmentFinder, upcomingCategories } from "../data/site-nav";
 
 const categories = getPublishedCategories();
+const featuredCategory = categories[0];
+
+function primaryProvider(category: (typeof categories)[number]) {
+  return category.providers.find((p) => p.isPrimary) ?? category.providers[0];
+}
+function speedKey(category: (typeof categories)[number]) {
+  return category.comparisonFields[0]?.key;
+}
+
+const allGuides = categories.flatMap((c) => c.guides ?? []);
 ---
 
 <Layout
   title="急ぎ発注・最短納期の比較サイト"
-  description="「今日中/明日までに欲しい」法人の発注担当者向けに、各カテゴリーの最短納期を比較します。"
+  description="「今日中/明日までに欲しい」法人の発注担当者向けに、DM発送・印刷・販促物などの即納サービスを納期・価格・対応条件から比較します。"
 >
-  <section class="hero">
-    <h1>SOKUNOBANK(即納バンク)</h1>
-    <p>「今日中/明日までに◯◯が欲しい」——そんな法人の発注担当者のための、最短納期比較サイトです。</p>
+  <SearchHero keywords={popularKeywords} />
+
+  <section class="section section-soft">
+    <div class="container">
+      <div class="section-head">
+        <span class="eyebrow">FIND BY PURPOSE</span>
+        <h2>急ぎの目的から探す</h2>
+      </div>
+      <ul class="purpose-grid">
+        {
+          purposeFinder.map((item) => (
+            <li>
+              {item.href ? (
+                <a class="purpose-item" href={item.href}>
+                  <span class="dot" aria-hidden="true" />
+                  {item.label}
+                </a>
+              ) : (
+                <span class="purpose-item is-disabled">
+                  <span class="dot" aria-hidden="true" />
+                  {item.label}
+                  <span class="badge-soon">準備中</span>
+                </span>
+              )}
+            </li>
+          ))
+        }
+      </ul>
+    </div>
   </section>
 
-  <section>
-    <h2>カテゴリー一覧</h2>
-    <ul class="category-list">
+  <section class="section">
+    <div class="container">
+      <div class="section-head">
+        <span class="eyebrow">FIND BY DEPARTMENT</span>
+        <h2>部署から探す</h2>
+      </div>
+      <div class="department-grid">
+        {
+          departmentFinder.map((group) => (
+            <div class="card department-card">
+              <h3>{group.label}</h3>
+              <ul>
+                {group.items.map((item) => (
+                  <li>
+                    {item.href ? (
+                      <a href={item.href}>{item.label}</a>
+                    ) : (
+                      <span class="is-disabled">{item.label}<span class="badge-soon">準備中</span></span>
+                    )}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ))
+        }
+      </div>
+    </div>
+  </section>
+
+  <section class="section section-soft">
+    <div class="container">
+      <div class="section-head">
+        <span class="eyebrow">CATEGORIES</span>
+        <h2>即納カテゴリーから探す</h2>
+        <p>現在はDM発送代行カテゴリーを公開中です。他カテゴリーも順次追加予定です。</p>
+      </div>
+      <div class="category-grid">
+        {
+          categories.map((c) => {
+            const provider = primaryProvider(c);
+            const sKey = speedKey(c);
+            return (
+              <CategoryCard
+                name={c.name}
+                href={`/categories/${c.slug}/`}
+                speedValue={sKey ? (provider?.values[sKey] as string) : undefined}
+                minQuantityValue={provider?.values["minQuantity"] as string | undefined}
+                providerCount={c.providers.length}
+              />
+            );
+          })
+        }
+        {upcomingCategories.slice(0, 5).map((name) => <CategoryCard name={name} />)}
+      </div>
+      <p class="see-all">
+        <a href="/categories/">すべてのカテゴリーを見る →</a>
+      </p>
+    </div>
+  </section>
+
+  {
+    featuredCategory && (
+      <section class="section">
+        <div class="container">
+          <div class="section-head">
+            <span class="eyebrow">POPULAR COMPARISON</span>
+            <h2>{featuredCategory.name}</h2>
+          </div>
+          <ComparisonTable
+            id="home-comparison"
+            fields={featuredCategory.comparisonFields}
+            providers={featuredCategory.providers}
+          />
+          <p class="see-all">
+            <a class="btn btn-secondary" href={`/categories/${featuredCategory.slug}/`}>
+              すべての比較条件を見る
+            </a>
+          </p>
+        </div>
+      </section>
+    )
+  }
+
+  <section class="section section-soft" id="guides">
+    <div class="container">
+      <div class="section-head">
+        <span class="eyebrow">GUIDE</span>
+        <h2>急ぎの人向けガイド</h2>
+      </div>
       {
-        categories.map((c) => (
-          <li>
-            <a href={`/categories/${c.slug}/`}>{c.name}</a>
-          </li>
-        ))
+        allGuides.length > 0 ? (
+          <div class="guide-grid">
+            {allGuides.map((g) => (
+              <GuideCard guide={g} />
+            ))}
+          </div>
+        ) : (
+          <p>準備中です。</p>
+        )
       }
-    </ul>
+    </div>
+  </section>
+
+  <section class="section" id="about">
+    <div class="container prose">
+      <h2>SOKUNOBANKについて</h2>
+      <p>
+        SOKUNOBANKは法人向け即納サービスを、納期・価格・対応条件から比較できる情報サイトです。
+        「今日中/明日までに欲しい」という発注担当者が、あとは「どこで最速で依頼できるか」だけを探している状態を想定して設計しています。
+      </p>
+      <p>
+        <a href="/about/">運営者情報はこちら →</a>
+      </p>
+    </div>
   </section>
 </Layout>
 
 <style>
-  .hero {
-    padding: 2rem 0;
-  }
-  .category-list {
+  .purpose-grid {
     list-style: none;
+    margin: 0;
     padding: 0;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 0.75rem;
   }
-  .category-list li {
-    margin: 0.5rem 0;
-  }
-  .category-list a {
-    font-size: 1.1rem;
-    font-weight: 600;
+  .purpose-item {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    min-height: 48px;
+    padding: 0 1rem;
+    background: var(--color-bg);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
     text-decoration: none;
+    color: var(--color-text);
+    font-weight: 500;
+    font-size: 0.92rem;
+  }
+  a.purpose-item:hover {
+    border-color: var(--color-accent);
+    color: var(--color-accent-dark);
+  }
+  .purpose-item.is-disabled {
+    color: var(--color-text-muted);
+  }
+  .dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--color-accent);
+    flex-shrink: 0;
+  }
+  .purpose-item.is-disabled .dot {
+    background: var(--color-border);
+  }
+  .purpose-item .badge-soon {
+    margin-left: auto;
+  }
+
+  .department-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 1.1rem;
+  }
+  .department-card h3 {
+    margin: 0 0 0.9rem;
+  }
+  .department-card ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    gap: 0.6rem;
+  }
+  .department-card a,
+  .department-card .is-disabled {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+    min-height: 44px;
+    font-size: 0.92rem;
+    text-decoration: none;
+    color: var(--color-text);
+  }
+  .department-card a:hover {
+    color: var(--color-accent-dark);
+  }
+  .department-card .is-disabled {
+    color: var(--color-text-muted);
+  }
+
+  .category-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+    gap: 1.1rem;
+  }
+
+  .guide-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: 1.1rem;
+  }
+
+  .see-all {
+    margin-top: 1.25rem;
   }
 </style>

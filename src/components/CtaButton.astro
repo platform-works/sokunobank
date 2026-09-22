@@ -10,7 +10,7 @@ const { label, href, sponsored } = Astro.props;
 {
   href ? (
     <a
-      class="cta-button"
+      class="btn btn-primary btn-lg"
       href={href}
       target="_blank"
       rel={sponsored ? "sponsored noopener" : "noopener"}
@@ -18,25 +18,8 @@ const { label, href, sponsored } = Astro.props;
       {label}
     </a>
   ) : (
-    <span class="cta-button disabled" aria-disabled="true">
+    <span class="btn btn-disabled btn-lg" aria-disabled="true">
       {label}(リンク準備中)
     </span>
   )
 }
-
-<style>
-  .cta-button {
-    display: inline-block;
-    background: var(--color-primary);
-    color: var(--color-primary-contrast);
-    font-weight: 700;
-    text-decoration: none;
-    padding: 0.85rem 1.75rem;
-    border-radius: 0.5rem;
-    font-size: 1.05rem;
-  }
-  .cta-button.disabled {
-    background: var(--color-muted);
-    cursor: not-allowed;
-  }
-</style>

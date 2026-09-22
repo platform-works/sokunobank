@@ -1,0 +1,73 @@
+---
+import type { Faq } from "../data/schema";
+
+interface Props {
+  items: Faq[];
+  title?: string;
+}
+const { items, title = "よくある質問" } = Astro.props;
+
+const jsonLd = {
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  mainEntity: items.map((f) => ({
+    "@type": "Question",
+    name: f.question,
+    acceptedAnswer: {
+      "@type": "Answer",
+      text: f.answer,
+    },
+  })),
+};
+---
+
+<section class="faq">
+  <h2>{title}</h2>
+  <dl>
+    {
+      items.map((f) => (
+        <div class="faq-item">
+          <dt>{f.question}</dt>
+          <dd>{f.answer}</dd>
+        </div>
+      ))
+    }
+  </dl>
+</section>
+<script type="application/ld+json" set:html={JSON.stringify(jsonLd)} />
+
+<style>
+  .faq-item {
+    border-bottom: 1px solid var(--color-border);
+    padding: 1.1rem 0;
+  }
+  .faq-item:first-child {
+    border-top: 1px solid var(--color-border);
+  }
+  dt {
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+    padding-left: 1.6rem;
+    position: relative;
+  }
+  dt::before {
+    content: "Q";
+    position: absolute;
+    left: 0;
+    color: var(--color-accent-dark);
+    font-weight: 700;
+  }
+  dd {
+    margin: 0;
+    padding-left: 1.6rem;
+    color: var(--color-text-muted);
+    position: relative;
+  }
+  dd::before {
+    content: "A";
+    position: absolute;
+    left: 0;
+    color: var(--color-urgent-text);
+    font-weight: 700;
+  }
+</style>

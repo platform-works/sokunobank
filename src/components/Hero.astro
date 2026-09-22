@@ -24,24 +24,22 @@ const { headline, subheadline, statHighlight } = Astro.props;
 
 <style>
   .hero {
-    padding: 2.5rem 0 1.5rem;
-  }
-  h1 {
-    font-size: 1.9rem;
-    margin: 0 0 0.5rem;
+    padding: 1rem 0 0.5rem;
   }
   .subheadline {
-    color: var(--color-muted);
+    color: var(--color-text-muted);
     margin: 0 0 1rem;
+    font-size: 1.02rem;
   }
   .stat {
     display: inline-block;
-    background: var(--color-accent-bg);
+    background: var(--color-accent-soft);
     padding: 0.6rem 1rem;
-    border-radius: 0.5rem;
+    border-radius: var(--radius-md);
+    font-size: 0.9rem;
   }
   .source {
-    color: var(--color-muted);
+    color: var(--color-text-muted);
     font-weight: 400;
   }
 </style>

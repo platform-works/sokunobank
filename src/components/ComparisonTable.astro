@@ -4,18 +4,35 @@ import type { ComparisonField, Provider } from "../data/schema";
 interface Props {
   fields: ComparisonField[];
   providers: Provider[];
+  /** ComparisonFilterから絞り込み対象として参照するためのid */
+  id?: string;
 }
-const { fields, providers } = Astro.props;
+const { fields, providers, id = "comparison-table" } = Astro.props;
 
 function formatValue(v: string | number | boolean | null): string {
   if (v === null || v === undefined) return "要確認";
   if (typeof v === "boolean") return v ? "あり" : "なし";
   return String(v);
 }
+
+const isUrgentText = (v: string) => /(当日|即日)/.test(v);
+
+function toKebab(key: string): string {
+  return key.replace(/([a-z0-9])([A-Z])/g, "$1-$2").toLowerCase();
+}
+
+function facetAttrs(provider: Provider): Record<string, string> {
+  if (!provider.facets) return {};
+  const attrs: Record<string, string> = {};
+  for (const [key, value] of Object.entries(provider.facets)) {
+    attrs[`data-facet-${toKebab(key)}`] = String(value);
+  }
+  return attrs;
+}
 ---
 
-<div class="table-wrap">
-  <table>
+<div class="table-wrap" id={id}>
+  <table class="responsive-table">
     <thead>
       <tr>
         <th>事業者</th>
@@ -25,12 +42,19 @@ function formatValue(v: string | number | boolean | null): string {
     <tbody>
       {
         providers.map((p) => (
-          <tr class={p.isPrimary ? "primary-row" : ""}>
+          <tr class={p.isPrimary ? "primary-row" : ""} data-provider={p.id} {...facetAttrs(p)}>
             <th scope="row">
               {p.name}
               {p.isPrimary && <span class="badge">メイン</span>}
             </th>
-            {fields.map((f) => <td>{formatValue(p.values[f.key])}</td>)}
+            {fields.map((f) => {
+              const text = formatValue(p.values[f.key]);
+              return (
+                <td data-label={f.label}>
+                  {isUrgentText(text) ? <span class="badge-urgent">{text}</span> : text}
+                </td>
+              );
+            })}
           </tr>
         ))
       }
@@ -42,18 +66,9 @@ function formatValue(v: string | number | boolean | null): string {
   .table-wrap {
     overflow-x: auto;
     margin: 1.5rem 0;
+    border-radius: var(--radius-lg);
   }
   .primary-row {
-    background: var(--color-accent-bg);
-  }
-  .badge {
-    display: inline-block;
-    margin-left: 0.4rem;
-    font-size: 0.7rem;
-    background: var(--color-primary);
-    color: var(--color-primary-contrast);
-    border-radius: 999px;
-    padding: 0.1rem 0.5rem;
-    vertical-align: middle;
+    background: var(--color-accent-soft);
   }
 </style>

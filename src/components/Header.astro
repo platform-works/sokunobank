@@ -3,33 +3,192 @@ interface Props {
   siteName: string;
 }
 const { siteName } = Astro.props;
+
+const navLinks = [
+  { label: "サービスを探す", href: "/#search" },
+  { label: "カテゴリー", href: "/categories/" },
+  { label: "比較記事", href: "/#guides" },
+  { label: "SOKUNOBANKについて", href: "/#about" },
+  { label: "運営者情報", href: "/about/" },
+];
 ---
 
 <header class="site-header">
-  <a class="brand" href="/">{siteName}</a>
-  <nav>
-    <a href="/categories/dm/">DM発送代行比較</a>
-    <a href="/about/">運営者情報</a>
-  </nav>
+  <div class="container bar">
+    <a class="brand" href="/">
+      <span class="brand-main">SOKUNOBANK</span>
+      <span class="brand-sub">即納バンク</span>
+    </a>
+
+    <nav class="nav-desktop" aria-label="サイト内ナビゲーション">
+      <ul>
+        {
+          navLinks.map((link) => (
+            <li>
+              <a href={link.href}>{link.label}</a>
+            </li>
+          ))
+        }
+      </ul>
+    </nav>
+
+    <details class="nav-mobile">
+      <summary aria-label="メニューを開く">
+        <span class="menu-icon" aria-hidden="true"></span>
+        メニュー
+      </summary>
+      <nav aria-label="サイト内ナビゲーション(モバイル)">
+        <ul>
+          {
+            navLinks.map((link) => (
+              <li>
+                <a href={link.href}>{link.label}</a>
+              </li>
+            ))
+          }
+        </ul>
+      </nav>
+    </details>
+  </div>
 </header>
 
 <style>
   .site-header {
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    background: var(--color-bg);
+    border-bottom: 1px solid var(--color-border);
+  }
+
+  .bar {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    max-width: 960px;
-    margin: 0 auto;
-    padding: 1rem 1.25rem;
+    height: 64px;
   }
+
   .brand {
-    font-weight: 700;
+    display: flex;
+    align-items: baseline;
+    gap: 0.5rem;
     text-decoration: none;
     color: var(--color-text);
   }
-  nav {
+  .brand-main {
+    font-weight: 700;
+    font-size: 1.2rem;
+    letter-spacing: -0.01em;
+  }
+  .brand-sub {
+    font-size: 0.72rem;
+    color: var(--color-text-muted);
+    font-weight: 500;
+  }
+
+  .nav-desktop ul {
+    list-style: none;
     display: flex;
-    gap: 1rem;
+    gap: 1.6rem;
+    margin: 0;
+    padding: 0;
+    height: 64px;
+  }
+  .nav-desktop li {
+    display: flex;
+    align-items: center;
+  }
+  .nav-desktop a {
+    display: flex;
+    align-items: center;
+    height: 44px;
+    color: var(--color-text);
+    text-decoration: none;
     font-size: 0.9rem;
+    font-weight: 500;
+  }
+  .nav-desktop a:hover {
+    color: var(--color-accent-dark);
+  }
+
+  .nav-mobile {
+    display: none;
+  }
+
+  @media (max-width: 860px) {
+    .nav-desktop {
+      display: none;
+    }
+    .nav-mobile {
+      display: block;
+      position: relative;
+    }
+    .nav-mobile summary {
+      list-style: none;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: var(--color-text);
+      padding: 0.5rem 0.25rem;
+      min-height: 44px;
+    }
+    .nav-mobile summary::-webkit-details-marker {
+      display: none;
+    }
+    .menu-icon {
+      display: inline-block;
+      width: 20px;
+      height: 2px;
+      background: var(--color-text);
+      position: relative;
+    }
+    .menu-icon::before,
+    .menu-icon::after {
+      content: "";
+      position: absolute;
+      left: 0;
+      width: 20px;
+      height: 2px;
+      background: var(--color-text);
+    }
+    .menu-icon::before {
+      top: -6px;
+    }
+    .menu-icon::after {
+      top: 6px;
+    }
+    .nav-mobile nav {
+      position: absolute;
+      right: 0;
+      top: calc(100% + 0.5rem);
+      background: var(--color-bg);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-sm);
+      padding: 0.5rem;
+      min-width: 220px;
+    }
+    .nav-mobile ul {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+    }
+    .nav-mobile a {
+      display: block;
+      padding: 0.7rem 0.75rem;
+      color: var(--color-text);
+      text-decoration: none;
+      font-size: 0.92rem;
+      border-radius: var(--radius-sm);
+      min-height: 44px;
+      display: flex;
+      align-items: center;
+    }
+    .nav-mobile a:hover {
+      background: var(--color-bg-soft);
+    }
   }
 </style>

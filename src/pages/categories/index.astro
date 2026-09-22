@@ -1,0 +1,99 @@
+---
+import Layout from "../../layouts/Layout.astro";
+import Breadcrumbs from "../../components/Breadcrumbs.astro";
+import CategoryCard from "../../components/CategoryCard.astro";
+import { getPublishedCategories } from "../../data/loadCategories";
+import { upcomingCategories } from "../../data/site-nav";
+
+const categories = getPublishedCategories();
+
+function primaryProvider(category: (typeof categories)[number]) {
+  return category.providers.find((p) => p.isPrimary) ?? category.providers[0];
+}
+function speedKey(category: (typeof categories)[number]) {
+  return category.comparisonFields[0]?.key;
+}
+---
+
+<Layout
+  title="カテゴリー一覧"
+  description="SOKUNOBANKで比較できる法人向け即納サービスのカテゴリー一覧です。"
+>
+  <Breadcrumbs items={[{ label: "ホーム", href: "/" }, { label: "カテゴリー一覧" }]} />
+
+  <div class="container section-tight">
+    <div class="section-head">
+      <h1>カテゴリー一覧</h1>
+      <p>今日中・明日までに必要な法人向けサービスを、カテゴリーごとに比較できます。</p>
+    </div>
+
+    <p id="no-match" class="no-match" hidden>
+      入力されたキーワードに一致するカテゴリーはまだ公開されていません。以下のカテゴリーからお探しください。
+    </p>
+
+    <div class="category-grid" id="category-results">
+      {
+        categories.map((c) => {
+          const provider = primaryProvider(c);
+          const sKey = speedKey(c);
+          return (
+            <div class="category-grid-item" data-name={c.name}>
+              <CategoryCard
+                name={c.name}
+                href={`/categories/${c.slug}/`}
+                speedValue={sKey ? (provider?.values[sKey] as string) : undefined}
+                minQuantityValue={provider?.values["minQuantity"] as string | undefined}
+                providerCount={c.providers.length}
+              />
+            </div>
+          );
+        })
+      }
+
+      {
+        upcomingCategories.map((name) => (
+          <div class="category-grid-item" data-name={name}>
+            <CategoryCard name={name} />
+          </div>
+        ))
+      }
+    </div>
+  </div>
+</Layout>
+
+<script>
+  const params = new URLSearchParams(location.search);
+  const q = params.get("q")?.trim().toLowerCase();
+  if (q) {
+    const items = document.querySelectorAll<HTMLElement>("#category-results .category-grid-item");
+    let matchCount = 0;
+    items.forEach((item) => {
+      const name = (item.dataset.name ?? "").toLowerCase();
+      const matches = name.includes(q);
+      if (matches) matchCount += 1;
+      item.style.display = matches ? "" : "none";
+    });
+    const noMatch = document.getElementById("no-match");
+    if (noMatch && matchCount === 0) {
+      noMatch.hidden = false;
+      items.forEach((item) => (item.style.display = ""));
+    }
+  }
+</script>
+
+<style>
+  .category-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: 1.1rem;
+  }
+  .no-match {
+    background: var(--color-bg-soft);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    padding: 0.8rem 1rem;
+    font-size: 0.9rem;
+    color: var(--color-text-muted);
+    margin-bottom: 1.25rem;
+  }
+</style>
