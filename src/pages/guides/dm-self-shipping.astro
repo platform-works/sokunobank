@@ -1,0 +1,116 @@
+---
+import Layout from "../../layouts/Layout.astro";
+import Breadcrumbs from "../../components/Breadcrumbs.astro";
+import Disclaimer from "../../components/Disclaimer.astro";
+
+// Amazonアソシエイト用の検索リンクを組み立てるヘルパー。
+// PA-APIは使わず検索結果ページへのリンクのみとし、在庫・価格・配達日はAmazon側の表示に委ねる。
+const amazonTag = "sokunobank-22";
+function amazonSearch(keyword: string) {
+  return `https://www.amazon.co.jp/s?k=${encodeURIComponent(keyword)}&tag=${amazonTag}`;
+}
+
+const items = [
+  {
+    name: "はがき",
+    note: "私製はがき用紙。郵便料金分の切手を別途貼る前提のもの、料額印刷済みのものなど種類があるので用途に合わせて選ぶ。",
+    keyword: "はがき 用紙",
+  },
+  {
+    name: "封筒",
+    note: "角2・長3などサイズ違いがある。同梱物のサイズに合わせて選ぶ。",
+    keyword: "封筒",
+  },
+  {
+    name: "宛名シール",
+    note: "プリンターで宛名を印字して貼るタイプ。差込印刷(はがき/封筒印刷ソフト)対応のものが作業しやすい。",
+    keyword: "宛名シール 印刷用",
+  },
+  {
+    name: "コピー機・プリンター",
+    note: "手元に印刷環境がない場合。部数が多いとコンビニ印刷より家庭用複合機の方が割安になることがある。",
+    keyword: "コピー機 複合機",
+  },
+  {
+    name: "インクジェット用紙(チラシ用)",
+    note: "同梱するチラシ・案内状を自分で印刷する場合の用紙。",
+    keyword: "インクジェット用紙 チラシ",
+  },
+];
+---
+
+<Layout
+  title="少量のDMなら自分で発送する方法"
+  description="発送代行の最低ロットに満たない少量のDMは、自分で用意して発送した方が早いことがあります。必要なものと進め方をまとめました。"
+>
+  <Breadcrumbs
+    items={[
+      { label: "ホーム", href: "/" },
+      { label: "DM(ダイレクトメール)発送代行", href: "/categories/dm/" },
+      { label: "少量のDMなら自分で発送する方法" },
+    ]}
+  />
+
+  <div class="container section-tight prose">
+    <h1>少量のDMなら自分で発送する方法</h1>
+
+    <p>
+      本サイトで比較しているラクスル(ラクスルDM便)をはじめ、DM発送代行の多くは
+      <strong>500通〜</strong>など一定以上の最低依頼数が設定されています。
+      数十〜数百通程度で急いでいる場合は、発送代行の見積もり・入稿を待つより、
+      自分で資材を用意して直接発送した方が早いこともあります。
+    </p>
+
+    <h2>必要なもの</h2>
+    <p>
+      最低限、以下のような資材があれば自分でDMを準備できます。以下はAmazonで探す際のリンクです
+      (アソシエイトリンクを含みます)。
+    </p>
+
+    <ul class="item-list">
+      {
+        items.map((item) => (
+          <li>
+            <strong>{item.name}</strong>
+            <p>{item.note}</p>
+            <a class="btn btn-secondary" href={amazonSearch(item.keyword)} target="_blank" rel="sponsored noopener">
+              Amazonで探す →
+            </a>
+          </li>
+        ))
+      }
+    </ul>
+
+    <Disclaimer text="即日・翌日に届く商品を選びたい場合は、検索結果に表示される「本日お届け」「明日お届け」等の表示を確認してください。在庫・配達日はAmazon側の表示が最新であり、本サイトでは価格・在庫・配達日を保証・追跡していません。" />
+
+    <h2>発送代行と自分で発送、どちらが早いか</h2>
+    <p>
+      部数が少なく、宛名リストとデザインが既に手元にある場合は、自分で発送した方が早いケースが多いです。
+      一方、部数が多い(数百〜数千通)、または宛名リストやデザインをこれから用意する場合は、
+      発送代行に依頼した方が結果的に早く・安く済むことがあります。
+    </p>
+    <p>
+      <a href="/categories/dm/">DM発送代行サービスの比較はこちら →</a>
+    </p>
+  </div>
+</Layout>
+
+<style>
+  .item-list {
+    list-style: none;
+    margin: 0 0 1.5rem;
+    padding: 0;
+    display: grid;
+    gap: 1rem;
+  }
+  .item-list li {
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-lg);
+    padding: 1rem 1.25rem;
+  }
+  .item-list li p {
+    color: var(--color-text-muted);
+    font-size: 0.9rem;
+    margin: 0.4rem 0 0.75rem;
+  }
+</style>
