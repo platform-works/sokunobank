@@ -16,7 +16,8 @@ const navLinks = [
 <header class="site-header">
   <div class="container bar">
     <a class="brand" href="/">
-      <img src="/images/header-logo.webp" alt={siteName} height="40" />
+      <img src="/images/header-logo.webp" alt="SOKUNOBANK" height="40" />
+      <span class="brand-sub">即納バンク</span>
     </a>
 
     <nav class="nav-desktop" aria-label="サイト内ナビゲーション">
@@ -69,7 +70,8 @@ const navLinks = [
 
   .brand {
     display: flex;
-    align-items: center;
+    align-items: baseline;
+    gap: 0.5rem;
     text-decoration: none;
     color: var(--color-text);
   }
@@ -77,6 +79,19 @@ const navLinks = [
     height: 40px;
     width: auto;
     display: block;
+    align-self: center;
+  }
+  .brand-sub {
+    font-size: 0.78rem;
+    color: var(--color-text-muted);
+    font-weight: 500;
+    white-space: nowrap;
+  }
+
+  @media (max-width: 420px) {
+    .brand-sub {
+      display: none;
+    }
   }
 
   .nav-desktop ul {
