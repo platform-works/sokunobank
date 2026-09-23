@@ -30,11 +30,30 @@ export interface Provider {
   facets?: Record<string, string | number | boolean>;
   /** 出典・注意事項(料金変動の可能性など) */
   sourceNote?: string;
+  /** 仕様(はがき/封筒等)別の単価・納期の目安。データを持つ場合のみ表示 */
+  formatOptions?: FormatOption[];
+  /** そのサービスのWEB発注手順(テンプレートページ等の実URLを含む) */
+  webOrderSteps?: ProcessStep[];
 }
 
 export interface ProcessStep {
   title: string;
   description?: string;
+  /** 手順に関連する外部ページ(テンプレートページ・発注ページ等)*/
+  href?: string;
+  hrefLabel?: string;
+}
+
+export interface FormatOption {
+  /** 仕様名(例:ポストカード(はがき)DM) */
+  name: string;
+  /** 単価帯の目安(税込) */
+  priceRange: string;
+  /** 納期の目安 */
+  speed: string;
+  /** 「即納向けにおすすめ」等の推奨フラグ */
+  recommended?: boolean;
+  note?: string;
 }
 
 export interface ReaderPathway {

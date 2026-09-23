@@ -1,0 +1,64 @@
+---
+import type { FormatOption } from "../data/schema";
+
+interface Props {
+  options: FormatOption[];
+  title?: string;
+}
+const { options, title = "仕様別の目安" } = Astro.props;
+const isUrgentText = (v: string) => /(当日|即日)/.test(v);
+---
+
+<div class="format-options">
+  <h3>{title}</h3>
+  <div class="table-wrap">
+    <table class="responsive-table">
+      <thead>
+        <tr>
+          <th>仕様</th>
+          <th>単価帯(目安)</th>
+          <th>納期の目安</th>
+        </tr>
+      </thead>
+      <tbody>
+        {
+          options.map((o) => (
+            <tr class={o.recommended ? "recommended-row" : ""}>
+              <th scope="row">
+                {o.name}
+                {o.recommended && <span class="badge">おすすめ</span>}
+                {o.note && <p class="note">{o.note}</p>}
+              </th>
+              <td data-label="単価帯(目安)">{o.priceRange}</td>
+              <td data-label="納期の目安">
+                {isUrgentText(o.speed) ? <span class="badge-urgent">{o.speed}</span> : o.speed}
+              </td>
+            </tr>
+          ))
+        }
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<style>
+  .format-options {
+    margin: 1.5rem 0;
+  }
+  .format-options h3 {
+    margin-bottom: 0.75rem;
+  }
+  .table-wrap {
+    overflow-x: auto;
+    border-radius: var(--radius-lg);
+  }
+  .recommended-row {
+    background: var(--color-accent-soft);
+  }
+  .note {
+    margin: 0.3rem 0 0;
+    font-size: 0.78rem;
+    font-weight: 400;
+    color: var(--color-text-muted);
+  }
+</style>

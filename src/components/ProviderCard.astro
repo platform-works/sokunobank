@@ -1,5 +1,6 @@
 ---
 import type { ComparisonField, Provider } from "../data/schema";
+import FormatOptionsTable from "./FormatOptionsTable.astro";
 
 interface Props {
   provider: Provider;
@@ -36,6 +37,10 @@ const isUrgentText = (v?: string) => !!v && /(当日|即日|翌日)/.test(v);
   </div>
 
   {provider.description && <p class="description">{provider.description}</p>}
+
+  {provider.formatOptions && provider.formatOptions.length > 0 && (
+    <FormatOptionsTable options={provider.formatOptions} />
+  )}
 
   <div class="card-actions">
     {

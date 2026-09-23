@@ -29,6 +29,11 @@ const jsonLd = {
           <span class="step-body">
             <strong>{s.title}</strong>
             {s.description && <span class="desc">{s.description}</span>}
+            {s.href && (
+              <a class="step-link" href={s.href} target="_blank" rel="noopener">
+                {s.hrefLabel ?? s.href} →
+              </a>
+            )}
           </span>
         </li>
       ))
@@ -77,5 +82,10 @@ const jsonLd = {
   .desc {
     color: var(--color-text-muted);
     font-size: 0.88rem;
+  }
+  .step-link {
+    font-size: 0.85rem;
+    font-weight: 600;
+    margin-top: 0.15rem;
   }
 </style>

@@ -25,6 +25,7 @@ export function getStaticPaths() {
 const { category } = Astro.props;
 const tableId = `comparison-${category.slug}`;
 const highlightField = category.comparisonFields[0];
+const primaryProvider = category.providers.find((p) => p.isPrimary);
 
 if (!category.lastVerifiedAt) {
   console.warn(
@@ -64,6 +65,13 @@ if (!category.lastVerifiedAt) {
       <h2>各社の詳細</h2>
       {category.providers.map((p) => <ProviderCard provider={p} highlightField={highlightField} />)}
     </section>
+
+    {primaryProvider?.webOrderSteps && primaryProvider.webOrderSteps.length > 0 && (
+      <ProcessSteps
+        steps={primaryProvider.webOrderSteps}
+        title={`${primaryProvider.name}でのWEB発注手順`}
+      />
+    )}
 
     {category.readerPathways && category.readerPathways.length > 0 && (
       <ReaderPathways title="選び方" pathways={category.readerPathways} />
