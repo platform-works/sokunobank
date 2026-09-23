@@ -42,38 +42,48 @@ const rootId = `filter-${targetId}`;
 </div>
 
 <script define:vars={{ targetId, rootId }}>
-  const root = document.getElementById(rootId);
-  const table = document.getElementById(targetId);
-  if (root && table) {
-    const controls = root.querySelectorAll("[data-filter-key]");
-    const applyFilters = () => {
-      const rows = table.querySelectorAll("[data-provider]");
-      rows.forEach((row) => {
-        let visible = true;
-        controls.forEach((control) => {
-          const key = control.dataset.filterKey;
-          const type = control.dataset.filterType;
-          const facetProp = "facet" + key.charAt(0).toUpperCase() + key.slice(1);
-          const facetRaw = row.dataset[facetProp];
-          if (type === "select") {
-            const selected = control.value;
-            if (selected && facetRaw !== undefined) {
-              const facetNum = Number(facetRaw);
-              const selectedNum = Number(selected);
-              if (!Number.isNaN(facetNum) && !Number.isNaN(selectedNum) && facetNum > selectedNum) {
+  // このスクリプトは比較表(ComparisonTable)より前にDOMへ出力されるため、
+  // 即時実行するとdocument.getElementById(targetId)がまだ存在せずnullになる。
+  // DOMContentLoaded後に初期化することで、後続要素も含めて確実に取得する。
+  function init() {
+    const root = document.getElementById(rootId);
+    const table = document.getElementById(targetId);
+    if (root && table) {
+      const controls = root.querySelectorAll("[data-filter-key]");
+      const applyFilters = () => {
+        const rows = table.querySelectorAll("[data-provider]");
+        rows.forEach((row) => {
+          let visible = true;
+          controls.forEach((control) => {
+            const key = control.dataset.filterKey;
+            const type = control.dataset.filterType;
+            const facetProp = "facet" + key.charAt(0).toUpperCase() + key.slice(1);
+            const facetRaw = row.dataset[facetProp];
+            if (type === "select") {
+              const selected = control.value;
+              if (selected && facetRaw !== undefined) {
+                const facetNum = Number(facetRaw);
+                const selectedNum = Number(selected);
+                if (!Number.isNaN(facetNum) && !Number.isNaN(selectedNum) && facetNum > selectedNum) {
+                  visible = false;
+                }
+              }
+            } else if (type === "checkbox") {
+              if (control.checked && facetRaw === "false") {
                 visible = false;
               }
             }
-          } else if (type === "checkbox") {
-            if (control.checked && facetRaw === "false") {
-              visible = false;
-            }
-          }
+          });
+          row.style.display = visible ? "" : "none";
         });
-        row.style.display = visible ? "" : "none";
-      });
-    };
-    controls.forEach((c) => c.addEventListener("change", applyFilters));
+      };
+      controls.forEach((c) => c.addEventListener("change", applyFilters));
+    }
+  }
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", init);
+  } else {
+    init();
   }
 </script>
 

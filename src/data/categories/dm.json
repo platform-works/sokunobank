@@ -154,6 +154,9 @@
       "name": "NEXLINK(ネクスウェイ)",
       "isPrimary": false,
       "officialUrl": "https://dm.nexway.co.jp/",
+      "facets": {
+        "minQuantityNum": 1
+      },
       "values": {
         "speed": "30,000通までは最短で入稿当日に印刷・発送可能と公式ブログに記載。公式トップページでは「翌営業日発送」と表記(要確認:表記の違い)",
         "minQuantity": "1通〜",
@@ -169,6 +172,9 @@
       "name": "ゼンリンマーケティングソリューションズ",
       "isPrimary": false,
       "officialUrl": "https://www.zenrin-ms.co.jp/operation/direct_mail_agency/",
+      "facets": {
+        "minQuantityNum": 2000
+      },
       "values": {
         "speed": "資材が提携作業場に納品されてから発送まで中2営業日が目安。お急ぎの場合は事前相談でさらに短縮できる場合ありと公式に記載",
         "minQuantity": "原則2,000通以上(要相談)",
@@ -184,6 +190,9 @@
       "name": "DM発送代行センター(メディアボックス)",
       "isPrimary": false,
       "officialUrl": "https://www.canplaza.com/",
+      "facets": {
+        "nationwide": true
+      },
       "values": {
         "speed": "要確認",
         "minQuantity": "小ロット(100通)対応の実績を謳うが、明確な最低ロットの記載は確認できず",
