@@ -9,6 +9,12 @@ import { projectorConfig as c } from "../../../lib/commerce/categories/projector
 
 // このページはprerender(静的)。商品一覧のみクライアント側でAPI(prerender=false)から取得するため、
 // API取得に失敗してもH1・説明文・FAQ等の静的コンテンツは常にそのまま表示される。
+
+// ValueCommerceの広告コードは規約上改変(書き換え・一部抜き出し・サイズ変更等)が禁止されているため、
+// 元のタグを一切変更せず文字列としてそのまま埋め込む(set:html)。Astroのテンプレート構文で
+// 書くと、scoped CSS用のdata-astro-cid-*属性が子要素(noscript内のa/img等)にまで
+// 自動付与されてしまい、タグが変更されてしまうため、set:htmlで生のHTMLとして出力する。
+const vcBannerHtml = `<script language="javascript" src="//ad.jp.ap.valuecommerce.com/servlet/jsbanner?sid=3782308&pid=892713218"></script><noscript><a href="//ck.jp.ap.valuecommerce.com/servlet/referral?sid=3782308&pid=892713218" rel="nofollow"><img src="//ad.jp.ap.valuecommerce.com/servlet/gifbanner?sid=3782308&pid=892713218" border="0"></a></noscript>`;
 ---
 
 <Layout title={c.pageTitle} description={c.metaDescription}>
@@ -18,9 +24,16 @@ import { projectorConfig as c } from "../../../lib/commerce/categories/projector
 
   <div class="container">
     <section class="hero">
-      <h1>{c.h1}</h1>
-      <p class="subheadline">{c.subheadline}</p>
-      <p class="delivery-note">{c.deliveryNote}</p>
+      <div class="hero-main">
+        <h1>{c.h1}</h1>
+        <p class="subheadline">{c.subheadline}</p>
+        <p class="delivery-note">{c.deliveryNote}</p>
+      </div>
+
+      <div class="hero-ad">
+        <span class="hero-ad-label">PR</span>
+        <div class="hero-ad-embed" set:html={vcBannerHtml} />
+      </div>
     </section>
 
     <CommerceFilterPanel slug={c.slug} sortOptions={c.sortOptions} />
@@ -49,9 +62,35 @@ import { projectorConfig as c } from "../../../lib/commerce/categories/projector
 <style>
   .hero {
     margin-top: 1.5rem;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 1.25rem;
+  }
+  .hero-main {
+    flex: 1 1 480px;
+    min-width: 0;
   }
   .hero h1 {
     margin-bottom: 0.6rem;
+  }
+  .hero-ad {
+    flex: 0 0 auto;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.4rem;
+    background: var(--color-bg-soft);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    padding: 0.75rem;
+  }
+  .hero-ad-label {
+    font-size: 0.68rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    color: var(--color-text-muted);
   }
   .subheadline {
     font-size: 1.02rem;
