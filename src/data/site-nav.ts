@@ -21,7 +21,7 @@ export const popularKeywords: NavLink[] = [
 /** 「急ぎの目的から探す」セクション */
 export const purposeFinder: NavLink[] = [
   { label: "ダイレクトメールを明日までに発送したい", href: "/categories/dm/" },
-  { label: "会議用プロジェクターを今日・明日中に用意したい", href: "/categories/projector/" },
+  { label: "会議用プロジェクターを明日までに用意したい", href: "/categories/projector/" },
   { label: "明日までに納品したい" },
   { label: "イベントに間に合わせたい" },
   { label: "急に名刺が必要" },
@@ -82,7 +82,7 @@ export interface CommerceCategoryLink {
 }
 
 export const commerceCategories: CommerceCategoryLink[] = [
-  { name: "会議用プロジェクター", href: "/categories/projector/", speedLabel: "配送目安", speedValue: "当日〜翌々日" },
+  { name: "会議用プロジェクター", href: "/categories/projector/", speedLabel: "配送目安", speedValue: "最短翌日〜翌々日" },
 ];
 
 /** カテゴリーカードの並びに出す、まだデータ投入前の将来カテゴリー(名称のみ) */

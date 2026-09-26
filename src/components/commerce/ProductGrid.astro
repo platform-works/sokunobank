@@ -40,7 +40,7 @@ const rootId = `commerce-grid-${slug}`;
     }
 
     function deliveryLabel(day) {
-      if (day === 0) return "今日到着対象";
+      // 当日到着(day=0)は現実的に成立しづらいため、表示上は約束しない(day=0もday=nullと同様の扱いにする)。
       if (day === 1) return "明日到着対象";
       if (day === 2) return "翌々日到着対象";
       return "配送日は商品ページでご確認ください";

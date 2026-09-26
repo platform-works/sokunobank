@@ -90,9 +90,10 @@ function normalizeHit(hit: YahooHit): RankableProduct | null {
  * 1クエリでも失敗した場合はそのクエリ分だけ諦め、他の結果で継続する(全滅時のみ例外を投げる)。
  */
 export async function searchProducts(params: YahooSearchParams): Promise<RankableProduct[]> {
+  // day=0(当日)は現実的に成立しづらいため問い合わせ対象に含めない。1(明日)〜deliveryDayを取得する。
   const dayValues =
     params.area && params.deliveryDay !== undefined
-      ? Array.from({ length: params.deliveryDay + 1 }, (_, i) => i)
+      ? Array.from({ length: params.deliveryDay }, (_, i) => i + 1)
       : [undefined];
 
   const requests: Promise<{ ok: boolean; items: RankableProduct[] }>[] = [];

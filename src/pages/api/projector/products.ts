@@ -23,7 +23,8 @@ function validateArea(value: string | null): string | undefined {
 function validateDelivery(value: string | null): number | undefined {
   if (value === null) return undefined;
   const n = Number(value);
-  if (!Number.isInteger(n) || n < 0 || n > 2) return undefined;
+  // day=0(当日到着)は現実的に成立しづらいため受け付けない。1(明日まで)・2(翌々日まで)のみ有効。
+  if (!Number.isInteger(n) || n < 1 || n > 2) return undefined;
   return n;
 }
 
