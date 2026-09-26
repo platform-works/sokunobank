@@ -9,7 +9,7 @@ export const projectorConfig: CommerceCategoryConfig = {
   pageTitle: "会議用プロジェクター即納比較｜明日には届く商品を探す",
   metaDescription:
     "急な会議・商談・イベント向けに、会議用プロジェクターを配送地域別に比較。Yahoo!ショッピングから最短翌日配送に対応した商品を探せます。",
-  h1: "会議用プロジェクターを最短で。明日には届く商品を比較",
+  h1: "会議用プロジェクターを最短で。最短で届く",
   subheadline:
     "急な会議・商談・イベントに。お届け先を選ぶだけで、Yahoo!ショッピングから最短翌日配送に対応したプロジェクターを比較できます。",
   deliveryNote:
