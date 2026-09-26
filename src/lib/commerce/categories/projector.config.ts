@@ -107,4 +107,17 @@ export const projectorConfig: CommerceCategoryConfig = {
         "確定ではありません。在庫・配送状況は随時変動するため、購入前に必ずYahoo!ショッピングの商品ページで最新のお届け予定をご確認ください。",
     },
   ],
+  // ValueCommerceの広告コードは規約上改変(書き換え・一部抜き出し・サイズ変更等)が禁止されているため、
+  // 元のタグを一切変更せず文字列としてそのまま持たせる。描画側(CommerceCategoryPage.astro)は
+  // set:htmlでそのまま出力する(Astroのテンプレート構文経由だとscoped CSS用の
+  // data-astro-cid-*属性が子要素にまで付与されてしまい、タグが変更されてしまうため)。
+  ads: {
+    pcBannerHtml:
+      '<script language="javascript" src="//ad.jp.ap.valuecommerce.com/servlet/jsbanner?sid=3782308&pid=892713218"></script><noscript><a href="//ck.jp.ap.valuecommerce.com/servlet/referral?sid=3782308&pid=892713218" rel="nofollow"><img src="//ad.jp.ap.valuecommerce.com/servlet/gifbanner?sid=3782308&pid=892713218" border="0"></a></noscript>',
+    // スマートフォン専用のオーバーレイバナー(ValueCommerce指定)。指示では</body>直前への設置と
+    // なっているが、このバナーはカテゴリーごとに異なりうるため共通Layout.astroは変更せず、
+    // CommerceCategoryPage.astro側でページ自身のコンテンツ末尾(Footerの直前)に設置している。
+    mobileOverlayHtml:
+      '<script language="javascript" src="//ad.jp.ap.valuecommerce.com/servlet/smartphonebanner?sid=3782308&pid=892713452&position=overlay"></script>',
+  },
 };
