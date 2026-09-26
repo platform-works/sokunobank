@@ -1,11 +1,12 @@
 import type { CommerceCategoryConfig } from "./types";
 import { projectorConfig } from "./categories/projector.config";
 import { orchidConfig } from "./categories/orchid.config";
+import { monitorConfig } from "./categories/monitor.config";
 
 // 新カテゴリーを追加するときは、ここに1行追加するだけでページ(薄いラッパーファイル経由)と
 // APIルート(動的ルート経由)の両方から使えるようになる。
 // (docs/new-category-checklist.md も参照)
-const configs: CommerceCategoryConfig[] = [projectorConfig, orchidConfig];
+const configs: CommerceCategoryConfig[] = [projectorConfig, orchidConfig, monitorConfig];
 
 function assertValidCommerceCategoryConfig(config: CommerceCategoryConfig): void {
   const missing: string[] = [];

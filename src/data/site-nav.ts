@@ -13,6 +13,7 @@ export const popularKeywords: NavLink[] = [
   { label: "DM発送", href: "/categories/dm/" },
   { label: "会議用プロジェクター", href: "/categories/projector/" },
   { label: "胡蝶蘭", href: "/categories/orchid/" },
+  { label: "PCモニター", href: "/categories/monitor/" },
   { label: "チラシ印刷" },
   { label: "名刺" },
   { label: "封筒" },
@@ -24,6 +25,7 @@ export const purposeFinder: NavLink[] = [
   { label: "ダイレクトメールを明日までに発送したい", href: "/categories/dm/" },
   { label: "会議用プロジェクターを明日までに用意したい", href: "/categories/projector/" },
   { label: "開店祝いの胡蝶蘭を明日までに贈りたい", href: "/categories/orchid/" },
+  { label: "PCモニターを明日までに用意したい", href: "/categories/monitor/" },
   { label: "明日までに納品したい" },
   { label: "イベントに間に合わせたい" },
   { label: "急に名刺が必要" },
@@ -58,6 +60,7 @@ export const departmentFinder: DepartmentGroup[] = [
       { label: "社内印刷物" },
       { label: "会議用プロジェクター", href: "/categories/projector/" },
       { label: "胡蝶蘭", href: "/categories/orchid/" },
+      { label: "PCモニター", href: "/categories/monitor/" },
     ],
   },
   {
@@ -87,6 +90,7 @@ export interface CommerceCategoryLink {
 export const commerceCategories: CommerceCategoryLink[] = [
   { name: "会議用プロジェクター", href: "/categories/projector/", speedLabel: "配送目安", speedValue: "最短翌日〜翌々日" },
   { name: "胡蝶蘭", href: "/categories/orchid/", speedLabel: "配送目安", speedValue: "最短翌日〜翌々日" },
+  { name: "PCモニター", href: "/categories/monitor/", speedLabel: "配送目安", speedValue: "最短翌日〜翌々日" },
 ];
 
 /** カテゴリーカードの並びに出す、まだデータ投入前の将来カテゴリー(名称のみ) */
