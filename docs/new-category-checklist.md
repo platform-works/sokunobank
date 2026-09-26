@@ -18,7 +18,8 @@ DM型(事業者比較、`src/data/categories/*.json`)とは別系統の、「Yah
 `src/lib/commerce/categories/<slug>.config.ts`を作成し、`CommerceCategoryConfig`型を満たす(`docs/category-config-template.ts`をコピーして埋める)。特に以下は既存の判断を踏襲する(理由はCLAUDE.md参照):
 
 - 到着希望は「明日まで(1)」「翌々日まで(2)」のみ。「当日(0)」は入れない
-- `weights`のデフォルトは`{ delivery: 0.20, conversionProxy: 0.15, review: 0.09, store: 0.06, revenue: 0.50 }`(変更する場合はユーザーの指示に基づく)
+- `weights`のデフォルトは`{ delivery: 0.29, conversionProxy: 0.21, review: 0.12, store: 0.08, revenue: 0.30 }`(2026-09-26改訂。`minEstimatedCommission`による足切りとセットでrevenueの重みを50%→30%に引き下げた。変更する場合はユーザーの指示に基づく)
+- `minEstimatedCommission`(任意): 想定成果報酬額がこの額未満の商品を検索結果から除外する。設定する場合は必ず実データで影響件数を確認すること(カテゴリーによって報酬額の分布が大きく異なるため、同じ閾値でも影響の大きさが全く違う。2026-09-26、PCモニターは中央値152円のため500円足切りで件数が50→9に激減した例がある)
 - `sortOptions`に報酬額を直接示すソート項目(例:「報酬期待値」)は入れない
 - コピー文言に「今日」「当日」「収益性」「報酬」を含めない
 - `excludeKeywords`(付属品等)は商品名のみが対象、`longLeadTimeExcludeKeywords`(お取り寄せ等)は商品名+説明文が対象、という役割分担を守る。付属品系の語を説明文まで対象にすると、本体商品の仕様・同梱品表記(例:「光源:ランプ」「HDMIケーブル付属」)に誤反応して正規品を除外してしまう(2026-09-26、projectorで実際に発生)

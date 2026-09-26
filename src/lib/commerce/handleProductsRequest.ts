@@ -129,9 +129,15 @@ export async function handleProductsRequest(config: CommerceCategoryConfig, cont
         config.longLeadTimeExcludeKeywords
       );
 
-      const scored = filtered.map((p) =>
+      const scoredAll = filtered.map((p) =>
         scoreProduct(p, config.weights, config.revenueScoreReferenceMax, buildAffiliateUrl(affiliateId, p.url))
       );
+      // 想定成果報酬額が基準未満の商品を足切りする(任意設定、2026-09-26導入)。
+      // revenueScoreの重み付けとは別に、そもそも掲載する価値がないほど低報酬の商品を除外する。
+      const scored =
+        config.minEstimatedCommission !== undefined
+          ? scoredAll.filter((p) => p.estimatedCommission >= config.minEstimatedCommission!)
+          : scoredAll;
 
       // 同一JAN(同一商品の複数ストア出品)の中に配送日が確定している出品と未確定の出品が
       // 混在する場合、未確定の方が先に残ってしまわないよう、重複除去の前に

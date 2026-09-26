@@ -58,6 +58,10 @@ function assertValidCommerceCategoryConfig(config: CommerceCategoryConfig): void
     missing.push("revenueScoreReferenceMax (正の数である必要があります)");
   }
 
+  if (config.minEstimatedCommission !== undefined && config.minEstimatedCommission < 0) {
+    missing.push("minEstimatedCommission (0以上である必要があります)");
+  }
+
   if (!config.apiPath?.endsWith("/")) {
     missing.push('apiPath (末尾に "/" が必要です。このプロジェクトは trailingSlash: "always" のため)');
   }

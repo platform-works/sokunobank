@@ -31,18 +31,24 @@ export const orchidConfig: CommerceCategoryConfig = {
     { key: "reviewCount", label: "レビュー件数" },
     { key: "priceAsc", label: "価格が安い順" },
   ],
+  // 2026-09-26改訂: 報酬額500円未満を検索結果から足切りする(minEstimatedCommission、下記)
+  // ことと引き換えに、報酬額の重みを50%→30%へ引き下げた(ユーザー指示、projectorと共通方針)。
+  // 残り4項目は元の比率(delivery:conversionProxy:review:store = 7:5:3:2)を保ったまま
+  // 合計70%に収まるよう比例縮小した。
   weights: {
-    delivery: 0.2,
-    conversionProxy: 0.15,
-    review: 0.09,
-    store: 0.06,
-    revenue: 0.5,
+    delivery: 0.29,
+    conversionProxy: 0.21,
+    review: 0.12,
+    store: 0.08,
+    revenue: 0.3,
   },
   // 2026-09-26調査: 想定成果報酬額(price*affiliateRate/100)は中央値約242円、上位クラスタは
   // 約1,150〜1,350円、最高額は「東京23区限定・手持ち配送」の特殊な高額商品(3,300円)で
   // 突出した外れ値だった。この1件だけを基準にすると他の大半が低評価に張り付くため、
   // 実勢の上位クラスタ寄りの1,500円を基準値とした(外れ値は自動的に上限100点に丸められる)。
   revenueScoreReferenceMax: 1500,
+  // 2026-09-26導入(ユーザー指示): 想定成果報酬額が500円未満の商品は検索結果から除外する。
+  minEstimatedCommission: 500,
   seoSections: [
     {
       heading: "胡蝶蘭を即納で選ぶポイント",

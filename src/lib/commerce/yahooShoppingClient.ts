@@ -128,10 +128,16 @@ export async function searchProducts(params: YahooSearchParams): Promise<Rankabl
   }
 
   const results = await Promise.all(requests);
-  const anySucceeded = results.some((r) => r.ok);
-  if (!anySucceeded && requests.length > 0) {
-    // 全リクエストが失敗した場合のみエラーとして扱う(0件ヒットは正常系として区別する)
-    throw new Error("Yahoo!ショッピングAPIから商品を取得できませんでした");
+  const anyFailed = results.some((r) => !r.ok);
+  if (anyFailed && requests.length > 0) {
+    // 2026-09-26改訂: 以前は「1件でも成功すればOK」としていたが、Yahoo側のレート制限
+    // (1分30リクエスト/アプリID)に一時的に触れた際、6リクエスト中1〜2件だけ成功した
+    // 「偏った少数の結果」がそのまま正常系として30分間キャッシュされてしまう実害があった
+    // (2026-09-26、projector/orchidの本番表示が1〜3件まで激減する事象で発覚)。
+    // 一部でも失敗した場合は「不完全な結果」として例外を投げ、呼び出し側
+    // (handleProductsRequest.ts)のフォールバックキャッシュ(直前の正常な結果)に
+    // 委ねることで、偏った少数の結果が正常な結果として扱われるのを防ぐ。
+    throw new Error("Yahoo!ショッピングAPIから一部の検索結果を取得できませんでした");
   }
   const merged = results.flatMap((r) => r.items);
   return dedupeByCode(merged);

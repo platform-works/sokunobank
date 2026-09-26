@@ -100,6 +100,12 @@ export interface CommerceCategoryConfig {
   weights: RankingWeights;
   /** 想定成果報酬額の正規化上限(この額で revenueScore が100に近づく) */
   revenueScoreReferenceMax: number;
+  /**
+   * 任意。想定成果報酬額(price*affiliateRate/100)がこの額未満の商品は検索結果から除外する。
+   * revenueScoreによるランキング上の重み付けとは別に、そもそも掲載する価値がないほど
+   * 低報酬の商品を足切りする用途(2026-09-26導入、ユーザー指示)。未設定なら足切りしない。
+   */
+  minEstimatedCommission?: number;
   seoSections: { heading: string; body: string[] }[];
   faq: CommerceFaqItem[];
   /** 任意。ValueCommerce等の広告タグ(PC/スマホ)。無ければ何も表示しない */

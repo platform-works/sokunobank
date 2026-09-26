@@ -36,15 +36,17 @@ export const projectorConfig: CommerceCategoryConfig = {
   ],
   // 「配送確認ができること」自体は重み付けではなく、重複除去(同一JAN)の優先条件として
   // ranking.tsの手前(products.ts)で既に強制している。ここのweightsはその後の
-  // 最終表示順(即納おすすめ)にのみ影響する。ユーザー指示により報酬額の重みを50%へ引き上げ、
+  // 最終表示順(即納おすすめ)にのみ影響する。
+  // 2026-09-26改訂: 報酬額500円未満を検索結果から足切りする(minEstimatedCommission、下記)
+  // ことと引き換えに、報酬額の重みを50%→30%へ引き下げた(ユーザー指示)。
   // 残り4項目は元の比率(delivery:conversionProxy:review:store = 7:5:3:2)を保ったまま
-  // 合計50%に収まるよう比例縮小した。
+  // 合計70%に収まるよう比例縮小した。
   weights: {
-    delivery: 0.2,
-    conversionProxy: 0.15,
-    review: 0.09,
-    store: 0.06,
-    revenue: 0.5,
+    delivery: 0.29,
+    conversionProxy: 0.21,
+    review: 0.12,
+    store: 0.08,
+    revenue: 0.3,
   },
   // 実際のYahoo!ショッピングの想定成果報酬額を調査したところ、このカテゴリーの
   // アフィリエイト料率はほぼ一律1%程度で、想定成果報酬額は中央値約170円、
@@ -53,6 +55,8 @@ export const projectorConfig: CommerceCategoryConfig = {
   // 報酬額の重み(50%)が実質ほとんど機能していなかった。実態に合わせて基準値を
   // 引き下げ、報酬額による差が最終スコアに実際に反映されるようにした。
   revenueScoreReferenceMax: 3000,
+  // 2026-09-26導入(ユーザー指示): 想定成果報酬額が500円未満の商品は検索結果から除外する。
+  minEstimatedCommission: 500,
   seoSections: [
     {
       heading: "会議用プロジェクターを即納で選ぶポイント",

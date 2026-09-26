@@ -60,6 +60,16 @@ export const monitorConfig: CommerceCategoryConfig = {
     "紙幣計数機",
     "パンプス",
     "カーナビ",
+    // 2026-09-26 本番データで新たに判明: カー用品(ナビ画面保護・タイヤ空気圧モニター)、
+    // ケーブル単体(「DISPLAY」がDisplayPortケーブル名にも含まれるため必須キーワードを
+    // すり抜ける)、ソフトウェア・設定代行サービス(モニター本体ではない)を除外する。
+    "ナビ",
+    "タイヤ",
+    "TPMS",
+    "空気圧",
+    "ケーブル",
+    "ダウンロード",
+    "設定サポート",
   ],
   // カテゴリー共通の長納期系除外(商品名+説明文の両方をチェック)
   longLeadTimeExcludeKeywords: ["お取り寄せ", "取り寄せ", "予約商品", "入荷次第", "入荷未定", "受注生産", "メーカー取寄"],
@@ -69,12 +79,19 @@ export const monitorConfig: CommerceCategoryConfig = {
     { key: "reviewCount", label: "レビュー件数" },
     { key: "priceAsc", label: "価格が安い順" },
   ],
+  // 2026-09-26改訂: 報酬額500円未満を検索結果から足切りする(minEstimatedCommission、下記)
+  // ことと引き換えに、報酬額の重みを50%→30%へ引き下げた(ユーザー指示、projectorと共通方針)。
+  // 残り4項目は元の比率(delivery:conversionProxy:review:store = 7:5:3:2)を保ったまま
+  // 合計70%に収まるよう比例縮小した。
+  // 【要確認】このカテゴリーの想定成果報酬額は中央値約152円・90パーセンタイルでも約509円
+  // (下記調査結果参照)しかないため、500円未満を足切りすると実データの9割前後が対象外になる
+  // 可能性が高い(他カテゴリーより影響が大きい)。デプロイ前に必ず実件数を確認すること。
   weights: {
-    delivery: 0.2,
-    conversionProxy: 0.15,
-    review: 0.09,
-    store: 0.06,
-    revenue: 0.5,
+    delivery: 0.29,
+    conversionProxy: 0.21,
+    review: 0.12,
+    store: 0.08,
+    revenue: 0.3,
   },
   // 2026-09-26調査(検索語見直し後の再計測): area=13、delivery=1/2で実際に到達可能な
   // (require+exclude適用後の)商品群85件の想定成果報酬額は中央値約152円・90パーセンタイル
@@ -84,6 +101,9 @@ export const monitorConfig: CommerceCategoryConfig = {
   // ことを確認済み。これを基準にすると表示され得る商品群の報酬スコアがほぼ0%に潰れてしまう、
   // projectorで一度起きたのと同種のバグになるため使わない)。
   revenueScoreReferenceMax: 1100,
+  // 2026-09-26導入(ユーザー指示): 想定成果報酬額が500円未満の商品は検索結果から除外する。
+  // このカテゴリーは中央値152円のため影響が大きい可能性がある(上記の要確認コメント参照)。
+  minEstimatedCommission: 500,
   seoSections: [
     {
       heading: "PCモニターを即納で選ぶポイント",
