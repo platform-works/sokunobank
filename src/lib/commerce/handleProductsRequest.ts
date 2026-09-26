@@ -1,15 +1,15 @@
-import type { APIRoute } from "astro";
-import { projectorConfig } from "../../../lib/commerce/categories/projector.config";
-import { isValidPrefectureCode } from "../../../lib/commerce/prefectures";
-import { searchProducts } from "../../../lib/commerce/yahooShoppingClient";
-import { filterRelevantProducts, dedupeByJan, dedupeByExactName } from "../../../lib/commerce/productFilter";
-import { scoreProduct } from "../../../lib/commerce/ranking";
-import { buildAffiliateUrl } from "../../../lib/commerce/affiliate";
-import type { SortKey } from "../../../lib/commerce/types";
+import type { APIContext } from "astro";
+import { isValidPrefectureCode } from "./prefectures";
+import { searchProducts } from "./yahooShoppingClient";
+import { filterRelevantProducts, dedupeByJan, dedupeByExactName } from "./productFilter";
+import { scoreProduct } from "./ranking";
+import { buildAffiliateUrl } from "./affiliate";
+import type { CommerceCategoryConfig, SortKey } from "./types";
 
-// projector専用の商品ランキングAPI。ユーザー入力を検索クエリへ直接渡さない
-// (検索語はprojector.config.tsのsearchQueriesに固定)。受け付けるパラメータのみ厳格に検証する。
-export const prerender = false;
+// 「Yahoo!ショッピング商品ランキング型」カテゴリー共通のAPIハンドラー。
+// カテゴリーごとにコピーしない — src/pages/api/[slug]/products.ts (動的ルート)から
+// レジストリで解決した設定を渡して呼ばれる。ユーザー入力を検索クエリへ直接渡さない
+// (検索語は各カテゴリーのconfig.searchQueriesに固定)。受け付けるパラメータのみ厳格に検証する。
 
 const CACHE_TTL_SECONDS = 900; // 15分
 
@@ -27,20 +27,38 @@ function validateDelivery(value: string | null): number | undefined {
   return n;
 }
 
-function validateSort(value: string | null): SortKey {
-  const allowed = projectorConfig.sortOptions.map((s) => s.key);
+function validateSort(config: CommerceCategoryConfig, value: string | null): SortKey {
+  const allowed = config.sortOptions.map((s) => s.key);
   if (value && (allowed as string[]).includes(value)) return value as SortKey;
   return "recommended";
 }
 
-export const GET: APIRoute = async (context) => {
+function sortProducts<T extends { totalScore: number; reviewCount: number; price: number; estimatedCommission: number }>(
+  products: T[],
+  sort: SortKey
+): T[] {
+  const copy = [...products];
+  switch (sort) {
+    case "trust":
+      return copy.sort((a, b) => b.reviewCount - a.reviewCount || b.totalScore - a.totalScore);
+    case "reviewCount":
+      return copy.sort((a, b) => b.reviewCount - a.reviewCount);
+    case "priceAsc":
+      return copy.sort((a, b) => a.price - b.price);
+    case "recommended":
+    default:
+      return copy.sort((a, b) => b.totalScore - a.totalScore);
+  }
+}
+
+export async function handleProductsRequest(config: CommerceCategoryConfig, context: APIContext): Promise<Response> {
   const { request } = context;
   const url = new URL(request.url);
   const params = url.searchParams;
 
   const area = validateArea(params.get("area"));
   const delivery = validateDelivery(params.get("delivery"));
-  const sort = validateSort(params.get("sort"));
+  const sort = validateSort(config, params.get("sort"));
 
   // お届け先(都道府県)が分かっているのに到着希望が未指定だと、Yahoo APIは配送日情報
   // (delivery.day)自体を返さない(delivery_area/delivery_day/delivery_deadlineの3つが
@@ -81,19 +99,15 @@ export const GET: APIRoute = async (context) => {
   try {
     const rawProducts = await searchProducts({
       appId,
-      queries: projectorConfig.searchQueries,
+      queries: config.searchQueries,
       area,
       deliveryDay: effectiveDeliveryDay,
     });
 
-    const filtered = filterRelevantProducts(
-      rawProducts,
-      projectorConfig.requiredKeywords,
-      projectorConfig.excludeKeywords
-    );
+    const filtered = filterRelevantProducts(rawProducts, config.requiredKeywords, config.excludeKeywords);
 
     const scored = filtered.map((p) =>
-      scoreProduct(p, projectorConfig.weights, projectorConfig.revenueScoreReferenceMax, buildAffiliateUrl(affiliateId, p.url))
+      scoreProduct(p, config.weights, config.revenueScoreReferenceMax, buildAffiliateUrl(affiliateId, p.url))
     );
 
     // 同一JAN(同一商品の複数ストア出品)の中に配送日が確定している出品と未確定の出品が
@@ -148,22 +162,4 @@ export const GET: APIRoute = async (context) => {
     context.locals.runtime?.ctx?.waitUntil?.(cache.put(cacheKey, response.clone()));
   }
   return response;
-};
-
-function sortProducts<T extends { totalScore: number; reviewCount: number; price: number; estimatedCommission: number }>(
-  products: T[],
-  sort: SortKey
-): T[] {
-  const copy = [...products];
-  switch (sort) {
-    case "trust":
-      return copy.sort((a, b) => b.reviewCount - a.reviewCount || b.totalScore - a.totalScore);
-    case "reviewCount":
-      return copy.sort((a, b) => b.reviewCount - a.reviewCount);
-    case "priceAsc":
-      return copy.sort((a, b) => a.price - b.price);
-    case "recommended":
-    default:
-      return copy.sort((a, b) => b.totalScore - a.totalScore);
-  }
 }
