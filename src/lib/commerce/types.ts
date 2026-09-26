@@ -81,8 +81,21 @@ export interface CommerceCategoryConfig {
   searchQueries: string[];
   /** 商品名にこのいずれかを含まない場合、検索語と緩く一致しただけの無関係商品として除外する */
   requiredKeywords: string[];
-  /** 商品名にこの語を含む場合は本体ではない付属品等として除外 */
+  /**
+   * 商品名にこの語を含む場合は本体ではない付属品等として除外(商品名のみを対象にする)。
+   * 説明文は対象にしない: 「ランプ」「ケーブル」「リモコン」等は本体商品の仕様・同梱品表記
+   * (光源:ランプ/HDMIケーブル付属等)としても頻出するため、説明文まで対象にすると正規品を
+   * 誤って除外してしまう(2026-09-26、projectorの複数のEPSON純正モデルが誤除外されていたことで発覚)。
+   * 一方、付属品・アクセサリー自体の商品名には対象語が直接含まれるのが通例のため、
+   * 商品名のみのチェックでも実用上十分に機能する。
+   */
   excludeKeywords: string[];
+  /**
+   * 長納期表記(お取り寄せ・予約・受注生産等)の除外語。こちらは商品名だけでなく説明文も対象にする
+   * (「在庫状況:お取り寄せ/お届け:2〜3ヶ月」等は商品名には出ず説明文にのみ出るため)。
+   * 全カテゴリー共通で必ず設定する(docs/category-config-template.ts参照)。
+   */
+  longLeadTimeExcludeKeywords: string[];
   sortOptions: SortOption[];
   weights: RankingWeights;
   /** 想定成果報酬額の正規化上限(この額で revenueScore が100に近づく) */

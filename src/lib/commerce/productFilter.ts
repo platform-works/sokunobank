@@ -16,26 +16,34 @@ function stripRelatedWordTags(text: string): string {
 /**
  * 商品名から本体らしい商品だけを残す。
  * 1) requiredKeywords のいずれかを含まない商品は無関係(検索語と緩く一致しただけ)として除外
- * 2) 残った中から excludeKeywords を含む商品(付属品・消耗品・お取り寄せ品等)を除外
- *    (excludeKeywordsは商品名だけでなく、商品説明・キャッチコピーも対象にする。
- *    「在庫状況：お取り寄せ/お届け：2〜3ヶ月」等は商品名には出ず説明文にのみ出るため)
+ * 2) excludeKeywords を商品名に含む商品(付属品・消耗品等)を除外(商品名のみが対象)
+ * 3) longLeadTimeExcludeKeywords を商品名または説明文に含む商品(お取り寄せ品等)を除外
+ *    (この語群だけは説明文も対象にする。「在庫状況：お取り寄せ/お届け：2〜3ヶ月」等は
+ *    商品名には出ず説明文にのみ出るため。excludeKeywordsまで説明文を対象にすると、
+ *    本体商品の仕様・同梱品表記(光源:ランプ/HDMIケーブル付属等)に誤反応して正規品を
+ *    誤って除外してしまう問題が2026-09-26に発覚したため、対象範囲を分離した)
  * カテゴリー非依存の汎用関数。過剰除外を避けるため、文字列の部分一致のみで判定する単純なロジックに留める。
  */
 export function filterRelevantProducts(
   products: RankableProduct[],
   requiredKeywords: string[],
-  excludeKeywords: string[]
+  excludeKeywords: string[],
+  longLeadTimeExcludeKeywords: string[]
 ): RankableProduct[] {
   const requiredPatterns = requiredKeywords.map((k) => k.toLowerCase());
   const excludePatterns = excludeKeywords.map((k) => k.toLowerCase());
+  const leadTimePatterns = longLeadTimeExcludeKeywords.map((k) => k.toLowerCase());
   return products.filter((p) => {
     const name = p.name.toLowerCase();
     if (requiredPatterns.length > 0 && !requiredPatterns.some((keyword) => name.includes(keyword))) {
       return false;
     }
+    if (excludePatterns.some((keyword) => name.includes(keyword))) {
+      return false;
+    }
     const description = stripRelatedWordTags(p.descriptionText.toLowerCase());
     const searchableText = `${name} ${description}`;
-    return !excludePatterns.some((keyword) => searchableText.includes(keyword));
+    return !leadTimePatterns.some((keyword) => searchableText.includes(keyword));
   });
 }
 

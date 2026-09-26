@@ -29,6 +29,7 @@ function assertValidCommerceCategoryConfig(config: CommerceCategoryConfig): void
   const requiredNonEmptyArrays: (keyof CommerceCategoryConfig)[] = [
     "searchQueries",
     "requiredKeywords",
+    "longLeadTimeExcludeKeywords",
     "sortOptions",
     "seoSections",
     "faq",

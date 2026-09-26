@@ -104,7 +104,12 @@ export async function handleProductsRequest(config: CommerceCategoryConfig, cont
       deliveryDay: effectiveDeliveryDay,
     });
 
-    const filtered = filterRelevantProducts(rawProducts, config.requiredKeywords, config.excludeKeywords);
+    const filtered = filterRelevantProducts(
+      rawProducts,
+      config.requiredKeywords,
+      config.excludeKeywords,
+      config.longLeadTimeExcludeKeywords
+    );
 
     const scored = filtered.map((p) =>
       scoreProduct(p, config.weights, config.revenueScoreReferenceMax, buildAffiliateUrl(affiliateId, p.url))
