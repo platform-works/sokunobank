@@ -1,11 +1,10 @@
 import type { CommerceCategoryConfig } from "./types";
 import { projectorConfig } from "./categories/projector.config";
-import { dummyConfig } from "./categories/dummy.config"; // TODO: 動作確認用。確認後に削除する
 
 // 新カテゴリーを追加するときは、ここに1行追加するだけでページ(薄いラッパーファイル経由)と
 // APIルート(動的ルート経由)の両方から使えるようになる。
 // (docs/new-category-checklist.md も参照)
-const configs: CommerceCategoryConfig[] = [projectorConfig, dummyConfig];
+const configs: CommerceCategoryConfig[] = [projectorConfig];
 
 function assertValidCommerceCategoryConfig(config: CommerceCategoryConfig): void {
   const missing: string[] = [];
