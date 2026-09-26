@@ -4,6 +4,8 @@
 /** ランキング対象商品の正規化された形(Yahoo APIレスポンスから変換した後の内部表現) */
 export interface RankableProduct {
   code: string;
+  /** JANコード。同一商品が複数ストアから出品されている場合の重複排除に使う(取得できない場合あり) */
+  janCode: string | null;
   name: string;
   url: string;
   image: string;

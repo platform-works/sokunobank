@@ -2,7 +2,7 @@ import type { APIRoute } from "astro";
 import { projectorConfig } from "../../../lib/commerce/categories/projector.config";
 import { isValidPrefectureCode } from "../../../lib/commerce/prefectures";
 import { searchProducts } from "../../../lib/commerce/yahooShoppingClient";
-import { filterRelevantProducts } from "../../../lib/commerce/productFilter";
+import { filterRelevantProducts, dedupeByJan, dedupeByExactName } from "../../../lib/commerce/productFilter";
 import { scoreProduct } from "../../../lib/commerce/ranking";
 import { buildAffiliateUrl } from "../../../lib/commerce/affiliate";
 import type { SortKey } from "../../../lib/commerce/types";
@@ -120,7 +120,10 @@ export const GET: APIRoute = async (context) => {
       )
     );
 
-    const sorted = sortProducts(scored, sort).slice(0, 50);
+    // 並び順で全体をソートしてから同一JAN(同一商品の複数ストア出品)を除去することで、
+    // 「価格・収益性等の観点で最も条件の良いものを残す」形になる(先に現れたものを残す)。
+    // JANが取得できない商品は商品名の完全一致で補完的に重複除去する。
+    const sorted = dedupeByExactName(dedupeByJan(sortProducts(scored, sort))).slice(0, 50);
 
     response = new Response(
       JSON.stringify({

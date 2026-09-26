@@ -44,3 +44,36 @@ export function dedupeByCode(products: RankableProduct[]): RankableProduct[] {
   }
   return result;
 }
+
+/**
+ * 同一JANコード(同一商品)が複数ストアから出品されている場合、先に現れたものだけを残す。
+ * ソート済みの配列に対して使うことで「価格・収益性等の並び順で最初に来たもの」を残せる。
+ * JANコードが取得できない商品(null)は重複判定の対象外とし、そのまま残す。
+ */
+export function dedupeByJan<T extends { janCode: string | null }>(products: T[]): T[] {
+  const seen = new Set<string>();
+  const result: T[] = [];
+  for (const p of products) {
+    if (p.janCode) {
+      if (seen.has(p.janCode)) continue;
+      seen.add(p.janCode);
+    }
+    result.push(p);
+  }
+  return result;
+}
+
+/**
+ * JANコードが取得できない商品(セラー側の入力漏れ等)でも、商品名が完全一致する場合は
+ * 同一商品の別ストア出品とみなして先勝ちで重複除去する(dedupeByJanの後段として使う)。
+ */
+export function dedupeByExactName<T extends { name: string }>(products: T[]): T[] {
+  const seen = new Set<string>();
+  const result: T[] = [];
+  for (const p of products) {
+    if (seen.has(p.name)) continue;
+    seen.add(p.name);
+    result.push(p);
+  }
+  return result;
+}

@@ -18,6 +18,7 @@ export interface YahooSearchParams {
 
 interface YahooHit {
   code?: string;
+  janCode?: string;
   name?: string;
   url?: string;
   image?: { medium?: string; small?: string };
@@ -70,6 +71,7 @@ function normalizeHit(hit: YahooHit): RankableProduct | null {
   if (!isTrustedYahooUrl(hit.url)) return null;
   return {
     code: hit.code,
+    janCode: hit.janCode && hit.janCode.trim() !== "" ? hit.janCode : null,
     name: hit.name,
     url: hit.url,
     image: hit.image?.medium ?? hit.image?.small ?? "",

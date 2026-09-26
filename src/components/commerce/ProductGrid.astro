@@ -16,6 +16,7 @@ const rootId = `commerce-grid-${slug}`;
     条件に合う商品が見つかりませんでした。到着希望や価格条件を緩めてお試しください。
   </p>
   <ul class="product-list" data-role="list" hidden></ul>
+  <div class="scroll-sentinel" data-role="sentinel" hidden></div>
 </div>
 
 <script define:vars={{ rootId, slug }}>
@@ -31,12 +32,18 @@ const rootId = `commerce-grid-${slug}`;
     const errorEl = root.querySelector('[data-role="error"]');
     const emptyEl = root.querySelector('[data-role="empty"]');
     const listEl = root.querySelector('[data-role="list"]');
+    const sentinelEl = root.querySelector('[data-role="sentinel"]');
+    const PAGE_SIZE = 40;
 
     function setState(state) {
       loadingEl.hidden = state !== "loading";
       errorEl.hidden = state !== "error";
       emptyEl.hidden = state !== "empty";
       listEl.hidden = state !== "list";
+      if (state !== "list") {
+        scrollObserver.unobserve(sentinelEl);
+        sentinelEl.hidden = true;
+      }
     }
 
     function deliveryLabel(day) {
@@ -51,68 +58,100 @@ const rootId = `commerce-grid-${slug}`;
       if (window.sokunobankTrackEvent) window.sokunobankTrackEvent(name, params);
     }
 
+    function makeLink(p, index, extraClass) {
+      const a = document.createElement("a");
+      a.className = extraClass;
+      a.href = p.affiliateUrl;
+      a.target = "_blank";
+      a.rel = "sponsored noopener";
+      a.addEventListener("click", () => {
+        trackEvent("projector_product_click", {
+          productCode: p.code,
+          rank: index + 1,
+          price: p.price,
+        });
+      });
+      return a;
+    }
+
+    function createCard(p, index) {
+      const li = document.createElement("li");
+      li.className = "product-card";
+
+      const imgLink = makeLink(p, index, "product-image-link");
+      const img = document.createElement("img");
+      img.src = p.image;
+      img.alt = p.name;
+      img.loading = "lazy";
+      img.width = 160;
+      img.height = 160;
+      imgLink.appendChild(img);
+      li.appendChild(imgLink);
+
+      const body = document.createElement("div");
+      body.className = "product-body";
+
+      const name = makeLink(p, index, "product-name");
+      name.textContent = p.name;
+      body.appendChild(name);
+
+      const price = document.createElement("p");
+      price.className = "product-price";
+      price.textContent = `${p.price.toLocaleString()}円`;
+      body.appendChild(price);
+
+      // レビューの有無で高さが変わり、ボタンの位置がカードごとにズレるため常に1行分表示する
+      const review = document.createElement("p");
+      review.className = "product-review";
+      review.textContent =
+        p.reviewCount > 0 ? `★${p.reviewRate.toFixed(1)}（${p.reviewCount.toLocaleString()}件）` : "レビューなし";
+      body.appendChild(review);
+
+      const store = document.createElement("p");
+      store.className = "product-store";
+      store.textContent = p.storeIsBestSeller ? `${p.storeName}（ベストストア）` : p.storeName;
+      body.appendChild(store);
+
+      const delivery = document.createElement("p");
+      delivery.className = "product-delivery";
+      delivery.textContent = deliveryLabel(p.deliveryDay);
+      body.appendChild(delivery);
+
+      const cta = makeLink(p, index, "btn btn-primary product-cta");
+      cta.textContent = "Yahoo!ショッピングで納期を確認 →";
+      body.appendChild(cta);
+
+      li.appendChild(body);
+      return li;
+    }
+
+    // 40件ずつ表示し、末尾までスクロールしたら次の40件を追加する(IntersectionObserver)。
+    let pendingProducts = [];
+    let renderedCount = 0;
+
+    const scrollObserver = new IntersectionObserver((entries) => {
+      if (entries.some((e) => e.isIntersecting)) renderNextBatch();
+    });
+
+    function renderNextBatch() {
+      const next = pendingProducts.slice(renderedCount, renderedCount + PAGE_SIZE);
+      next.forEach((p, i) => listEl.appendChild(createCard(p, renderedCount + i)));
+      renderedCount += next.length;
+      if (renderedCount >= pendingProducts.length) {
+        scrollObserver.unobserve(sentinelEl);
+        sentinelEl.hidden = true;
+      } else {
+        sentinelEl.hidden = false;
+      }
+    }
+
     function renderProducts(products) {
       listEl.innerHTML = "";
-      products.forEach((p, index) => {
-        const li = document.createElement("li");
-        li.className = "product-card";
-
-        const img = document.createElement("img");
-        img.src = p.image;
-        img.alt = p.name;
-        img.loading = "lazy";
-        img.width = 160;
-        img.height = 160;
-        li.appendChild(img);
-
-        const body = document.createElement("div");
-        body.className = "product-body";
-
-        const name = document.createElement("p");
-        name.className = "product-name";
-        name.textContent = p.name;
-        body.appendChild(name);
-
-        const price = document.createElement("p");
-        price.className = "product-price";
-        price.textContent = `${p.price.toLocaleString()}円`;
-        body.appendChild(price);
-
-        if (p.reviewCount > 0) {
-          const review = document.createElement("p");
-          review.className = "product-review";
-          review.textContent = `★${p.reviewRate.toFixed(1)}（${p.reviewCount.toLocaleString()}件）`;
-          body.appendChild(review);
-        }
-
-        const store = document.createElement("p");
-        store.className = "product-store";
-        store.textContent = p.storeIsBestSeller ? `${p.storeName}（ベストストア）` : p.storeName;
-        body.appendChild(store);
-
-        const delivery = document.createElement("p");
-        delivery.className = "product-delivery";
-        delivery.textContent = deliveryLabel(p.deliveryDay);
-        body.appendChild(delivery);
-
-        const cta = document.createElement("a");
-        cta.className = "btn btn-primary product-cta";
-        cta.href = p.affiliateUrl;
-        cta.target = "_blank";
-        cta.rel = "sponsored noopener";
-        cta.textContent = "Yahoo!ショッピングで納期を確認 →";
-        cta.addEventListener("click", () => {
-          trackEvent("projector_product_click", {
-            productCode: p.code,
-            rank: index + 1,
-            price: p.price,
-          });
-        });
-        body.appendChild(cta);
-
-        li.appendChild(body);
-        listEl.appendChild(li);
-      });
+      pendingProducts = products;
+      renderedCount = 0;
+      scrollObserver.unobserve(sentinelEl);
+      renderNextBatch();
+      if (pendingProducts.length > PAGE_SIZE) scrollObserver.observe(sentinelEl);
     }
 
     // 連続してload()が呼ばれた場合に、後から返ってきた古いレスポンスが新しい結果を
@@ -157,7 +196,10 @@ const rootId = `commerce-grid-${slug}`;
   })();
 </script>
 
-<style>
+<!-- 商品カードは document.createElement でクライアントJSから動的生成するため、
+     Astroの既定のコンポーネントスコープCSS(data-astro-cid-*が必要)は当たらない。
+     is:global にして、動的生成した要素にもスタイルが効くようにする。 -->
+<style is:global>
   .commerce-grid {
     margin: 1.5rem 0;
   }
@@ -189,6 +231,9 @@ const rootId = `commerce-grid-${slug}`;
     border-radius: var(--radius-lg);
     overflow: hidden;
   }
+  .product-image-link {
+    display: block;
+  }
   .product-card img {
     width: 100%;
     height: 160px;
@@ -205,11 +250,21 @@ const rootId = `commerce-grid-${slug}`;
   .product-name {
     font-size: 0.88rem;
     font-weight: 600;
+    line-height: 1.4;
+    /* レビュー行と同様、名前が1行しかなくても常に2行分の高さを確保し、
+       カードごとにボタンの縦位置がズレないようにする */
+    min-height: calc(1.4em * 2);
     margin: 0;
+    color: var(--color-text);
+    text-decoration: none;
     display: -webkit-box;
     -webkit-line-clamp: 2;
     -webkit-box-orient: vertical;
     overflow: hidden;
+  }
+  .product-name:hover {
+    color: var(--color-accent-dark);
+    text-decoration: underline;
   }
   .product-price {
     font-size: 1.05rem;
@@ -221,6 +276,9 @@ const rootId = `commerce-grid-${slug}`;
     font-size: 0.8rem;
     color: var(--color-text-muted);
     margin: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
   .product-delivery {
     font-size: 0.8rem;
@@ -231,7 +289,17 @@ const rootId = `commerce-grid-${slug}`;
   .product-cta {
     margin-top: auto;
     width: 100%;
+    min-width: 0;
+    box-sizing: border-box;
+    height: auto;
+    min-height: 44px;
+    white-space: normal;
+    line-height: 1.3;
     text-align: center;
+    padding: 0.55rem 0.75rem;
+  }
+  .scroll-sentinel {
+    height: 1px;
   }
 
   @media (max-width: 720px) {
