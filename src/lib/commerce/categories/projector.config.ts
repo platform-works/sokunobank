@@ -46,12 +46,17 @@ export const projectorConfig: CommerceCategoryConfig = {
     { key: "reviewCount", label: "レビュー件数" },
     { key: "priceAsc", label: "価格が安い順" },
   ],
+  // 「配送確認ができること」自体は重み付けではなく、重複除去(同一JAN)の優先条件として
+  // ranking.tsの手前(products.ts)で既に強制している。ここのweightsはその後の
+  // 最終表示順(即納おすすめ)にのみ影響する。ユーザー指示により報酬額の重みを50%へ引き上げ、
+  // 残り4項目は元の比率(delivery:conversionProxy:review:store = 7:5:3:2)を保ったまま
+  // 合計50%に収まるよう比例縮小した。
   weights: {
-    delivery: 0.35,
-    conversionProxy: 0.25,
-    review: 0.15,
-    store: 0.1,
-    revenue: 0.15,
+    delivery: 0.2,
+    conversionProxy: 0.15,
+    review: 0.09,
+    store: 0.06,
+    revenue: 0.5,
   },
   revenueScoreReferenceMax: 10000,
   seoSections: [
