@@ -94,21 +94,26 @@ const storageKey = `sokunobank:commerce:${slug}:area`;
       };
     }
 
-    function emit() {
+    function saveArea() {
       try {
         if (areaSelect.value) window.localStorage.setItem(storageKey, areaSelect.value);
       } catch {
         // no-op
       }
+    }
+
+    function emit() {
+      saveArea();
       document.dispatchEvent(
         new CustomEvent("commerce:filter-change", { detail: { slug, params: currentParams() } })
       );
     }
 
+    // 「商品を探す」を押したときだけ取得する。各セレクトのchangeごとに取得すると、
+    // 複数項目を続けて変更した際にYahoo APIへの実行回数が不必要に増えるため
+    // (1回の取得で検索語×配送日の組み合わせ分、複数のAPI呼び出しが発生する)。
     submitButton.addEventListener("click", emit);
-    [areaSelect, deliverySelect, priceSelect, reviewSelect, sortSelect].forEach((el) =>
-      el.addEventListener("change", emit)
-    );
+    areaSelect.addEventListener("change", saveArea);
 
     // 初回表示(保存済みのお届け先があれば反映した状態で取得する)
     document.dispatchEvent(

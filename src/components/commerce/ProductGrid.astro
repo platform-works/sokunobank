@@ -115,7 +115,12 @@ const rootId = `commerce-grid-${slug}`;
       });
     }
 
+    // 連続してload()が呼ばれた場合に、後から返ってきた古いレスポンスが新しい結果を
+    // 上書きしないようにするための番号(古いリクエストの結果は無視する)。
+    let latestRequestId = 0;
+
     async function load(params) {
+      const requestId = ++latestRequestId;
       setState("loading");
       const query = new URLSearchParams();
       Object.entries(params || {}).forEach(([key, value]) => {
@@ -124,6 +129,7 @@ const rootId = `commerce-grid-${slug}`;
       try {
         const res = await fetch(`${apiPath}?${query.toString()}`);
         const data = await res.json();
+        if (requestId !== latestRequestId) return;
         if (data.error) {
           setState("error");
           return;
@@ -135,6 +141,7 @@ const rootId = `commerce-grid-${slug}`;
         renderProducts(data.products);
         setState("list");
       } catch {
+        if (requestId !== latestRequestId) return;
         setState("error");
       }
     }
@@ -169,6 +176,10 @@ const rootId = `commerce-grid-${slug}`;
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
     gap: 1rem;
+  }
+  /* display:gridの指定がhidden属性の既定表示(display:none)を上書きしてしまうため明示する */
+  .product-list[hidden] {
+    display: none;
   }
   .product-card {
     display: flex;
