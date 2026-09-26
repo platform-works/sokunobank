@@ -1,0 +1,130 @@
+---
+import Layout from "../../layouts/Layout.astro";
+import Breadcrumbs from "../Breadcrumbs.astro";
+import Disclaimer from "../Disclaimer.astro";
+import FaqSection from "../FaqSection.astro";
+import CommerceFilterPanel from "./CommerceFilterPanel.astro";
+import ProductGrid from "./ProductGrid.astro";
+import type { CommerceCategoryConfig } from "../../lib/commerce/types";
+
+// 「Yahoo!ショッピング商品ランキング型」カテゴリー(projector, 胡蝶蘭...)の共通ページ本体。
+// このコンポーネントはカテゴリーごとに一切コピーしない — 新カテゴリーを追加するときは
+// 設定ファイル(CommerceCategoryConfig)を1つ作り、薄いページファイルからこのコンポーネントに
+// 渡すだけにする(docs/new-category-checklist.md 参照)。
+//
+// このページはprerender(静的)。商品一覧のみクライアント側でAPI(prerender=false)から取得するため、
+// API取得に失敗してもH1・説明文・FAQ等の静的コンテンツは常にそのまま表示される。
+
+interface Props {
+  config: CommerceCategoryConfig;
+}
+const { config: c } = Astro.props;
+---
+
+<Layout title={c.pageTitle} description={c.metaDescription}>
+  <Breadcrumbs
+    items={[{ label: "ホーム", href: "/" }, { label: "カテゴリー一覧", href: "/categories/" }, { label: c.name }]}
+  />
+
+  <div class="container">
+    <section class="hero">
+      <div class="hero-main">
+        <h1>{c.h1}</h1>
+        <p class="subheadline">{c.subheadline}</p>
+        <p class="delivery-note">{c.deliveryNote}</p>
+      </div>
+
+      {
+        c.ads?.pcBannerHtml && (
+          <div class="hero-ad">
+            <span class="hero-ad-label">PR</span>
+            <div class="hero-ad-embed" set:html={c.ads.pcBannerHtml} />
+          </div>
+        )
+      }
+    </section>
+
+    <CommerceFilterPanel slug={c.slug} sortOptions={c.sortOptions} />
+
+    <p class="intro">{c.intro}</p>
+
+    <ProductGrid slug={c.slug} apiPath={c.apiPath} />
+
+    <Disclaimer text={c.deliveryNote} />
+
+    {
+      c.seoSections.map((section) => (
+        <section class="seo-section">
+          <h2>{section.heading}</h2>
+          {section.body.map((paragraph) => (
+            <p>{paragraph}</p>
+          ))}
+        </section>
+      ))
+    }
+
+    <FaqSection items={c.faq} />
+  </div>
+
+  {c.ads?.mobileOverlayHtml && <div set:html={c.ads.mobileOverlayHtml} />}
+</Layout>
+
+<style>
+  .hero {
+    margin-top: 1.5rem;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 1.25rem;
+  }
+  .hero-main {
+    flex: 1 1 480px;
+    min-width: 0;
+  }
+  .hero h1 {
+    margin-bottom: 0.6rem;
+  }
+  .hero-ad {
+    flex: 0 0 auto;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.4rem;
+    background: var(--color-bg-soft);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    padding: 0.75rem;
+  }
+  .hero-ad-label {
+    font-size: 0.68rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    color: var(--color-text-muted);
+  }
+  /* モバイルはスマートフォン専用バナー(オーバーレイ)を別途表示するため、
+     このPC向けバナーは重複表示を避けるためモバイル幅では非表示にする */
+  @media (max-width: 720px) {
+    .hero-ad {
+      display: none;
+    }
+  }
+  .subheadline {
+    font-size: 1.02rem;
+    color: var(--color-text);
+    margin: 0 0 0.4rem;
+  }
+  .delivery-note {
+    font-size: 0.82rem;
+    color: var(--color-text-muted);
+    margin: 0;
+  }
+  .intro {
+    font-size: 0.88rem;
+    color: var(--color-text-muted);
+    margin: 0.5rem 0 1rem;
+  }
+  .seo-section {
+    margin-block: 2.25rem;
+  }
+</style>

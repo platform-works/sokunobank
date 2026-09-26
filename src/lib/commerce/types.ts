@@ -54,6 +54,17 @@ export interface CommerceFaqItem {
   answer: string;
 }
 
+/**
+ * ValueCommerce等の広告タグ。規約上の改変禁止(書き換え・一部抜き出し・サイズ変更等)に対応するため、
+ * 必ず元のタグを一切変更せず文字列としてそのまま持たせ、描画側は set:html でそのまま出力すること。
+ */
+export interface CommerceAdConfig {
+  /** PC幅で表示する静的バナー等(hero付近に配置。モバイル幅では自動的に非表示になる) */
+  pcBannerHtml?: string;
+  /** スマートフォン専用のオーバーレイバナー等(ページ末尾・Footer直前に配置) */
+  mobileOverlayHtml?: string;
+}
+
 /** カテゴリー(projector, 胡蝶蘭...)ごとに1ファイルで定義する設定 */
 export interface CommerceCategoryConfig {
   slug: string;
@@ -78,4 +89,6 @@ export interface CommerceCategoryConfig {
   revenueScoreReferenceMax: number;
   seoSections: { heading: string; body: string[] }[];
   faq: CommerceFaqItem[];
+  /** 任意。ValueCommerce等の広告タグ(PC/スマホ)。無ければ何も表示しない */
+  ads?: CommerceAdConfig;
 }

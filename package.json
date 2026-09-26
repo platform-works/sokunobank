@@ -9,13 +9,16 @@
     "preview": "astro preview",
     "astro": "astro",
     "cf:preview": "npm run build && wrangler dev",
-    "cf:deploy": "npm run build && wrangler deploy"
+    "cf:deploy": "npm run build && wrangler deploy",
+    "test": "vitest run"
   },
   "dependencies": {
     "@astrojs/cloudflare": "^11.2.0",
     "astro": "^4.16.0"
   },
   "devDependencies": {
+    "happy-dom": "^20.14.5",
+    "vitest": "^5.0.2",
     "wrangler": "^3.90.0"
   }
 }
