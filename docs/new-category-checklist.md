@@ -20,6 +20,7 @@ DM型(事業者比較、`src/data/categories/*.json`)とは別系統の、「Yah
 - `weights`のデフォルトは`{ delivery: 0.20, conversionProxy: 0.15, review: 0.09, store: 0.06, revenue: 0.50 }`(変更する場合はユーザーの指示に基づく)
 - `sortOptions`に報酬額を直接示すソート項目(例:「報酬期待値」)は入れない
 - コピー文言に「今日」「当日」「収益性」「報酬」を含めない
+- **`ads`(ValueCommerceのYahoo!ショッピングバナー、`pcBannerHtml`+`mobileOverlayHtml`)を省略しない**。この型のカテゴリー共通の送客導線であり任意項目ではない。`projector.config.ts`のタグをそのまま複製する(規約上コード自体の改変は禁止)
 
 ## 3. レジストリに登録する
 

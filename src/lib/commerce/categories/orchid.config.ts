@@ -94,4 +94,13 @@ export const orchidConfig: CommerceCategoryConfig = {
         "確定ではありません。在庫・配送状況は随時変動するため、購入前に必ずYahoo!ショッピングの商品ページで最新のお届け予定をご確認ください。",
     },
   ],
+  // ValueCommerceのYahoo!ショッピングアフィリエイトバナー。projector.config.tsと同一のタグを
+  // そのまま流用している(規約上コード自体の改変は禁止のため)。この型のカテゴリーには必須
+  // (CLAUDE.mdのcommerce系ルール参照。2026-09-26、胡蝶蘭ページへの掲載漏れが発覚し追加)。
+  ads: {
+    pcBannerHtml:
+      '<script language="javascript" src="//ad.jp.ap.valuecommerce.com/servlet/jsbanner?sid=3782308&pid=892713218"></script><noscript><a href="//ck.jp.ap.valuecommerce.com/servlet/referral?sid=3782308&pid=892713218" rel="nofollow"><img src="//ad.jp.ap.valuecommerce.com/servlet/gifbanner?sid=3782308&pid=892713218" border="0"></a></noscript>',
+    mobileOverlayHtml:
+      '<script language="javascript" src="//ad.jp.ap.valuecommerce.com/servlet/smartphonebanner?sid=3782308&pid=892713452&position=overlay"></script>',
+  },
 };
