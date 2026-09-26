@@ -15,6 +15,11 @@ import { projectorConfig as c } from "../../../lib/commerce/categories/projector
 // 書くと、scoped CSS用のdata-astro-cid-*属性が子要素(noscript内のa/img等)にまで
 // 自動付与されてしまい、タグが変更されてしまうため、set:htmlで生のHTMLとして出力する。
 const vcBannerHtml = `<script language="javascript" src="//ad.jp.ap.valuecommerce.com/servlet/jsbanner?sid=3782308&pid=892713218"></script><noscript><a href="//ck.jp.ap.valuecommerce.com/servlet/referral?sid=3782308&pid=892713218" rel="nofollow"><img src="//ad.jp.ap.valuecommerce.com/servlet/gifbanner?sid=3782308&pid=892713218" border="0"></a></noscript>`;
+
+// スマートフォン専用のオーバーレイバナー(ValueCommerce指定)。指示では</body>直前への設置と
+// なっているが、このバナーはprojectorページ専用のため共通Layout.astroは変更せず、
+// このページ自身のコンテンツ末尾(Layoutのslot内、Footerの直前)に設置している。
+const vcSmartphoneBannerHtml = `<script language="javascript" src="//ad.jp.ap.valuecommerce.com/servlet/smartphonebanner?sid=3782308&pid=892713452&position=overlay"></script>`;
 ---
 
 <Layout title={c.pageTitle} description={c.metaDescription}>
@@ -57,6 +62,8 @@ const vcBannerHtml = `<script language="javascript" src="//ad.jp.ap.valuecommerc
 
     <FaqSection items={c.faq} />
   </div>
+
+  <div set:html={vcSmartphoneBannerHtml} />
 </Layout>
 
 <style>
@@ -91,6 +98,13 @@ const vcBannerHtml = `<script language="javascript" src="//ad.jp.ap.valuecommerc
     font-weight: 700;
     letter-spacing: 0.04em;
     color: var(--color-text-muted);
+  }
+  /* モバイルはスマートフォン専用バナー(オーバーレイ)を別途表示するため、
+     このPC向けバナーは重複表示を避けるためモバイル幅では非表示にする */
+  @media (max-width: 720px) {
+    .hero-ad {
+      display: none;
+    }
   }
   .subheadline {
     font-size: 1.02rem;
