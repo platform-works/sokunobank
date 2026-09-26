@@ -1,0 +1,166 @@
+---
+import { prefectures } from "../../lib/commerce/prefectures";
+import type { PriceBand, ReviewThreshold, SortOption } from "../../lib/commerce/types";
+
+interface Props {
+  slug: string;
+  priceBands: PriceBand[];
+  reviewThresholds: ReviewThreshold[];
+  sortOptions: SortOption[];
+}
+const { slug, priceBands, reviewThresholds, sortOptions } = Astro.props;
+const rootId = `commerce-filter-${slug}`;
+const storageKey = `sokunobank:commerce:${slug}:area`;
+---
+
+<div class="commerce-filter" id={rootId}>
+  <div class="field">
+    <label for={`${rootId}-area`}>お届け先</label>
+    <select id={`${rootId}-area`} data-role="area">
+      <option value="">お届け先を選択してください</option>
+      {prefectures.map((p) => <option value={p.code}>{p.name}</option>)}
+    </select>
+  </div>
+
+  <div class="field">
+    <label for={`${rootId}-delivery`}>到着希望</label>
+    <select id={`${rootId}-delivery`} data-role="delivery">
+      <option value="">指定なし</option>
+      <option value="0">今日</option>
+      <option value="1">明日まで</option>
+      <option value="2">翌々日まで</option>
+    </select>
+  </div>
+
+  <div class="field">
+    <label for={`${rootId}-price`}>価格</label>
+    <select id={`${rootId}-price`} data-role="price">
+      {priceBands.map((band, i) => (
+        <option value={i} data-min={band.min ?? ""} data-max={band.max ?? ""}>
+          {band.label}
+        </option>
+      ))}
+    </select>
+  </div>
+
+  <div class="field">
+    <label for={`${rootId}-review`}>レビュー</label>
+    <select id={`${rootId}-review`} data-role="review">
+      {reviewThresholds.map((t) => (
+        <option value={t.min}>{t.label}</option>
+      ))}
+    </select>
+  </div>
+
+  <div class="field">
+    <label for={`${rootId}-sort`}>並び順</label>
+    <select id={`${rootId}-sort`} data-role="sort">
+      {sortOptions.map((s) => (
+        <option value={s.key}>{s.label}</option>
+      ))}
+    </select>
+  </div>
+
+  <button type="button" class="btn btn-primary btn-lg" data-role="submit">商品を探す</button>
+</div>
+
+<script define:vars={{ rootId, storageKey, slug }}>
+  function init() {
+    const root = document.getElementById(rootId);
+    if (!root) return;
+
+    const areaSelect = root.querySelector('[data-role="area"]');
+    const deliverySelect = root.querySelector('[data-role="delivery"]');
+    const priceSelect = root.querySelector('[data-role="price"]');
+    const reviewSelect = root.querySelector('[data-role="review"]');
+    const sortSelect = root.querySelector('[data-role="sort"]');
+    const submitButton = root.querySelector('[data-role="submit"]');
+
+    try {
+      const savedArea = window.localStorage.getItem(storageKey);
+      if (savedArea) areaSelect.value = savedArea;
+    } catch {
+      // localStorageが使えない環境(プライベートブラウズ等)でも致命的にしない
+    }
+
+    function currentParams() {
+      const priceOption = priceSelect.options[priceSelect.selectedIndex];
+      return {
+        area: areaSelect.value || undefined,
+        delivery: deliverySelect.value || undefined,
+        priceMin: priceOption?.dataset.min || undefined,
+        priceMax: priceOption?.dataset.max || undefined,
+        review: reviewSelect.value || undefined,
+        sort: sortSelect.value || undefined,
+      };
+    }
+
+    function emit() {
+      try {
+        if (areaSelect.value) window.localStorage.setItem(storageKey, areaSelect.value);
+      } catch {
+        // no-op
+      }
+      document.dispatchEvent(
+        new CustomEvent("commerce:filter-change", { detail: { slug, params: currentParams() } })
+      );
+    }
+
+    submitButton.addEventListener("click", emit);
+    [areaSelect, deliverySelect, priceSelect, reviewSelect, sortSelect].forEach((el) =>
+      el.addEventListener("change", emit)
+    );
+
+    // 初回表示(保存済みのお届け先があれば反映した状態で取得する)
+    document.dispatchEvent(
+      new CustomEvent("commerce:filter-init", { detail: { slug, params: currentParams() } })
+    );
+  }
+
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", init);
+  } else {
+    init();
+  }
+</script>
+
+<style>
+  .commerce-filter {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 1rem;
+    align-items: end;
+    background: var(--color-bg-soft);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-lg);
+    padding: 1.25rem 1.4rem;
+    margin: 1.25rem 0;
+  }
+  .field {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+  }
+  .field label {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--color-text-muted);
+  }
+  .field select {
+    height: 44px;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    padding: 0 0.7rem;
+    background: var(--color-bg);
+    font-size: 0.92rem;
+    color: var(--color-text);
+  }
+  .commerce-filter .btn {
+    grid-column: 1 / -1;
+  }
+  @media (min-width: 720px) {
+    .commerce-filter .btn {
+      grid-column: auto;
+    }
+  }
+</style>

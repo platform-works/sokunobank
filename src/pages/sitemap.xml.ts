@@ -3,7 +3,7 @@ import { getPublishedCategories } from "../data/loadCategories";
 
 // 静的ページ + 公開カテゴリー + ガイド記事を毎回集めてsitemapを生成する。
 // カテゴリーを追加してもこのファイル自体の変更は不要(ガイド記事は今のところ手動追加)。
-const staticPaths = ["/", "/about/", "/privacy/", "/advertising/", "/categories/"];
+const staticPaths = ["/", "/about/", "/privacy/", "/advertising/", "/categories/", "/categories/projector/"];
 const guidePaths = ["/guides/dm-self-shipping/"];
 
 export const GET: APIRoute = ({ site }) => {

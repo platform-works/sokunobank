@@ -3,7 +3,7 @@ import Layout from "../../layouts/Layout.astro";
 import Breadcrumbs from "../../components/Breadcrumbs.astro";
 import CategoryCard from "../../components/CategoryCard.astro";
 import { getPublishedCategories } from "../../data/loadCategories";
-import { upcomingCategories } from "../../data/site-nav";
+import { upcomingCategories, commerceCategories } from "../../data/site-nav";
 
 const categories = getPublishedCategories();
 
@@ -48,6 +48,19 @@ function speedKey(category: (typeof categories)[number]) {
             </div>
           );
         })
+      }
+
+      {
+        commerceCategories.map((cc) => (
+          <div class="category-grid-item" data-name={cc.name}>
+            <CategoryCard
+              name={cc.name}
+              href={cc.href}
+              speedLabel={cc.speedLabel}
+              speedValue={cc.speedValue}
+            />
+          </div>
+        ))
       }
 
       {

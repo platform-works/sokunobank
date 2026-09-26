@@ -1,0 +1,231 @@
+---
+interface Props {
+  slug: string;
+  apiPath: string;
+}
+const { slug, apiPath } = Astro.props;
+const rootId = `commerce-grid-${slug}`;
+---
+
+<div class="commerce-grid" id={rootId} data-api-path={apiPath}>
+  <p class="state state-loading" data-role="loading">商品情報を取得しています…</p>
+  <p class="state state-error" data-role="error" hidden>
+    現在商品情報を取得できません。時間をおいて再度お試しください。
+  </p>
+  <p class="state state-empty" data-role="empty" hidden>
+    条件に合う商品が見つかりませんでした。到着希望や価格条件を緩めてお試しください。
+  </p>
+  <ul class="product-list" data-role="list" hidden></ul>
+</div>
+
+<script define:vars={{ rootId, slug }}>
+  // このscriptタグは自分のマークアップ(id={rootId}のdiv)より後にDOMへ出力されるため、
+  // getElementById等はDOMContentLoadedを待たずに即実行できる。むしろCommerceFilterPanel側は
+  // 初期状態をDOMContentLoaded後にイベント発火するため、ここでの購読(addEventListener)は
+  // DOMContentLoadedを待たず即座に済ませる必要がある(待つと購読前に発火されて取りこぼす)。
+  (function () {
+    const root = document.getElementById(rootId);
+    if (!root) return;
+    const apiPath = root.dataset.apiPath;
+    const loadingEl = root.querySelector('[data-role="loading"]');
+    const errorEl = root.querySelector('[data-role="error"]');
+    const emptyEl = root.querySelector('[data-role="empty"]');
+    const listEl = root.querySelector('[data-role="list"]');
+
+    function setState(state) {
+      loadingEl.hidden = state !== "loading";
+      errorEl.hidden = state !== "error";
+      emptyEl.hidden = state !== "empty";
+      listEl.hidden = state !== "list";
+    }
+
+    function deliveryLabel(day) {
+      if (day === 0) return "今日到着対象";
+      if (day === 1) return "明日到着対象";
+      if (day === 2) return "翌々日到着対象";
+      return "配送日は商品ページでご確認ください";
+    }
+
+    // 将来アナリティクスを配線する際の差し込み口。現状は外部サービスを追加しないため no-op。
+    function trackEvent(name, params) {
+      if (window.sokunobankTrackEvent) window.sokunobankTrackEvent(name, params);
+    }
+
+    function renderProducts(products) {
+      listEl.innerHTML = "";
+      products.forEach((p, index) => {
+        const li = document.createElement("li");
+        li.className = "product-card";
+
+        const img = document.createElement("img");
+        img.src = p.image;
+        img.alt = p.name;
+        img.loading = "lazy";
+        img.width = 160;
+        img.height = 160;
+        li.appendChild(img);
+
+        const body = document.createElement("div");
+        body.className = "product-body";
+
+        const name = document.createElement("p");
+        name.className = "product-name";
+        name.textContent = p.name;
+        body.appendChild(name);
+
+        const price = document.createElement("p");
+        price.className = "product-price";
+        price.textContent = `${p.price.toLocaleString()}円`;
+        body.appendChild(price);
+
+        if (p.reviewCount > 0) {
+          const review = document.createElement("p");
+          review.className = "product-review";
+          review.textContent = `★${p.reviewRate.toFixed(1)}（${p.reviewCount.toLocaleString()}件）`;
+          body.appendChild(review);
+        }
+
+        const store = document.createElement("p");
+        store.className = "product-store";
+        store.textContent = p.storeIsBestSeller ? `${p.storeName}（ベストストア）` : p.storeName;
+        body.appendChild(store);
+
+        const delivery = document.createElement("p");
+        delivery.className = "product-delivery";
+        delivery.textContent = deliveryLabel(p.deliveryDay);
+        body.appendChild(delivery);
+
+        const cta = document.createElement("a");
+        cta.className = "btn btn-primary product-cta";
+        cta.href = p.affiliateUrl;
+        cta.target = "_blank";
+        cta.rel = "sponsored noopener";
+        cta.textContent = "Yahoo!ショッピングで納期を確認 →";
+        cta.addEventListener("click", () => {
+          trackEvent("projector_product_click", {
+            productCode: p.code,
+            rank: index + 1,
+            price: p.price,
+          });
+        });
+        body.appendChild(cta);
+
+        li.appendChild(body);
+        listEl.appendChild(li);
+      });
+    }
+
+    async function load(params) {
+      setState("loading");
+      const query = new URLSearchParams();
+      Object.entries(params || {}).forEach(([key, value]) => {
+        if (value !== undefined && value !== "") query.set(key, String(value));
+      });
+      try {
+        const res = await fetch(`${apiPath}?${query.toString()}`);
+        const data = await res.json();
+        if (data.error) {
+          setState("error");
+          return;
+        }
+        if (!data.products || data.products.length === 0) {
+          setState("empty");
+          return;
+        }
+        renderProducts(data.products);
+        setState("list");
+      } catch {
+        setState("error");
+      }
+    }
+
+    document.addEventListener("commerce:filter-init", (event) => {
+      if (event.detail?.slug !== slug) return;
+      load(event.detail.params);
+    });
+    document.addEventListener("commerce:filter-change", (event) => {
+      if (event.detail?.slug !== slug) return;
+      load(event.detail.params);
+    });
+  })();
+</script>
+
+<style>
+  .commerce-grid {
+    margin: 1.5rem 0;
+  }
+  .state {
+    background: var(--color-bg-soft);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    padding: 1rem 1.2rem;
+    color: var(--color-text-muted);
+    font-size: 0.9rem;
+  }
+  .product-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 1rem;
+  }
+  .product-card {
+    display: flex;
+    flex-direction: column;
+    background: var(--color-bg);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+  }
+  .product-card img {
+    width: 100%;
+    height: 160px;
+    object-fit: contain;
+    background: var(--color-bg-soft);
+  }
+  .product-body {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+    padding: 0.9rem 1rem 1.1rem;
+    flex: 1;
+  }
+  .product-name {
+    font-size: 0.88rem;
+    font-weight: 600;
+    margin: 0;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+  .product-price {
+    font-size: 1.05rem;
+    font-weight: 700;
+    margin: 0;
+  }
+  .product-review,
+  .product-store {
+    font-size: 0.8rem;
+    color: var(--color-text-muted);
+    margin: 0;
+  }
+  .product-delivery {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--color-urgent-text);
+    margin: 0.15rem 0 0;
+  }
+  .product-cta {
+    margin-top: auto;
+    width: 100%;
+    text-align: center;
+  }
+
+  @media (max-width: 720px) {
+    .product-list {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>

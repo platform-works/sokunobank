@@ -66,6 +66,22 @@ export const departmentFinder: DepartmentGroup[] = [
   },
 ];
 
+/**
+ * 「Yahoo!ショッピングから商品を検索し独自ランキングする」型のカテゴリー(DMのような
+ * 事業者比較型とは別系統)。src/data/categories/*.json (schema.ts) は使わず、
+ * src/lib/commerce/ + src/pages/categories/<slug>/ で独立実装する。
+ */
+export interface CommerceCategoryLink {
+  name: string;
+  href: string;
+  speedLabel: string;
+  speedValue: string;
+}
+
+export const commerceCategories: CommerceCategoryLink[] = [
+  { name: "会議用プロジェクター", href: "/categories/projector/", speedLabel: "配送目安", speedValue: "当日〜翌々日" },
+];
+
 /** カテゴリーカードの並びに出す、まだデータ投入前の将来カテゴリー(名称のみ) */
 export const upcomingCategories: string[] = [
   "チラシ印刷",
