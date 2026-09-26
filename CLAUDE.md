@@ -69,7 +69,7 @@ Yahoo!ショッピング(Yahoo!デベロッパーAPI)・ValueCommerceなど、AP
 - 既存カテゴリー(projector等)のURL・文言・metaは、ユーザーの明示的な指示がない限り変更しない
 - 共通テンプレート(`src/components/commerce/CommerceCategoryPage.astro`・`src/lib/commerce/handleProductsRequest.ts`・`src/components/commerce/CommerceFilterPanel.astro`・`ProductGrid.astro`等)を修正したときは、`npm run test`で全カテゴリーのスナップショットテストを実行し、既存カテゴリーの出力が変わっていないことを確認してから次の作業に進む
 - このセクション自体のルールは、ユーザーの指示がない限り変更しない
-- デプロイ(`wrangler deploy`)はユーザー本人が行う。Claudeはデプロイコマンドを実行しない(リポジトリ全体のルールと同一だが、commerce系の作業でも徹底する)
+- デプロイ(`wrangler deploy`)は、ユーザーが「デプロイして」等と明示的に指示した場合はClaudeが実行してよい(2026-09-26改訂:以前は毎回ユーザー本人が実行する運用だったが、指示のたびに確認を求めるのは冗長なため変更した)。ユーザーからの指示がない限りClaudeが自発的に実行することはない(リポジトリ全体のルールと同一。commerce系の作業でも同様)
 
 ## SEO / AI検索最適化(GEO)ルール(2026-09-23 導入)
 
