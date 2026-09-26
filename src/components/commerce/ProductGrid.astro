@@ -16,7 +16,7 @@ const rootId = `commerce-grid-${slug}`;
     条件に合う商品が見つかりませんでした。到着希望や価格条件を緩めてお試しください。
   </p>
   <ul class="product-list" data-role="list" hidden></ul>
-  <div class="scroll-sentinel" data-role="sentinel" hidden></div>
+  <button type="button" class="btn btn-secondary load-more" data-role="load-more" hidden>もっと見る</button>
 </div>
 
 <script define:vars={{ rootId, slug }}>
@@ -32,7 +32,7 @@ const rootId = `commerce-grid-${slug}`;
     const errorEl = root.querySelector('[data-role="error"]');
     const emptyEl = root.querySelector('[data-role="empty"]');
     const listEl = root.querySelector('[data-role="list"]');
-    const sentinelEl = root.querySelector('[data-role="sentinel"]');
+    const loadMoreEl = root.querySelector('[data-role="load-more"]');
     const PAGE_SIZE = 40;
 
     function setState(state) {
@@ -41,8 +41,7 @@ const rootId = `commerce-grid-${slug}`;
       emptyEl.hidden = state !== "empty";
       listEl.hidden = state !== "list";
       if (state !== "list") {
-        scrollObserver.unobserve(sentinelEl);
-        sentinelEl.hidden = true;
+        loadMoreEl.hidden = true;
       }
     }
 
@@ -125,33 +124,24 @@ const rootId = `commerce-grid-${slug}`;
       return li;
     }
 
-    // 40件ずつ表示し、末尾までスクロールしたら次の40件を追加する(IntersectionObserver)。
+    // 40件ずつ表示し、「もっと見る」を押すと次の40件を追加する。
     let pendingProducts = [];
     let renderedCount = 0;
-
-    const scrollObserver = new IntersectionObserver((entries) => {
-      if (entries.some((e) => e.isIntersecting)) renderNextBatch();
-    });
 
     function renderNextBatch() {
       const next = pendingProducts.slice(renderedCount, renderedCount + PAGE_SIZE);
       next.forEach((p, i) => listEl.appendChild(createCard(p, renderedCount + i)));
       renderedCount += next.length;
-      if (renderedCount >= pendingProducts.length) {
-        scrollObserver.unobserve(sentinelEl);
-        sentinelEl.hidden = true;
-      } else {
-        sentinelEl.hidden = false;
-      }
+      loadMoreEl.hidden = renderedCount >= pendingProducts.length;
     }
+
+    loadMoreEl.addEventListener("click", renderNextBatch);
 
     function renderProducts(products) {
       listEl.innerHTML = "";
       pendingProducts = products;
       renderedCount = 0;
-      scrollObserver.unobserve(sentinelEl);
       renderNextBatch();
-      if (pendingProducts.length > PAGE_SIZE) scrollObserver.observe(sentinelEl);
     }
 
     // 連続してload()が呼ばれた場合に、後から返ってきた古いレスポンスが新しい結果を
@@ -298,8 +288,9 @@ const rootId = `commerce-grid-${slug}`;
     text-align: center;
     padding: 0.55rem 0.75rem;
   }
-  .scroll-sentinel {
-    height: 1px;
+  .load-more {
+    display: flex;
+    margin: 1.5rem auto 0;
   }
 
   @media (max-width: 720px) {
