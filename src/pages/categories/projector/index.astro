@@ -23,12 +23,7 @@ import { projectorConfig as c } from "../../../lib/commerce/categories/projector
       <p class="delivery-note">{c.deliveryNote}</p>
     </section>
 
-    <CommerceFilterPanel
-      slug={c.slug}
-      priceBands={c.priceBands}
-      reviewThresholds={c.reviewThresholds}
-      sortOptions={c.sortOptions}
-    />
+    <CommerceFilterPanel slug={c.slug} sortOptions={c.sortOptions} />
 
     <p class="intro">{c.intro}</p>
 

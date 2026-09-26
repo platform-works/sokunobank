@@ -1,14 +1,12 @@
 ---
 import { prefectures } from "../../lib/commerce/prefectures";
-import type { PriceBand, ReviewThreshold, SortOption } from "../../lib/commerce/types";
+import type { SortOption } from "../../lib/commerce/types";
 
 interface Props {
   slug: string;
-  priceBands: PriceBand[];
-  reviewThresholds: ReviewThreshold[];
   sortOptions: SortOption[];
 }
-const { slug, priceBands, reviewThresholds, sortOptions } = Astro.props;
+const { slug, sortOptions } = Astro.props;
 const rootId = `commerce-filter-${slug}`;
 const storageKey = `sokunobank:commerce:${slug}:area`;
 ---
@@ -32,26 +30,6 @@ const storageKey = `sokunobank:commerce:${slug}:area`;
   </div>
 
   <div class="field">
-    <label for={`${rootId}-price`}>価格</label>
-    <select id={`${rootId}-price`} data-role="price">
-      {priceBands.map((band, i) => (
-        <option value={i} data-min={band.min ?? ""} data-max={band.max ?? ""}>
-          {band.label}
-        </option>
-      ))}
-    </select>
-  </div>
-
-  <div class="field">
-    <label for={`${rootId}-review`}>レビュー</label>
-    <select id={`${rootId}-review`} data-role="review">
-      {reviewThresholds.map((t) => (
-        <option value={t.min}>{t.label}</option>
-      ))}
-    </select>
-  </div>
-
-  <div class="field">
     <label for={`${rootId}-sort`}>並び順</label>
     <select id={`${rootId}-sort`} data-role="sort">
       {sortOptions.map((s) => (
@@ -70,8 +48,6 @@ const storageKey = `sokunobank:commerce:${slug}:area`;
 
     const areaSelect = root.querySelector('[data-role="area"]');
     const deliverySelect = root.querySelector('[data-role="delivery"]');
-    const priceSelect = root.querySelector('[data-role="price"]');
-    const reviewSelect = root.querySelector('[data-role="review"]');
     const sortSelect = root.querySelector('[data-role="sort"]');
     const submitButton = root.querySelector('[data-role="submit"]');
 
@@ -83,13 +59,9 @@ const storageKey = `sokunobank:commerce:${slug}:area`;
     }
 
     function currentParams() {
-      const priceOption = priceSelect.options[priceSelect.selectedIndex];
       return {
         area: areaSelect.value || undefined,
         delivery: deliverySelect.value || undefined,
-        priceMin: priceOption?.dataset.min || undefined,
-        priceMax: priceOption?.dataset.max || undefined,
-        review: reviewSelect.value || undefined,
         sort: sortSelect.value || undefined,
       };
     }

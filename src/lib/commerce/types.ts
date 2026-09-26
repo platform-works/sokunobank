@@ -42,18 +42,7 @@ export interface RankingWeights {
   revenue: number;
 }
 
-export interface PriceBand {
-  label: string;
-  min?: number;
-  max?: number;
-}
-
-export interface ReviewThreshold {
-  label: string;
-  min: number;
-}
-
-export type SortKey = "recommended" | "trust" | "revenue" | "reviewCount" | "priceAsc";
+export type SortKey = "recommended" | "trust" | "reviewCount" | "priceAsc";
 
 export interface SortOption {
   key: SortKey;
@@ -83,8 +72,6 @@ export interface CommerceCategoryConfig {
   requiredKeywords: string[];
   /** 商品名にこの語を含む場合は本体ではない付属品等として除外 */
   excludeKeywords: string[];
-  priceBands: PriceBand[];
-  reviewThresholds: ReviewThreshold[];
   sortOptions: SortOption[];
   weights: RankingWeights;
   /** 想定成果報酬額の正規化上限(この額で revenueScore が100に近づく) */

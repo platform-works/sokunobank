@@ -11,7 +11,6 @@ import type { SortKey } from "../../../lib/commerce/types";
 // (検索語はprojector.config.tsのsearchQueriesに固定)。受け付けるパラメータのみ厳格に検証する。
 export const prerender = false;
 
-const MAX_PRICE = 5_000_000;
 const CACHE_TTL_SECONDS = 900; // 15分
 
 function validateArea(value: string | null): string | undefined {
@@ -28,20 +27,6 @@ function validateDelivery(value: string | null): number | undefined {
   return n;
 }
 
-function validatePrice(value: string | null): number | undefined {
-  if (!value) return undefined;
-  const n = Number(value);
-  if (!Number.isFinite(n) || n < 0 || n > MAX_PRICE) return undefined;
-  return n;
-}
-
-function validateReview(value: string | null): number {
-  if (!value) return 0;
-  const n = Number(value);
-  const allowed = projectorConfig.reviewThresholds.map((t) => t.min);
-  return allowed.includes(n) ? n : 0;
-}
-
 function validateSort(value: string | null): SortKey {
   const allowed = projectorConfig.sortOptions.map((s) => s.key);
   if (value && (allowed as string[]).includes(value)) return value as SortKey;
@@ -55,18 +40,20 @@ export const GET: APIRoute = async (context) => {
 
   const area = validateArea(params.get("area"));
   const delivery = validateDelivery(params.get("delivery"));
-  const priceMin = validatePrice(params.get("priceMin"));
-  const priceMax = validatePrice(params.get("priceMax"));
-  const reviewMin = validateReview(params.get("review"));
   const sort = validateSort(params.get("sort"));
+
+  // お届け先(都道府県)が分かっているのに到着希望が未指定だと、Yahoo APIは配送日情報
+  // (delivery.day)自体を返さない(delivery_area/delivery_day/delivery_deadlineの3つが
+  // 揃って初めて配送日が判定されるため)。その結果「配送日は商品ページでご確認ください」
+  // ばかりが表示されてしまうため、お届け先が分かる場合は到着希望が未指定でも
+  // 翌々日まで(2)を指定し、配送日を必ず判定させる(表示件数を絞り込む用途ではなく、
+  // 配送日情報を取得するために指定している)。
+  const effectiveDeliveryDay = area ? delivery ?? 2 : undefined;
 
   const cacheKeyUrl = new URL(request.url);
   cacheKeyUrl.search = new URLSearchParams({
     area: area ?? "",
-    delivery: delivery !== undefined ? String(delivery) : "",
-    priceMin: priceMin !== undefined ? String(priceMin) : "",
-    priceMax: priceMax !== undefined ? String(priceMax) : "",
-    review: String(reviewMin),
+    delivery: effectiveDeliveryDay !== undefined ? String(effectiveDeliveryDay) : "",
     sort,
   }).toString();
   const cacheKey = new Request(cacheKeyUrl.toString());
@@ -96,28 +83,17 @@ export const GET: APIRoute = async (context) => {
       appId,
       queries: projectorConfig.searchQueries,
       area,
-      deliveryDay: delivery,
+      deliveryDay: effectiveDeliveryDay,
     });
 
     const filtered = filterRelevantProducts(
       rawProducts,
       projectorConfig.requiredKeywords,
       projectorConfig.excludeKeywords
-    ).filter((p) => {
-      if (reviewMin > 0 && p.reviewRate < reviewMin) return false;
-      if (priceMin !== undefined && p.price < priceMin) return false;
-      if (priceMax !== undefined && p.price > priceMax) return false;
-      return true;
-    });
+    );
 
     const scored = filtered.map((p) =>
-      scoreProduct(
-        p,
-        projectorConfig.weights,
-        projectorConfig.revenueScoreReferenceMax,
-        buildAffiliateUrl(affiliateId, p.url),
-        { min: priceMin, max: priceMax }
-      )
+      scoreProduct(p, projectorConfig.weights, projectorConfig.revenueScoreReferenceMax, buildAffiliateUrl(affiliateId, p.url))
     );
 
     // 並び順で全体をソートしてから同一JAN(同一商品の複数ストア出品)を除去することで、
@@ -171,8 +147,6 @@ function sortProducts<T extends { totalScore: number; reviewCount: number; price
   switch (sort) {
     case "trust":
       return copy.sort((a, b) => b.reviewCount - a.reviewCount || b.totalScore - a.totalScore);
-    case "revenue":
-      return copy.sort((a, b) => b.estimatedCommission - a.estimatedCommission);
     case "reviewCount":
       return copy.sort((a, b) => b.reviewCount - a.reviewCount);
     case "priceAsc":
