@@ -5,7 +5,13 @@ import CategoryCard from "../components/CategoryCard.astro";
 import ComparisonTable from "../components/ComparisonTable.astro";
 import GuideCard from "../components/GuideCard.astro";
 import { getPublishedCategories } from "../data/loadCategories";
-import { popularKeywords, purposeFinder, departmentFinder, upcomingCategories } from "../data/site-nav";
+import {
+  popularKeywords,
+  purposeFinder,
+  departmentFinder,
+  commerceCategories,
+  upcomingCategories,
+} from "../data/site-nav";
 
 const categories = getPublishedCategories();
 const featuredCategory = categories[0];
@@ -106,6 +112,16 @@ const allGuides = categories.flatMap((c) => c.guides ?? []);
               />
             );
           })
+        }
+        {
+          commerceCategories.map((cc) => (
+            <CategoryCard
+              name={cc.name}
+              href={cc.href}
+              speedLabel={cc.speedLabel}
+              speedValue={cc.speedValue}
+            />
+          ))
         }
         {upcomingCategories.slice(0, 5).map((name) => <CategoryCard name={name} />)}
       </div>

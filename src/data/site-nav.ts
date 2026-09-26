@@ -11,6 +11,7 @@ export interface NavLink {
 /** ヒーロー検索欄の下に出す人気キーワード */
 export const popularKeywords: NavLink[] = [
   { label: "DM発送", href: "/categories/dm/" },
+  { label: "会議用プロジェクター", href: "/categories/projector/" },
   { label: "チラシ印刷" },
   { label: "名刺" },
   { label: "封筒" },
@@ -20,6 +21,7 @@ export const popularKeywords: NavLink[] = [
 /** 「急ぎの目的から探す」セクション */
 export const purposeFinder: NavLink[] = [
   { label: "ダイレクトメールを明日までに発送したい", href: "/categories/dm/" },
+  { label: "会議用プロジェクターを今日・明日中に用意したい", href: "/categories/projector/" },
   { label: "明日までに納品したい" },
   { label: "イベントに間に合わせたい" },
   { label: "急に名刺が必要" },
@@ -52,6 +54,7 @@ export const departmentFinder: DepartmentGroup[] = [
       { label: "封筒" },
       { label: "挨拶状" },
       { label: "社内印刷物" },
+      { label: "会議用プロジェクター", href: "/categories/projector/" },
     ],
   },
   {
