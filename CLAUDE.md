@@ -54,7 +54,21 @@ Yahoo!ショッピング(Yahoo!デベロッパーAPI)・ValueCommerceなど、AP
 
 ### 補足
 - 別プロジェクト(selected-by)でも同様のYahoo!デベロッパーAPIキー管理パターン(`wrangler secret`)を使っている。ただしsokunobankとselected-byは別リポジトリ・別Workersのため、`wrangler secret put` は**sokunobank側で改めて実行が必要**
-- 現状のsokunobankは`output: "static"` + Cloudflare Workers Static Assetsの完全静的構成(`wrangler.jsonc`にbindingsなし)。サーバーサイドでAPIキーを使うコード(例:Yahoo API呼び出し)を実装する場合は、Astroのアダプタ変更やWorkers Functions導入などアーキテクチャ変更を伴う可能性がある点に注意し、実装前にその方針を確認すること
+- (2026-09-26更新)sokunobankは`output: "hybrid"` + `@astrojs/cloudflare`アダプタ構成。ほとんどのページはビルド時に静的prerenderされるが、`src/pages/api/**`のみ`export const prerender = false`で動的化し、サーバー側でAPIキーを使う(`context.locals.runtime.env`経由)。新しい動的ルートを追加する場合もこのパターンを踏襲する
+
+## commerce系(Yahoo!ショッピング商品ランキング型)カテゴリーの変更禁止事項(2026-09-26 テンプレート化に伴い制定)
+
+`projector`(会議用プロジェクター)を皮切りに、「Yahoo!ショッピングから商品を検索し独自ランキングする」型のカテゴリー(DM型の事業者比較とは別系統、`src/lib/commerce/`配下)が今後増える。この型のカテゴリーに共通して守るべき仕様と作業ルールを以下に定める。新カテゴリー追加の具体的な手順は [docs/new-category-checklist.md](docs/new-category-checklist.md)、設定ファイルのひな形は [docs/category-config-template.ts](docs/category-config-template.ts) を参照。
+
+- **到着希望に「当日」は入れない**。Yahoo!ショッピングAPI経由での当日到着は現実的に成立しづらいため、選択肢・API双方で0(当日)を受け付けない
+- 「在庫・配送予定は変動します…」の注意書きを商品一覧の**上と下**に表示する(現状:hero内の`delivery-note`が上、`Disclaimer`コンポーネントが下)
+- PR表記とアフィリエイト開示を必ず表示する(広告バナーには「PR」ラベル、フッターにアフィリエイト開示文)
+- Amazon商材はメインの比較対象にしない(既存のAmazonアソシエイト連携ルールと同じ方針。commerce系カテゴリーもYahoo!ショッピングが主軸)
+- 秘密情報(Yahoo! Client ID、バリューコマースのsid/pid等)はコード・設定ファイルのどちらにも書かない。`.dev.vars`(ローカル)/Cloudflare Secrets(本番)のみを使う
+- 既存カテゴリー(projector等)のURL・文言・metaは、ユーザーの明示的な指示がない限り変更しない
+- 共通テンプレート(`src/components/commerce/CommerceCategoryPage.astro`・`src/lib/commerce/handleProductsRequest.ts`・`src/components/commerce/CommerceFilterPanel.astro`・`ProductGrid.astro`等)を修正したときは、`npm run test`で全カテゴリーのスナップショットテストを実行し、既存カテゴリーの出力が変わっていないことを確認してから次の作業に進む
+- このセクション自体のルールは、ユーザーの指示がない限り変更しない
+- デプロイ(`wrangler deploy`)はユーザー本人が行う。Claudeはデプロイコマンドを実行しない(リポジトリ全体のルールと同一だが、commerce系の作業でも徹底する)
 
 ## SEO / AI検索最適化(GEO)ルール(2026-09-23 導入)
 
