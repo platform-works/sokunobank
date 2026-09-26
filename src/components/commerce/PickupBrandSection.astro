@@ -1,0 +1,86 @@
+---
+// ValueCommerce MyLinkBoxを使った「ピックアップブランド」セクション(2026-09-27 PoC導入)。
+// commerce系カテゴリー共通のCommerceCategoryConfigに任意フィールド(pickupBrand)として
+// 設定された場合のみ描画する。現状はオフィスチェアカテゴリーのみ設定しており、
+// 他カテゴリーには一切表示されない。
+//
+// 【重要】MyLinkBoxのタグ(<script>+<div data-vc_mylinkbox_id="...">)は
+// ValueCommerce管理画面で発行された形式のまま、一切改変せずに描画する。
+// hrefの抽出・アフィリエイトURLの解析・別ボタンへの移植・IDの書き換え・
+// 計測パラメータの変更は行わない。既存のValueCommerce広告タグ(ads.pcBannerHtml等)と
+// 同じ理由で、Astroのテンプレート構文(JSX風記法)では直接書かず、
+// 必ず set:html でそのまま出力する(Astroはテンプレート内の全要素に
+// data-astro-cid-*属性を自動付与するため、テンプレート経由だと意図せずタグを改変してしまう)。
+interface Props {
+  brandNameEn: string;
+  brandNameJa: string;
+  /** ValueCommerce管理画面で発行されたMyLinkBoxのタグ(script+div)。無改変の文字列 */
+  myLinkBoxHtml: string;
+}
+const { brandNameEn, brandNameJa, myLinkBoxHtml } = Astro.props;
+---
+
+<section class="pickup-brand">
+  <div class="pickup-brand-heading">
+    <span class="pickup-brand-eyebrow">PICK UP BRAND</span>
+    <span class="pickup-brand-pr">PR</span>
+  </div>
+  <h2 class="pickup-brand-title">人気ブランドから探す</h2>
+  <p class="pickup-brand-name">{brandNameEn} / {brandNameJa}</p>
+  <p class="pickup-brand-description">
+    高機能オフィスチェアの人気ブランド。Yahoo!ショッピングでラインアップを比較できます。
+  </p>
+  <div class="pickup-brand-mylinkbox" set:html={myLinkBoxHtml} />
+</section>
+
+<style>
+  .pickup-brand {
+    margin-block: 1.5rem;
+    padding: 1.25rem;
+    background: var(--color-bg-soft);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+  }
+  .pickup-brand-heading {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+  }
+  .pickup-brand-eyebrow {
+    font-size: 0.78rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    color: var(--color-accent-dark);
+  }
+  .pickup-brand-pr {
+    font-size: 0.68rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    color: var(--color-text-muted);
+    flex-shrink: 0;
+  }
+  .pickup-brand-title {
+    margin: 0.3rem 0 0.2rem;
+    font-size: 1.05rem;
+  }
+  .pickup-brand-name {
+    margin: 0 0 0.3rem;
+    font-weight: 600;
+    color: var(--color-text);
+  }
+  .pickup-brand-description {
+    margin: 0 0 0.75rem;
+    font-size: 0.85rem;
+    color: var(--color-text-muted);
+  }
+  /*
+    MyLinkBox自体の内部デザイン・幅はValueCommerce側のスクリプトが決めるため触らない。
+    このラッパーは「画面幅を超えてはみ出す・横スクロールを発生させる」ことだけを防ぐ
+    (max-width/overflowはラッパー側の制約であり、MyLinkBox内部のCSSを書き換えるものではない)。
+  */
+  .pickup-brand-mylinkbox {
+    max-width: 100%;
+    overflow-x: auto;
+  }
+</style>

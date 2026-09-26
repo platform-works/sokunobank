@@ -4,6 +4,7 @@ import Breadcrumbs from "../Breadcrumbs.astro";
 import Disclaimer from "../Disclaimer.astro";
 import FaqSection from "../FaqSection.astro";
 import CommerceFilterPanel from "./CommerceFilterPanel.astro";
+import PickupBrandSection from "./PickupBrandSection.astro";
 import ProductGrid from "./ProductGrid.astro";
 import type { CommerceCategoryConfig } from "../../lib/commerce/types";
 
@@ -43,6 +44,16 @@ const { config: c } = Astro.props;
         )
       }
     </section>
+
+    {
+      c.pickupBrand && (
+        <PickupBrandSection
+          brandNameEn={c.pickupBrand.brandNameEn}
+          brandNameJa={c.pickupBrand.brandNameJa}
+          myLinkBoxHtml={c.pickupBrand.myLinkBoxHtml}
+        />
+      )
+    }
 
     <CommerceFilterPanel slug={c.slug} sortOptions={c.sortOptions} />
 

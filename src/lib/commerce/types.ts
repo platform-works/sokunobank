@@ -110,4 +110,14 @@ export interface CommerceCategoryConfig {
   faq: CommerceFaqItem[];
   /** 任意。ValueCommerce等の広告タグ(PC/スマホ)。無ければ何も表示しない */
   ads?: CommerceAdConfig;
+  /**
+   * 任意。ValueCommerce MyLinkBoxを使った「ピックアップブランド」セクション(2026-09-27 PoC導入)。
+   * 設定したカテゴリーのみ、絞り込みUIの直前に表示される。無ければ何も表示しない。
+   * myLinkBoxHtmlはValueCommerce管理画面で発行された形式のまま、一切改変せず保持すること。
+   */
+  pickupBrand?: {
+    brandNameEn: string;
+    brandNameJa: string;
+    myLinkBoxHtml: string;
+  };
 }

@@ -129,4 +129,14 @@ export const officeChairConfig: CommerceCategoryConfig = {
     mobileOverlayHtml:
       '<script language="javascript" src="//ad.jp.ap.valuecommerce.com/servlet/smartphonebanner?sid=3782308&pid=892713452&position=overlay"></script>',
   },
+  // 2026-09-27 PoC導入(ユーザー指示): ValueCommerce MyLinkBoxを使った「ピックアップブランド」
+  // セクション。オフィスチェアカテゴリーのみに表示する検証目的の実装で、他カテゴリーには
+  // 波及させない。myLinkBoxHtmlはValueCommerce管理画面で発行された形式のまま、
+  // 一切改変せず保持している(広告スペースID: 892714349)。
+  pickupBrand: {
+    brandNameEn: "Ergohuman",
+    brandNameJa: "エルゴヒューマン",
+    myLinkBoxHtml:
+      '<script type="text/javascript" src="//mlb.valuecommerce.com/mylinkbox.js" async></script><div data-vc_mylinkbox_id="892714349"></div>',
+  },
 };
