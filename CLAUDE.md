@@ -37,6 +37,25 @@
 - Creators APIは**直近30日で10件以上の販売実績**がないと利用できない(取得後も実績が切れると自動停止)。この条件を継続的に満たすようになるまでは、上記アイコン運用を続ける
 - 2027年3月が近づいても対象アソシエイトタグでの売上実績が確認できない場合は、180日ルールによるアカウント閉鎖リスクをユーザーに知らせること
 
+## APIキー・アフィリエイトIDの管理ルール(2026-09-26 導入)
+
+Yahoo!ショッピング(Yahoo!デベロッパーAPI)・ValueCommerceなど、APIキーやアフィリエイトIDを扱う際は以下を厳守する。
+
+- **ローカル開発**:`.dev.vars`(Wranglerが自動読み込み)に実値を記載する。このファイルは`.gitignore`済みで、コミットしない
+- **本番(Cloudflare Workers)**:`wrangler.jsonc`(または`wrangler.toml`)には実値を書かない。git管理される前提のファイルのため、書くと流出する。代わりに `wrangler secret put <NAME>` で対話式に登録する(Cloudflare側で暗号化保存)。**このコマンドの実行自体はユーザー本人が行う**ため、完了報告やREADMEに「以下のコマンドをユーザー自身が実行する必要がある」旨を明記すること
+- **`.env.example`**:変数名のみを記載し、実際の値は絶対に含めない(コミット対象)
+- 現在管理対象の変数名:`YAHOO_APP_ID`、`VALUECOMMERCE_AFFILIATE_ID`(値は`.dev.vars`/Cloudflareシークレットのみに存在し、このリポジトリのどこにも実値を書かない)
+
+### 禁止事項
+- コード内へのAPIキー・アフィリエイトIDの直書き
+- `wrangler.jsonc`/`wrangler.toml` の `vars` セクションへの実値記載
+- コミットメッセージ・コメント・ログ出力への値の含有
+- クライアントサイドJS(ブラウザで実行されるコード)への値の露出
+
+### 補足
+- 別プロジェクト(selected-by)でも同様のYahoo!デベロッパーAPIキー管理パターン(`wrangler secret`)を使っている。ただしsokunobankとselected-byは別リポジトリ・別Workersのため、`wrangler secret put` は**sokunobank側で改めて実行が必要**
+- 現状のsokunobankは`output: "static"` + Cloudflare Workers Static Assetsの完全静的構成(`wrangler.jsonc`にbindingsなし)。サーバーサイドでAPIキーを使うコード(例:Yahoo API呼び出し)を実装する場合は、Astroのアダプタ変更やWorkers Functions導入などアーキテクチャ変更を伴う可能性がある点に注意し、実装前にその方針を確認すること
+
 ## SEO / AI検索最適化(GEO)ルール(2026-09-23 導入)
 
 「検索エンジン」だけでなく「ChatGPT等のAI回答エンジンに引用・選定される」ことも最適化目標に含める。
