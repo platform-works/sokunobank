@@ -58,18 +58,6 @@ export function isTrustedYahooUrl(url: string): boolean {
   }
 }
 
-/** hits.code 等の商品識別子で重複を除去する(先勝ち) */
-export function dedupeByCode(products: RankableProduct[]): RankableProduct[] {
-  const seen = new Set<string>();
-  const result: RankableProduct[] = [];
-  for (const p of products) {
-    if (seen.has(p.code)) continue;
-    seen.add(p.code);
-    result.push(p);
-  }
-  return result;
-}
-
 /**
  * 同一JANコード(同一商品)が複数ストアから出品されている場合、先に現れたものだけを残す。
  * ソート済みの配列に対して使うことで「価格・収益性等の並び順で最初に来たもの」を残せる。

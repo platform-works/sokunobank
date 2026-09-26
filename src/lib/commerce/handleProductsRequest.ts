@@ -1,7 +1,6 @@
 import type { APIContext } from "astro";
 import { isValidPrefectureCode } from "./prefectures";
-import { searchProducts } from "./yahooShoppingClient";
-import { filterRelevantProducts, dedupeByJan, dedupeByExactName } from "./productFilter";
+import { fetchCandidates } from "./fetchCandidates";
 import { scoreProduct } from "./ranking";
 import { buildAffiliateUrl } from "./affiliate";
 import type { CommerceCategoryConfig, ScoredProduct, SortKey } from "./types";
@@ -19,6 +18,12 @@ const CACHE_TTL_SECONDS = 1800; // 30分
 // 正常な結果を出し続けるためのフォールバック用キャッシュの保持期間。通常のCACHE_TTL_SECONDS
 // より大幅に長く保持し、「エラーで空表示」より「多少古いが商品が表示される」を優先する。
 const FALLBACK_CACHE_TTL_SECONDS = 86400; // 24時間
+// 2026-09-27: 候補集めの目標件数とページ上限(ユーザー指示による再設計)。
+// 要件(requiredKeywords/excludeKeywords/longLeadTime/報酬額500円)を満たす商品が
+// この件数に達するまでYahoo APIのページを追加取得する。1クエリあたりの上限ページ数を
+// 設けてレート制限(1分30リクエスト)を超えないようにする。
+const CANDIDATES_TARGET_COUNT = 100;
+const MAX_PAGES_PER_QUERY = 3;
 
 function validateArea(value: string | null): string | undefined {
   if (!value) return undefined;
@@ -115,44 +120,28 @@ export async function handleProductsRequest(config: CommerceCategoryConfig, cont
     if (cached) {
       deduped = await cached.json();
     } else {
-      const rawProducts = await searchProducts({
+      // 2026-09-27改訂(ユーザー指示): 候補が目標件数(100件)に達するまでYahoo APIの
+      // ページを追加取得してから、要件フィルタ→報酬額足切り→重複除去の順に適用する方式に変更。
+      // 「先頭◯件を取得してから500円未満を足切りする」と、母数不足でそのまま件数が
+      // 目減りしてしまうため、fetchCandidates内部で「足切り後100件に達するまでページを進める」
+      // ロジックを持たせている。ここでの並び順はYahoo APIの返却順のままで、
+      // estimatedCommissionによる並べ替えは行わない(最終的な表示順は下記sortProductsで決める)。
+      const { candidates } = await fetchCandidates({
         appId,
         queries: config.searchQueries,
         area,
         deliveryDay: effectiveDeliveryDay,
+        requiredKeywords: config.requiredKeywords,
+        excludeKeywords: config.excludeKeywords,
+        longLeadTimeExcludeKeywords: config.longLeadTimeExcludeKeywords,
+        minEstimatedCommission: config.minEstimatedCommission,
+        targetCount: CANDIDATES_TARGET_COUNT,
+        maxPagesPerQuery: MAX_PAGES_PER_QUERY,
       });
 
-      const filtered = filterRelevantProducts(
-        rawProducts,
-        config.requiredKeywords,
-        config.excludeKeywords,
-        config.longLeadTimeExcludeKeywords
-      );
-
-      const scoredAll = filtered.map((p) =>
+      deduped = candidates.map((p) =>
         scoreProduct(p, config.weights, config.revenueScoreReferenceMax, buildAffiliateUrl(affiliateId, p.url))
       );
-      // 想定成果報酬額が基準未満の商品を足切りする(任意設定、2026-09-26導入)。
-      // revenueScoreの重み付けとは別に、そもそも掲載する価値がないほど低報酬の商品を除外する。
-      const scored =
-        config.minEstimatedCommission !== undefined
-          ? scoredAll.filter((p) => p.estimatedCommission >= config.minEstimatedCommission!)
-          : scoredAll;
-
-      // 同一JAN(同一商品の複数ストア出品)の中に配送日が確定している出品と未確定の出品が
-      // 混在する場合、未確定の方が先に残ってしまわないよう、重複除去の前に
-      // 「配送日確定 > totalScoreが高い」の優先順で並べ替えてから重複除去する。
-      // (これをせずユーザーが選んだ並び順(価格順等)のままdedupeすると、価格が安いだけで
-      // 配送日不明の出品が優先的に残ってしまうことがあった)
-      // JANが取得できない商品は商品名の完全一致で補完的に重複除去する。
-      // 重複除去した後に、あらためてユーザーが選んだ並び順で最終的な表示順を決める(下記)。
-      const dedupPriority = [...scored].sort((a, b) => {
-        const aKnown = a.deliveryDay !== null ? 1 : 0;
-        const bKnown = b.deliveryDay !== null ? 1 : 0;
-        if (aKnown !== bKnown) return bKnown - aKnown;
-        return b.totalScore - a.totalScore;
-      });
-      deduped = dedupeByExactName(dedupeByJan(dedupPriority));
 
       if (cache) {
         const candidatesResponse = new Response(JSON.stringify(deduped), {
