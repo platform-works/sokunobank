@@ -108,6 +108,21 @@ export interface FilterField {
   options?: FilterOption[];
 }
 
+/**
+ * DM型カテゴリーページに設置するアフィリエイトバナー。ValueCommerceのcommerce系バナー
+ * (CommerceAdConfig, src/lib/commerce/types.ts参照)とは異なり、PC/スマホで別々のタグを
+ * 用意するのではなく、同一のタグ1つをCSSだけでレスポンシブに配置切り替えする
+ * (PC:ページ上部に静的表示 / スマホ:画面下部に固定して追従表示)。同じ理由から
+ * TopBannerAd.astroコンポーネント側で実装し、タグをDOMに複製しない
+ * (複製すると1x1トラッキング画像等が二重に読み込まれ、実際のインプレッション数を
+ * 不正確にしてしまうため)。
+ */
+export interface CategoryAdConfig {
+  /** 広告タグ(A8.net等)。規約上の改変(書き換え・一部抜き出し・サイズ変更等)は禁止のため、
+   * 元のタグを一切変更せず文字列としてそのまま持たせる。描画側はset:htmlでそのまま出力する */
+  topBannerHtml?: string;
+}
+
 export interface CategoryData {
   slug: string;
   name: string;
@@ -133,6 +148,8 @@ export interface CategoryData {
   faq?: Faq[];
   guides?: Guide[];
   lp?: LpContent;
+  /** 任意。ページ上部のアフィリエイトバナー(PC:上部静的/スマホ:下部追従)。無ければ表示しない */
+  ads?: CategoryAdConfig;
   /** 公開前に確認が必要な事項。ページには描画せず、開発時の参照用 */
   todos?: string[];
   /** 料金・納期情報を最後に確認した日付(ISO)。未確認なら null */

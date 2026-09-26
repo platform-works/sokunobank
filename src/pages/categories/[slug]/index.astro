@@ -1,6 +1,7 @@
 ---
 import Layout from "../../../layouts/Layout.astro";
 import Breadcrumbs from "../../../components/Breadcrumbs.astro";
+import TopBannerAd from "../../../components/TopBannerAd.astro";
 import Hero from "../../../components/Hero.astro";
 import SummaryBox from "../../../components/SummaryBox.astro";
 import Disclaimer from "../../../components/Disclaimer.astro";
@@ -40,6 +41,8 @@ if (!category.lastVerifiedAt) {
   />
 
   <div class="container">
+    {category.ads?.topBannerHtml && <TopBannerAd html={category.ads.topBannerHtml} />}
+
     <Hero
       headline={category.heroHeadline}
       subheadline={category.heroSubheadline}
