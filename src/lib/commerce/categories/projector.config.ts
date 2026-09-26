@@ -58,7 +58,13 @@ export const projectorConfig: CommerceCategoryConfig = {
     store: 0.06,
     revenue: 0.5,
   },
-  revenueScoreReferenceMax: 10000,
+  // 実際のYahoo!ショッピングの想定成果報酬額を調査したところ、このカテゴリーの
+  // アフィリエイト料率はほぼ一律1%程度で、想定成果報酬額は中央値約170円、
+  // 最高額でも約5,200円程度(2026-09-26調査)。以前の基準値(10,000円)では
+  // 最高額商品でもrevenueScoreが52点にしかならず、大半の商品は0〜2点に張り付き、
+  // 報酬額の重み(50%)が実質ほとんど機能していなかった。実態に合わせて基準値を
+  // 引き下げ、報酬額による差が最終スコアに実際に反映されるようにした。
+  revenueScoreReferenceMax: 3000,
   seoSections: [
     {
       heading: "会議用プロジェクターを即納で選ぶポイント",
