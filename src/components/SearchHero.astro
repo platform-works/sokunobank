@@ -190,6 +190,11 @@ const features = [
     .search-form {
       flex-direction: column;
     }
+    .search-form input {
+      /* flex-direction: columnで主軸が縦になると、flex:1のflex-basis:0%がheight指定より
+         優先され入力欄が文字の最小高さまで潰れてしまうため、flex-growを止めてheightを効かせる */
+      flex: none;
+    }
     .search-form .btn {
       width: 100%;
     }
