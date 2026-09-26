@@ -96,10 +96,21 @@ export const GET: APIRoute = async (context) => {
       scoreProduct(p, projectorConfig.weights, projectorConfig.revenueScoreReferenceMax, buildAffiliateUrl(affiliateId, p.url))
     );
 
-    // 並び順で全体をソートしてから同一JAN(同一商品の複数ストア出品)を除去することで、
-    // 「価格・収益性等の観点で最も条件の良いものを残す」形になる(先に現れたものを残す)。
+    // 同一JAN(同一商品の複数ストア出品)の中に配送日が確定している出品と未確定の出品が
+    // 混在する場合、未確定の方が先に残ってしまわないよう、重複除去の前に
+    // 「配送日確定 > totalScoreが高い」の優先順で並べ替えてから重複除去する。
+    // (これをせずユーザーが選んだ並び順(価格順等)のままdedupeすると、価格が安いだけで
+    // 配送日不明の出品が優先的に残ってしまうことがあった)
     // JANが取得できない商品は商品名の完全一致で補完的に重複除去する。
-    const sorted = dedupeByExactName(dedupeByJan(sortProducts(scored, sort))).slice(0, 50);
+    // 重複除去した後に、あらためてユーザーが選んだ並び順で最終的な表示順を決める。
+    const dedupPriority = [...scored].sort((a, b) => {
+      const aKnown = a.deliveryDay !== null ? 1 : 0;
+      const bKnown = b.deliveryDay !== null ? 1 : 0;
+      if (aKnown !== bKnown) return bKnown - aKnown;
+      return b.totalScore - a.totalScore;
+    });
+    const deduped = dedupeByExactName(dedupeByJan(dedupPriority));
+    const sorted = sortProducts(deduped, sort).slice(0, 50);
 
     response = new Response(
       JSON.stringify({
