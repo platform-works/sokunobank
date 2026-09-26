@@ -1,30 +1,43 @@
 ---
 interface Props {
-  html: string;
+  pcHtml?: string;
+  mobileHtml?: string;
 }
-const { html } = Astro.props;
+const { pcHtml, mobileHtml } = Astro.props;
 ---
 
-<div class="top-banner-ad">
-  <span class="top-banner-ad-label">PR</span>
-  <div class="top-banner-ad-embed" set:html={html} />
-</div>
+<!--
+  PCとスマホで別々の広告タグを表示する(A8.net等、ValueCommerceのようにASP側が
+  最初からPC用/スマホ用を分けて発行してくれるとは限らないため、同じ仕組みで両対応する)。
+
+  タグ自体(PC用<template data-variant="pc">・スマホ用<template data-variant="mobile">)は
+  <template>内に入れて描画せずに保持する — <template>の中身はDOMに挿入されるまで
+  ブラウザが画像等を読み込まないため、これで「表示していない方のタグの1x1トラッキング画像が
+  勝手に読み込まれてインプレッション数が二重にカウントされる」問題を避けられる。
+  ページ読み込み時に下のスクリプトが画面幅を判定し、該当する方だけを実際のDOMに複製して
+  挿入する(cloneNode)。挿入後は複製されたHTMLも含め、タグの内容は一切変更しない。
+
+  PC: ヘッダー直下(sticky, top:64px = ヘッダー高さ)に固定表示。下にスクロールしても
+  ヘッダーの下に張り付いたまま追従する。
+  スマホ: 画面下部にfixedで固定表示(ヤフーショッピングのスマホ用オーバーレイバナーと同じ挙動)。
+-->
+{
+  (pcHtml || mobileHtml) && (
+    <div class="top-banner-ad" data-top-banner-ad>
+      <span class="top-banner-ad-label">PR</span>
+      <div class="top-banner-ad-embed" data-top-banner-ad-slot />
+      {pcHtml && <template data-variant="pc" set:html={pcHtml} />}
+      {mobileHtml && <template data-variant="mobile" set:html={mobileHtml} />}
+    </div>
+  )
+}
 
 <style>
-  /*
-    PC: 通常のドキュメントフロー内(ページ上部)に静的表示。
-    スマホ(720px以下): position:fixedで画面下部に固定し、スクロールに追従させる
-    (「ヤフーショッピングと同じ仕様」= ValueCommerceのスマホ用オーバーレイバナーと同じ挙動)。
-    タグの実体(DOM要素)は1つだけで、CSSで配置を切り替えるだけにしている。
-    2箇所に複製すると、非表示側の1x1トラッキング画像等も読み込まれてしまい、
-    実際のインプレッション数と乖離する(規約上も望ましくない)ため、絶対に複製しないこと。
-  */
   .top-banner-ad {
-    display: flex;
+    display: none;
     justify-content: center;
     align-items: center;
     gap: 0.5rem;
-    margin-block: 1rem;
   }
   .top-banner-ad-label {
     font-size: 0.68rem;
@@ -33,22 +46,51 @@ const { html } = Astro.props;
     color: var(--color-text-muted);
     flex-shrink: 0;
   }
-  .top-banner-ad-embed :global(img) {
+  .top-banner-ad-slot :global(img) {
     max-width: 100%;
     height: auto;
   }
 
-  @media (max-width: 720px) {
-    .top-banner-ad {
-      position: fixed;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      z-index: 40;
-      margin: 0;
-      padding: 0.4rem 0.75rem;
-      background: var(--color-bg);
-      border-top: 1px solid var(--color-border);
-    }
+  /* PC: ヘッダー(高さ64px, position:sticky)の直下に張り付けて追従させる */
+  .top-banner-ad.is-pc {
+    display: flex;
+    position: sticky;
+    top: 64px;
+    z-index: 49;
+    background: var(--color-bg);
+    border-bottom: 1px solid var(--color-border);
+    padding: 0.5rem 0.75rem;
+    margin-bottom: 1rem;
+  }
+
+  /* スマホ: 画面下部にfixedで固定し、スクロールに追従させる */
+  .top-banner-ad.is-mobile {
+    display: flex;
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 40;
+    padding: 0.4rem 0.75rem;
+    background: var(--color-bg);
+    border-top: 1px solid var(--color-border);
   }
 </style>
+
+<script>
+  // 画面幅に応じてPC用/スマホ用どちらか一方だけを<template>から複製してDOMに挿入する。
+  // 両方を静的に描画してCSSで出し分けると、非表示側のタグの画像も読み込まれてしまうため、
+  // 挿入自体を1つだけに絞っている(詳細はコンポーネント冒頭のコメント参照)。
+  document.querySelectorAll<HTMLElement>("[data-top-banner-ad]").forEach((container) => {
+    const slot = container.querySelector<HTMLElement>("[data-top-banner-ad-slot]");
+    if (!slot) return;
+    const isMobile = window.matchMedia("(max-width: 720px)").matches;
+    const variant = isMobile ? "mobile" : "pc";
+    const template =
+      container.querySelector<HTMLTemplateElement>(`template[data-variant="${variant}"]`) ??
+      container.querySelector<HTMLTemplateElement>("template");
+    if (!template) return;
+    slot.appendChild(template.content.cloneNode(true));
+    container.classList.add(isMobile ? "is-mobile" : "is-pc");
+  });
+</script>

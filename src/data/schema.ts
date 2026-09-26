@@ -109,18 +109,22 @@ export interface FilterField {
 }
 
 /**
- * DM型カテゴリーページに設置するアフィリエイトバナー。ValueCommerceのcommerce系バナー
- * (CommerceAdConfig, src/lib/commerce/types.ts参照)とは異なり、PC/スマホで別々のタグを
- * 用意するのではなく、同一のタグ1つをCSSだけでレスポンシブに配置切り替えする
- * (PC:ページ上部に静的表示 / スマホ:画面下部に固定して追従表示)。同じ理由から
- * TopBannerAd.astroコンポーネント側で実装し、タグをDOMに複製しない
- * (複製すると1x1トラッキング画像等が二重に読み込まれ、実際のインプレッション数を
- * 不正確にしてしまうため)。
+ * DM型カテゴリーページに設置するアフィリエイトバナー。PC用・スマホ用で別々の広告タグを
+ * 持てる(A8.net等、ASP側がPC用/スマホ用でサイズ・aid/midの異なる別タグを発行することが
+ * あるため。ValueCommerceのCommerceAdConfig, src/lib/commerce/types.tsと同じ考え方)。
+ * どちらか一方だけ設定した場合はその画面幅でのみ表示する。
+ * TopBannerAd.astroコンポーネント側で、非表示側のタグをDOMに複製しない実装にしている
+ * (複製すると1x1トラッキング画像等が両方読み込まれ、実際のインプレッション数を
+ * 不正確にしてしまうため。<template>に入れて画面幅判定後に該当する方だけ複製する)。
  */
 export interface CategoryAdConfig {
-  /** 広告タグ(A8.net等)。規約上の改変(書き換え・一部抜き出し・サイズ変更等)は禁止のため、
+  /** PC用の広告タグ。ヘッダー直下にsticky表示し、スクロールしても追従する。
+   * 規約上の改変(書き換え・一部抜き出し・サイズ変更等)は禁止のため、
    * 元のタグを一切変更せず文字列としてそのまま持たせる。描画側はset:htmlでそのまま出力する */
-  topBannerHtml?: string;
+  pcBannerHtml?: string;
+  /** スマホ用の広告タグ。画面下部にfixedで固定表示し、スクロールしても追従する
+   * (ヤフーショッピングのスマホ用オーバーレイバナーと同じ挙動)。改変禁止の扱いはpcBannerHtmlと同じ */
+  mobileBannerHtml?: string;
 }
 
 export interface CategoryData {

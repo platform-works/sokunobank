@@ -41,7 +41,9 @@ if (!category.lastVerifiedAt) {
   />
 
   <div class="container">
-    {category.ads?.topBannerHtml && <TopBannerAd html={category.ads.topBannerHtml} />}
+    {category.ads && (
+      <TopBannerAd pcHtml={category.ads.pcBannerHtml} mobileHtml={category.ads.mobileBannerHtml} />
+    )}
 
     <Hero
       headline={category.heroHeadline}

@@ -43,10 +43,10 @@ ValueCommerce・A8.net等、どのASP(アフィリエイトサービスプロバ
 
 - **タグ(`<a>`/`<img>`/`<script>`等)の内容は一切改変しない**(書き換え・一部抜き出し・サイズ変更・複数箇所への複製等)。規約違反で提携解除・報酬停止のリスクがある
 - 描画は必ず `set:html={rawString}` で行い、Astroのテンプレート構文(JSX風の記法)で直接書かない。Astroは`data-astro-cid-*`属性をテンプレート内の全要素(`<noscript>`の子要素等も含む)に自動付与するため、テンプレート経由だと意図せずタグを改変してしまう
-- **同じタグをPC/スマホで別々に表示させたい場合でも、DOM上に複製しない**。特に1x1トラッキング画像や計測スクリプトが含まれるタグを複製すると、非表示側(`display:none`)でも画像・スクリプトは読み込まれてしまい、実際のインプレッション数が二重にカウントされる。PC/スマホで表示位置を変えたいだけなら、同一のDOM要素をCSSでレスポンシブに配置切り替えする(実装例: [TopBannerAd.astro](src/components/TopBannerAd.astro)、PC=上部静的表示/スマホ=下部固定追従)。ValueCommerce側がPC用・スマホ用に別々のタグを発行している場合(`CommerceAdConfig`の`pcBannerHtml`/`mobileOverlayHtml`)はこの限りではない(元々別々のタグとして提供されているため)
+- **PC/スマホで同じタグを表示する場合も、別々のタグを表示する場合も、同時に2つともDOM上に描画しない**。特に1x1トラッキング画像や計測スクリプトが含まれるタグを両方描画してCSSの`display:none`で出し分けると、非表示側でも画像・スクリプトは読み込まれてしまい、実際のインプレッション数が二重にカウントされる。実装例: [TopBannerAd.astro](src/components/TopBannerAd.astro) — PC用・スマホ用それぞれのタグを`<template>`(中身はDOMに挿入されるまで画像等が読み込まれない)に入れておき、ページ読み込み時に画面幅を判定して該当する方だけ`cloneNode`で実際のDOMに複製する。PC=ヘッダー直下にsticky表示して追従、スマホ=画面下部にfixedで固定して追従
 - 広告バナーには必ず「PR」ラベルを表示し、フッターのアフィリエイト開示文と合わせて広告であることを明示する
 - 検証時にタグ内のトラッキングURLを直接curl等で繰り返し叩かない(実際のインプレッション・クリックとして計測されてしまう)。ページ描画確認は`grep`でタグの存在・重複有無を確認する程度にとどめる
-- **現在利用しているASP**: ValueCommerce(Yahoo!ショッピング、commerce系カテゴリー)、A8.net(DM発送代行一括.jp、`src/data/categories/dm.json`の`ads.topBannerHtml`)。新しいASPを追加した場合はここに追記する
+- **現在利用しているASP**: ValueCommerce(Yahoo!ショッピング、commerce系カテゴリー)、A8.net(DM発送代行一括.jp、`src/data/categories/dm.json`の`ads.pcBannerHtml`/`ads.mobileBannerHtml`)。新しいASPを追加した場合はここに追記する
 
 ## APIキー・アフィリエイトIDの管理ルール(2026-09-26 導入)
 
