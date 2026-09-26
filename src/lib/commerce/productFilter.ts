@@ -1,5 +1,18 @@
 import type { RankableProduct } from "./types";
 
+// 出品者が検索ヒット率を上げるため、説明文の末尾に無関係な語句を大量に列挙する
+// 「関連Word: ○○ ○○ ...」的なタグ羅列を付けていることが多い(2026-09-26、PCモニターの
+// 除外条件調査で発覚。例:モニター本体の説明文に「関連Word: ... モニターアーム ...」とあり、
+// アーム単体商品でもないのにexcludeKeywords「モニターアーム」に誤ヒットして除外されていた)。
+// この手のタグ羅列以降はexcludeKeywords判定の対象から外す(本文中の正当な長納期表記等は
+// タグ羅列より前に書かれるのが通例のため、除外検出の精度が落ちる心配はない)。
+const RELATED_WORD_MARKER = /(関連word|関連ワード|関連キーワード|検索ワード)[:：]/i;
+
+function stripRelatedWordTags(text: string): string {
+  const idx = text.search(RELATED_WORD_MARKER);
+  return idx === -1 ? text : text.slice(0, idx);
+}
+
 /**
  * 商品名から本体らしい商品だけを残す。
  * 1) requiredKeywords のいずれかを含まない商品は無関係(検索語と緩く一致しただけ)として除外
@@ -20,7 +33,8 @@ export function filterRelevantProducts(
     if (requiredPatterns.length > 0 && !requiredPatterns.some((keyword) => name.includes(keyword))) {
       return false;
     }
-    const searchableText = `${name} ${p.descriptionText.toLowerCase()}`;
+    const description = stripRelatedWordTags(p.descriptionText.toLowerCase());
+    const searchableText = `${name} ${description}`;
     return !excludePatterns.some((keyword) => searchableText.includes(keyword));
   });
 }
