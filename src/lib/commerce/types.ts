@@ -7,6 +7,8 @@ export interface RankableProduct {
   /** JANコード。同一商品が複数ストアから出品されている場合の重複排除に使う(取得できない場合あり) */
   janCode: string | null;
   name: string;
+  /** 商品説明・キャッチコピー(表示はしない)。「お取り寄せ/2ヶ月」等の長納期表記の検知にのみ使う */
+  descriptionText: string;
   url: string;
   image: string;
   price: number;

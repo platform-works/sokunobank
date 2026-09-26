@@ -20,6 +20,8 @@ interface YahooHit {
   code?: string;
   janCode?: string;
   name?: string;
+  headLine?: string;
+  description?: string;
   url?: string;
   image?: { medium?: string; small?: string };
   price?: number;
@@ -73,6 +75,7 @@ function normalizeHit(hit: YahooHit): RankableProduct | null {
     code: hit.code,
     janCode: hit.janCode && hit.janCode.trim() !== "" ? hit.janCode : null,
     name: hit.name,
+    descriptionText: `${hit.headLine ?? ""} ${hit.description ?? ""}`,
     url: hit.url,
     image: hit.image?.medium ?? hit.image?.small ?? "",
     price: hit.price ?? 0,

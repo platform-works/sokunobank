@@ -3,8 +3,10 @@ import type { RankableProduct } from "./types";
 /**
  * 商品名から本体らしい商品だけを残す。
  * 1) requiredKeywords のいずれかを含まない商品は無関係(検索語と緩く一致しただけ)として除外
- * 2) 残った中から excludeKeywords を含む商品(付属品・消耗品等)を除外
- * カテゴリー非依存の汎用関数。過剰除外を避けるため、名称の部分一致のみで判定する単純なロジックに留める。
+ * 2) 残った中から excludeKeywords を含む商品(付属品・消耗品・お取り寄せ品等)を除外
+ *    (excludeKeywordsは商品名だけでなく、商品説明・キャッチコピーも対象にする。
+ *    「在庫状況：お取り寄せ/お届け：2〜3ヶ月」等は商品名には出ず説明文にのみ出るため)
+ * カテゴリー非依存の汎用関数。過剰除外を避けるため、文字列の部分一致のみで判定する単純なロジックに留める。
  */
 export function filterRelevantProducts(
   products: RankableProduct[],
@@ -18,7 +20,8 @@ export function filterRelevantProducts(
     if (requiredPatterns.length > 0 && !requiredPatterns.some((keyword) => name.includes(keyword))) {
       return false;
     }
-    return !excludePatterns.some((keyword) => name.includes(keyword));
+    const searchableText = `${name} ${p.descriptionText.toLowerCase()}`;
+    return !excludePatterns.some((keyword) => searchableText.includes(keyword));
   });
 }
 

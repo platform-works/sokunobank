@@ -30,6 +30,15 @@ export const projectorConfig: CommerceCategoryConfig = {
     "天吊",
     "金具",
     "アクセサリー",
+    // 即納訴求のページのため、納期が長い(お取り寄せ・予約・受注生産等)商品は除外する。
+    // 商品名だけでなく説明文(descriptionText)にも出るため filterRelevantProducts 側で両方をチェックしている。
+    "お取り寄せ",
+    "取り寄せ",
+    "予約商品",
+    "入荷次第",
+    "入荷未定",
+    "受注生産",
+    "メーカー取寄",
   ],
   priceBands: [
     { label: "指定なし" },
