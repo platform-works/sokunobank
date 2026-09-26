@@ -43,8 +43,8 @@ APIルート(`/api/<slug>/products/`)は動的ルート`src/pages/api/[slug]/pro
 ## 5. サイト導線に登録する
 
 - `src/data/site-nav.ts`の`commerceCategories`配列に追加(トップページ・カテゴリー一覧に自動反映される)
-- `src/pages/sitemap.xml.ts`の`staticPaths`に`/categories/<slug>/`を追加
-- 必要であれば`popularKeywords`/`purposeFinder`/`departmentFinder`(いずれも`site-nav.ts`)にも追加(projectorの実装を参考に、「今日」「当日」を含めない文言にする)
+- `sitemap.xml.ts`はレジストリから自動的にパスを集計するため、**変更不要**(2026-09-26改修済み)
+- 必要であれば`popularKeywords`/`purposeFinder`/`departmentFinder`(いずれも`site-nav.ts`)にも追加(projector/orchidの実装を参考に、「今日」「当日」を含めない文言にする)
 
 ## 6. ローカルで確認する
 
