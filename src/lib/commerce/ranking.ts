@@ -65,7 +65,6 @@ export function scoreProduct(
   product: RankableProduct,
   weights: RankingWeights,
   revenueScoreReferenceMax: number,
-  affiliateUrl: string,
   priceFilter?: { min?: number; max?: number }
 ): ScoredProduct {
   const dScore = deliveryScore(product.deliveryDay);
@@ -100,6 +99,9 @@ export function scoreProduct(
     conversionProxyScore: cvScore,
     totalScore,
     estimatedCommission,
-    affiliateUrl,
+    // Yahoo!ショッピングの元URLをそのまま渡す。アフィリエイトリンクへの変換は
+    // ValueCommerce LinkSwitchがブラウザ側で行うため、ここでは加工しない
+    // (2026-09-27導入、詳細はtypes.tsのScoredProduct.productUrlコメント参照)。
+    productUrl: product.url,
   };
 }

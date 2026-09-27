@@ -69,6 +69,20 @@ const organizationJsonLd = {
     />
     <script type="application/ld+json" set:html={JSON.stringify(websiteJsonLd)} />
     <script type="application/ld+json" set:html={JSON.stringify(organizationJsonLd)} />
+
+    <!--
+      ValueCommerce LinkSwitch(2026-09-27導入)。全ページ共通のこのLayout.astroに1回だけ設置し、
+      個別ページ・商品カード側では絶対に重複設置しない。Yahoo!ショッピングへの通常の商品URLを
+      ブラウザ側で自動的にアフィリエイトリンクへ変換する仕組みのため、商品カード生成側では
+      URLを一切加工せず、Yahoo!ショッピングの元の商品URLをそのまま出力すること
+      (詳細はsrc/lib/commerce/handleProductsRequest.ts・ProductGrid.astroのコメント参照)。
+      タグはValueCommerce管理画面から発行された形式のまま、一切改変せずFragmentでそのまま出力する
+      (通常のAstroテンプレート構文で書くと、Astroがscoped CSS用のdata-astro-cid-*属性を
+      要素に自動付与してしまい、タグを意図せず改変することになるため)。
+    -->
+    <Fragment
+      set:html={`<script type="text/javascript" language="javascript">var vc_pid = "892714362";</script><script type="text/javascript" src="//aml.valuecommerce.com/vcdal.js" async></script>`}
+    />
   </head>
   <body>
     <a class="skip-link" href="#main">本文へスキップ</a>

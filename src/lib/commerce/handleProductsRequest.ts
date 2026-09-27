@@ -2,7 +2,6 @@ import type { APIContext } from "astro";
 import { isValidPrefectureCode } from "./prefectures";
 import { fetchCandidates } from "./fetchCandidates";
 import { scoreProduct } from "./ranking";
-import { buildAffiliateUrl } from "./affiliate";
 import type { CommerceCategoryConfig, ScoredProduct, SortKey } from "./types";
 
 // 「Yahoo!ショッピング商品ランキング型」カテゴリー共通のAPIハンドラー。
@@ -24,6 +23,12 @@ const FALLBACK_CACHE_TTL_SECONDS = 86400; // 24時間
 // 設けてレート制限(1分30リクエスト)を超えないようにする。
 const CANDIDATES_TARGET_COUNT = 100;
 const MAX_PAGES_PER_QUERY = 3;
+// キャッシュに保存するScoredProductの「形」を変えるコード変更(フィールドの追加・削除・改名等)を
+// するたびにこの値を上げること。2026-09-27、affiliateUrl→productUrlへのフィールド改名時に、
+// デプロイ直前にキャッシュされた旧い形のデータがそのまま再利用され、productUrlがundefinedに
+// なる(＝商品リンクが壊れる)不具合が判明したため導入した。キャッシュキーに含めることで、
+// 形が変わった直後は必ずキャッシュミスとして扱われ、新しい形で再取得される。
+const CACHE_SCHEMA_VERSION = 2;
 
 function validateArea(value: string | null): string | undefined {
   if (!value) return undefined;
@@ -90,6 +95,7 @@ export async function handleProductsRequest(config: CommerceCategoryConfig, cont
   candidatesCacheKeyUrl.search = new URLSearchParams({
     area: area ?? "",
     delivery: effectiveDeliveryDay !== undefined ? String(effectiveDeliveryDay) : "",
+    v: String(CACHE_SCHEMA_VERSION),
   }).toString();
   const candidatesCacheKey = new Request(candidatesCacheKeyUrl.toString());
   // 通常キャッシュと同じ内容を、Yahoo API障害時のフォールバック専用として長期保持する別キー
@@ -105,7 +111,6 @@ export async function handleProductsRequest(config: CommerceCategoryConfig, cont
   // env(vars/secrets)を注入する。ローカル開発では .dev.vars から platformProxy 経由で入る。
   const runtimeEnv = (context.locals as { runtime?: { env?: Record<string, string> } }).runtime?.env ?? {};
   const appId = runtimeEnv.YAHOO_APP_ID;
-  const affiliateId = runtimeEnv.VALUECOMMERCE_AFFILIATE_ID;
 
   if (!appId) {
     return new Response(
@@ -139,9 +144,13 @@ export async function handleProductsRequest(config: CommerceCategoryConfig, cont
         maxPagesPerQuery: MAX_PAGES_PER_QUERY,
       });
 
-      deduped = candidates.map((p) =>
-        scoreProduct(p, config.weights, config.revenueScoreReferenceMax, buildAffiliateUrl(affiliateId, p.url))
-      );
+      // 2026-09-27導入(ValueCommerce LinkSwitch): 以前はここでbuildAffiliateUrl()により
+      // Yahoo!ショッピングの商品URLをValueCommerceの遷移URLへサーバー側で事前変換していたが、
+      // LinkSwitch導入に伴いこの変換をやめた。scoreProduct()はYahoo!ショッピングの元URLを
+      // そのままScoredProduct.productUrlに設定する。アフィリエイトリンクへの変換はLinkSwitchが
+      // ブラウザ側で行うため、DB・JSON・キャッシュに保存するURLも常に元URLのままにする
+      // (LinkSwitch変換後のURLを保存・キャッシュしないことが重要)。
+      deduped = candidates.map((p) => scoreProduct(p, config.weights, config.revenueScoreReferenceMax));
 
       if (cache) {
         const candidatesResponse = new Response(JSON.stringify(deduped), {
@@ -182,7 +191,7 @@ export async function handleProductsRequest(config: CommerceCategoryConfig, cont
         storeName: p.storeName,
         storeIsBestSeller: p.storeIsBestSeller,
         deliveryDay: p.deliveryDay,
-        affiliateUrl: p.affiliateUrl,
+        productUrl: p.productUrl,
       })),
       count: sorted.length,
       generatedAt: new Date().toISOString(),

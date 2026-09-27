@@ -31,7 +31,14 @@ export interface ScoredProduct extends RankableProduct {
   conversionProxyScore: number;
   totalScore: number;
   estimatedCommission: number;
-  affiliateUrl: string;
+  /**
+   * Yahoo!ショッピングの元の商品URL(RankableProduct.urlと同一値)。
+   * 2026-09-27にValueCommerce LinkSwitch導入に伴い、ここに事前組み立てした
+   * アフィリエイトURLを入れる方式から、元URLをそのまま渡す方式に変更した
+   * (アフィリエイトリンクへの変換はLinkSwitchがブラウザ側で行う。
+   * src/lib/commerce/handleProductsRequest.tsのコメント参照)。
+   */
+  productUrl: string;
 }
 
 export interface RankingWeights {

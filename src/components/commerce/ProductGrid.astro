@@ -60,7 +60,10 @@ const rootId = `commerce-grid-${slug}`;
     function makeLink(p, index, extraClass) {
       const a = document.createElement("a");
       a.className = extraClass;
-      a.href = p.affiliateUrl;
+      // Yahoo!ショッピングの元の商品URLをそのまま使う(2026-09-27、ValueCommerce LinkSwitch導入)。
+      // アフィリエイトリンクへの変換はLinkSwitch(Layout.astroで全ページ共通設置)が
+      // ブラウザ側で自動的に行うため、ここでURLを加工・事前変換しない。
+      a.href = p.productUrl;
       a.target = "_blank";
       a.rel = "sponsored noopener";
       a.addEventListener("click", () => {
