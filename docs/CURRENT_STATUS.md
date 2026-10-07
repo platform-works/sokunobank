@@ -8,42 +8,46 @@
 ## Git
 
 - branch: `master`
-- コードの基準点: `f99c50f`(現在の本番相当のソースを保存したスナップショット commit。この commit の後に、docs だけの commit が続く)
-- remote: なし(GitHub には未共有)
+- HEAD(この更新の前): `3fd6d4a`。`origin/master` と同期済み
+- remote: `origin` = GitHub の private リポジトリ(作成済み)
+- ノートPCとデスクトップPCが、同じ GitHub リポジトリを共有している。デスクトップPCは GitHub から clone 済み
 - worktree: なし(本体の1つだけ)
-- 保存してある別 branch:
-  - `feat/x-auto-post`(`9d38f97`): X への投稿 API の試作。**別 branch として保存するだけで、`master` には統合しない**
-  - `refactor/commerce-category-template`: `master` に merge 済み(`master` より先に進んだ commit はない)
+- working tree: clean
+- Git identity: repo local に `SOKUNOBANK運営事務局 <dmsales29@gmail.com>` を設定。global の `user.name` / `user.email` は未設定
+- 別 branch:
+  - `feat/x-auto-post`(`9d38f97`): X への投稿 API の試作。`origin` に保存済み。**`master` には統合していない**
+  - `refactor/commerce-category-template`: `master` に merge 済み
 
-## ビルドとテスト(2026-10-07、スナップショット作成時)
+## ビルドとテスト(デスクトップPC)
 
+- Node.js: v24.21.0 / npm: 11.19.0
+- `npm install`: 成功
 - `npm run build`: 成功(警告1件: Cloudflare アダプターと画像サービス Sharp が互換でないという警告。ビルドは成功)
-- `npm test`: 30件すべて成功(3ファイル)
+- `npm test`: 30件すべて成功
+- `dist/` は、このデスクトップPCの現在のパスで再ビルド済み
 
 ## サイトの内容
 
-- commerce 系カテゴリー(Yahoo!ショッピング商品ランキング型): projector、orchid、monitor、office-chair の4件に加えて、新カテゴリー5件を追加した。
-  - generator(発電機)、office-desk、printer、shredder、whiteboard
+- commerce 系カテゴリー(Yahoo!ショッピング商品ランキング型): projector、orchid、monitor、office-chair、generator(発電機)、office-desk、printer、shredder、whiteboard
   - カテゴリーの設定は `src/lib/commerce/categories/*.config.ts`、登録は `src/lib/commerce/registry.ts`
-- ガイド記事: `src/pages/guides/` に24本(うち23本は、スナップショットで初めて Git に入った)
-- commerce の共通エンジン(`src/lib/commerce/`、`src/components/commerce/`)を更新した。商品スペック抽出(`extractSpecs`、`extractPowerSpec`)を追加
-- サイト全体の導線(`site-nav`、`Layout`、`sitemap.xml`、`llms.txt` など)を更新した
+- ガイド記事: `src/pages/guides/` に24本
+- commerce の共通エンジン: `src/lib/commerce/`、`src/components/commerce/`
 - `.claude/skills/` に、カテゴリー追加・ブランドセクション追加・ページ設計の手順を置いている
 
 ## Cloudflare
 
 - Worker 名: `sokuno-bank`(`wrangler.jsonc`)
-- **Cloudflare への deploy は、今回の整理では実施していない。** 現在の本番に出ている版が、`f99c50f` と同じかどうかは未確認
+- **deploy は今回の整理では実施していない。** 現在の本番に出ている版が、`3fd6d4a` 以前のどの版と同じかは未確認
 - **`sokunobank-x-poster`** は、**別の Worker** として存在する(別リポジトリ)。cron(毎日 UTC 0:00 = 日本時間 9:00)で X へ自動投稿する設定になっている。このリポジトリの Worker とは別物
-- `feat/x-auto-post` にある `/api/internal/x-post` は、このリポジトリの本番サイトには統合していない。`feat/x-auto-post` から deploy すると、同じ Worker 名 `sokuno-bank` のため、古い版で本番を上書きしてしまう。**そこからは deploy しない**
+- `feat/x-auto-post` から deploy しない。同じ Worker 名 `sokuno-bank` のため、古い版で本番を上書きしてしまう
 
-## 既知の確認事項
+## 未解決の事項
 
-- `/lp/dm` に、事実が未確認の文言が残っている。ビルド時に `hookNote が公式情報で未確認(hookVerified: false)` という警告が出る。公開前に、公式情報で確認が必要
-- `dist/` は、移動前のパスでビルドした成果物なので、ビルド時のパスが埋め込まれている。**deploy の前に、必ずこのリポジトリで `npm run build` をやり直す**
+- `/lp/dm` に、事実が未確認の文言が残っている。ビルド時に `hookNote が公式情報で未確認(hookVerified: false)` という警告が出る
+- 日本時間9:00の X 投稿が二重化している。Cloudflare cron(別 Worker `sokunobank-x-poster`)と、Codex の `x-web`(午前9時の投稿準備)が同じ時刻に動く。どちらに一本化するかは未決定
 
 ## 秘密情報
 
 - `.dev.vars`(ローカル)と Cloudflare Secrets(本番)だけを使う。コードと設定ファイルには書かない
-- `.dev.vars` は Git で管理しない(`.gitignore` で除外済み)
+- `.dev.vars` は Git で管理しない(`.gitignore` で除外済み)。各PCで別途用意する
 - Git の全履歴に、秘密情報が含まれていないことを確認済み(2026-10-07)
