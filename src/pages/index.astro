@@ -11,6 +11,7 @@ import {
   departmentFinder,
   commerceCategories,
   upcomingCategories,
+  urgentGuides,
 } from "../data/site-nav";
 
 const categories = getPublishedCategories();
@@ -123,7 +124,11 @@ const allGuides = categories.flatMap((c) => c.guides ?? []);
             />
           ))
         }
-        {upcomingCategories.slice(0, 5).map((name) => <CategoryCard name={name} />)}
+        {
+          upcomingCategories
+            .slice(0, 5)
+            .map((u) => <CategoryCard name={u.name} href={u.href} ctaLabel={u.href ? "読む →" : undefined} />)
+        }
       </div>
       <p class="see-all">
         <a href="/categories/">すべてのカテゴリーを見る →</a>
@@ -153,6 +158,25 @@ const allGuides = categories.flatMap((c) => c.guides ?? []);
       </section>
     )
   }
+
+  <section class="section" id="urgent-guides">
+    <div class="container">
+      <div class="section-head">
+        <span class="eyebrow">URGENT GUIDE</span>
+        <h2>即納が必要な時のガイド</h2>
+      </div>
+      <div class="urgent-guide-grid">
+        {
+          urgentGuides.map((guide) => (
+            <a href={guide.href} class="urgent-guide-card">
+              <h3>{guide.title}</h3>
+              <p>{guide.description}</p>
+            </a>
+          ))
+        }
+      </div>
+    </div>
+  </section>
 
   <section class="section section-soft" id="guides">
     <div class="container">
@@ -269,6 +293,38 @@ const allGuides = categories.flatMap((c) => c.guides ?? []);
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
     gap: 1.1rem;
+  }
+
+  .urgent-guide-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: 1.1rem;
+  }
+  .urgent-guide-card {
+    display: block;
+    padding: 1.25rem;
+    background: var(--color-bg);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    text-decoration: none;
+    transition: all 0.2s ease;
+  }
+  .urgent-guide-card:hover {
+    border-color: var(--color-accent);
+    box-shadow: var(--shadow-sm);
+    transform: translateY(-2px);
+  }
+  .urgent-guide-card h3 {
+    margin: 0 0 0.5rem;
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--color-text);
+  }
+  .urgent-guide-card p {
+    margin: 0;
+    font-size: 0.9rem;
+    color: var(--color-text-muted);
+    line-height: 1.5;
   }
 
   .guide-grid {

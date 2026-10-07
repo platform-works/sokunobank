@@ -1,0 +1,338 @@
+---
+// 「何を買うか決める」ステップ選択(2026-09-30導入)。用途 → タイプ → 容量/出力 → 商品一覧。
+// 商品名から容量(Wh)・定格出力(W)・タイプを確認できた商品だけを絞り込み、確認できない商品は
+// 推測で分類しない(詳細は src/lib/commerce/generatorClient.ts / extractSpecs.ts)。
+// 用途は商品の属性ではないため商品の絞り込みには使わず、用途別の注意表示と計測(use_case)にのみ使う。
+import { prefectures } from "../../../lib/commerce/prefectures";
+import { useCases } from "../../../lib/commerce/generatorContent";
+import { capacityBands, powerBands, typeLabels } from "../../../lib/commerce/generatorClient";
+
+const types = Object.entries(typeLabels) as [string, string][];
+const useCaseHints = Object.fromEntries(useCases.filter((u) => u.note).map((u) => [u.id, u.note]));
+---
+
+<section class="step-selector" id="step" aria-labelledby="step-heading">
+  <div class="step-head">
+    <h2 id="step-heading">用途と容量から、買う商品を絞り込む</h2>
+    <label class="step-area">
+      <span>お届け先</span>
+      <select data-role="area" aria-label="お届け先の都道府県">
+        <option value="">選択してください</option>
+        {prefectures.map((p) => <option value={p.code}>{p.name}</option>)}
+      </select>
+    </label>
+  </div>
+
+  <div class="step-row">
+    <p class="step-label"><span class="step-no">STEP1</span>用途を選ぶ</p>
+    <div class="step-options" role="group" aria-label="用途">
+      {
+        useCases.map((u) => (
+          <button type="button" class="step-option" aria-pressed="false" data-kind="usecase" data-value={u.id} data-label={u.label}>
+            {u.label}
+          </button>
+        ))
+      }
+    </div>
+    <p class="step-hint" data-role="usecase-hint" hidden></p>
+  </div>
+
+  <div class="step-row">
+    <p class="step-label"><span class="step-no">STEP2</span>種類を選ぶ</p>
+    <div class="step-options" role="group" aria-label="種類">
+      {
+        types.map(([value, label]) => (
+          <button type="button" class="step-option" aria-pressed="false" data-kind="type" data-value={value} data-label={label}>
+            {label}
+          </button>
+        ))
+      }
+    </div>
+  </div>
+
+  <div class="step-row">
+    <p class="step-label"><span class="step-no">STEP3</span>容量(Wh)・出力(W)を選ぶ</p>
+    <div class="step-options" role="group" aria-label="バッテリー容量">
+      <span class="step-group-label">容量</span>
+      {
+        capacityBands.map((b, i) => (
+          <button type="button" class="step-option" aria-pressed="false" data-kind="capacity" data-value={String(i)} data-label={b.label}>
+            {b.label}
+          </button>
+        ))
+      }
+    </div>
+    <div class="step-options" role="group" aria-label="定格出力">
+      <span class="step-group-label">出力</span>
+      {
+        powerBands.map((b, i) => (
+          <button type="button" class="step-option" aria-pressed="false" data-kind="power" data-value={String(i)} data-label={b.label}>
+            {b.label}
+          </button>
+        ))
+      }
+    </div>
+    <p class="step-note" data-role="capacity-note" hidden>発電機(エンジン式)には容量(Wh)の表記がないため、出力(W)で選びます。出力がkVA表記の商品は、W換算せず絞り込みの対象外です。</p>
+    <p class="step-note">用途は商品名の表記(防災・車中泊など)、容量・出力は商品名に明記された値だけで絞り込みます。「何Wh必要?」は<a href="#capacity">下の計算ツール</a>で目安を出せます。</p>
+  </div>
+
+  <div class="step-row step-go-row">
+    <p class="step-label"><span class="step-no">STEP4</span>最短配送の商品を見る</p>
+    <a class="btn btn-primary btn-lg step-go" href="#products" data-role="go">
+      条件に合う最短配送の商品を見る <span data-role="count"></span>
+    </a>
+  </div>
+</section>
+
+<script define:vars={{ useCaseHints }}>
+  window.__generatorUseCaseHints = useCaseHints;
+</script>
+
+<script>
+  import {
+    AREA_STORAGE_KEY,
+    SLUG,
+    capacityBands,
+    powerBands,
+    getSelection,
+    isEngineType,
+    setSelection,
+    trackFilterUse,
+  } from "../../../lib/commerce/generatorClient";
+
+  const root = document.getElementById("step");
+  if (root) {
+    const hints = (window as unknown as { __generatorUseCaseHints?: Record<string, string> }).__generatorUseCaseHints ?? {};
+    const buttons = Array.from(root.querySelectorAll<HTMLButtonElement>(".step-option"));
+    const capNoteEl = root.querySelector<HTMLElement>('[data-role="capacity-note"]');
+    const hintEl = root.querySelector<HTMLElement>('[data-role="usecase-hint"]');
+    const countEl = root.querySelector<HTMLElement>('[data-role="count"]');
+    const areaSelect = root.querySelector<HTMLSelectElement>('[data-role="area"]');
+    const goLink = root.querySelector<HTMLAnchorElement>('[data-role="go"]');
+
+    function render() {
+      const sel = getSelection();
+      for (const b of buttons) {
+        const kind = b.dataset.kind;
+        const value = b.dataset.value ?? "";
+        let pressed = false;
+        if (kind === "usecase") pressed = sel.useCase === value;
+        else if (kind === "type") pressed = sel.type === value;
+        else if (kind === "capacity") pressed = sel.capacity !== null && sel.capacity.label === capacityBands[Number(value)].label;
+        else if (kind === "power") pressed = sel.power !== null && sel.power.label === powerBands[Number(value)].label;
+        b.setAttribute("aria-pressed", String(pressed));
+        // エンジン式には容量(Wh)の表記がないため、容量ボタンは選べなくする(選ぶと必ず0件になるため)
+        if (kind === "capacity") b.disabled = isEngineType(sel.type);
+      }
+      if (capNoteEl) capNoteEl.hidden = !isEngineType(sel.type);
+      if (hintEl) {
+        const text = sel.useCase ? hints[sel.useCase] : undefined;
+        hintEl.hidden = !text;
+        hintEl.textContent = text ?? "";
+      }
+    }
+
+    root.addEventListener("click", (event) => {
+      const target = (event.target as HTMLElement).closest<HTMLButtonElement>(".step-option");
+      if (!target) return;
+      const kind = target.dataset.kind;
+      const value = target.dataset.value ?? "";
+      const label = target.dataset.label ?? "";
+      const pressed = target.getAttribute("aria-pressed") === "true";
+      if (kind === "usecase") {
+        setSelection({ useCase: pressed ? null : value });
+        trackFilterUse("use_case", pressed ? undefined : label);
+      } else if (kind === "type") {
+        setSelection({ type: pressed ? null : (value as "portable" | "gasoline" | "cassette") });
+        trackFilterUse("product_type", pressed ? undefined : label);
+      } else if (kind === "capacity") {
+        setSelection({ capacity: pressed ? null : capacityBands[Number(value)] });
+        trackFilterUse("capacity_band", pressed ? undefined : label);
+      } else if (kind === "power") {
+        setSelection({ power: pressed ? null : powerBands[Number(value)] });
+        trackFilterUse("power_band", pressed ? undefined : label);
+      }
+    });
+
+    // ページ内の他セクション(用途別カード等)から用途を設定するためのフック
+    document.addEventListener("click", (event) => {
+      const el = (event.target as HTMLElement).closest<HTMLElement>("[data-set-usecase]");
+      if (!el) return;
+      const id = el.dataset.setUsecase ?? "";
+      setSelection({ useCase: id });
+      trackFilterUse("use_case", el.dataset.label ?? id);
+    });
+
+    document.addEventListener("generator:selection-change", render);
+    render();
+
+    document.addEventListener("generator:result", (event) => {
+      const d = (event as CustomEvent).detail as { shown: number; filtering: boolean };
+      if (countEl) countEl.textContent = d.filtering ? `(該当${d.shown}件)` : "";
+    });
+
+    goLink?.addEventListener("click", () => {
+      const sel = getSelection();
+      const parts = [sel.type, sel.capacity?.label, sel.power?.label].filter(Boolean);
+      trackFilterUse("step_confirm", parts.length > 0 ? parts.join(" / ") : "条件なし");
+    });
+
+    // お届け先: 商品一覧の絞り込みパネルと同じlocalStorageキー・同じ操作で連動させる。
+    // パネルのselectに値を入れてchangeを発火し、「商品を探す」を押すのと同じ経路で再取得するため、
+    // 取得・計測(filter_use)の経路は増やさない(二重計測を避ける)。
+    if (areaSelect) {
+      try {
+        const saved = window.localStorage.getItem(AREA_STORAGE_KEY);
+        if (saved) areaSelect.value = saved;
+      } catch {
+        // localStorageが使えない環境でも致命的にしない
+      }
+      areaSelect.addEventListener("change", () => {
+        const panelArea = document.querySelector<HTMLSelectElement>(`#commerce-filter-${SLUG} [data-role="area"]`);
+        const panelSubmit = document.querySelector<HTMLButtonElement>(`#commerce-filter-${SLUG} [data-role="submit"]`);
+        if (panelArea && panelSubmit) {
+          panelArea.value = areaSelect.value;
+          panelArea.dispatchEvent(new Event("change"));
+          panelSubmit.click();
+        }
+      });
+      document.addEventListener("commerce:filter-change", (event) => {
+        const d = (event as CustomEvent).detail as { slug: string; params?: { area?: string } };
+        if (d.slug === SLUG && areaSelect.value !== (d.params?.area ?? "")) areaSelect.value = d.params?.area ?? "";
+      });
+    }
+  }
+</script>
+
+<style>
+  .step-selector {
+    margin: 1.5rem 0 2rem;
+    padding: 1.25rem 1.4rem;
+    background: var(--color-bg-soft);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-lg);
+  }
+  .step-head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    margin-bottom: 0.75rem;
+  }
+  .step-head h2 {
+    margin: 0;
+    font-size: 1.15rem;
+  }
+  .step-area {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--color-text-muted);
+  }
+  .step-area select {
+    height: 44px;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    padding: 0 0.7rem;
+    background: var(--color-bg);
+    font-size: 0.92rem;
+    color: var(--color-text);
+  }
+  .step-row {
+    padding: 0.7rem 0;
+    border-top: 1px solid var(--color-border);
+  }
+  .step-label {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    margin: 0 0 0.5rem;
+    font-size: 0.92rem;
+    font-weight: 700;
+  }
+  .step-no {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    height: 22px;
+    padding: 0 0.55rem;
+    border-radius: 999px;
+    background: var(--color-accent);
+    color: var(--color-accent-contrast);
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.03em;
+  }
+  .step-options {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 0.4rem;
+  }
+  .step-group-label {
+    font-size: 0.78rem;
+    font-weight: 700;
+    color: var(--color-text-muted);
+    min-width: 2.2rem;
+  }
+  .step-option {
+    min-height: 44px;
+    padding: 0 1rem;
+    border: 1px solid var(--color-border);
+    border-radius: 999px;
+    background: var(--color-bg);
+    color: var(--color-text);
+    font-size: 0.88rem;
+    font-weight: 600;
+    cursor: pointer;
+  }
+  .step-option:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+  }
+  .step-option:hover:not(:disabled) {
+    border-color: var(--color-accent);
+  }
+  .step-option[aria-pressed="true"] {
+    background: var(--color-accent);
+    border-color: var(--color-accent);
+    color: var(--color-accent-contrast);
+  }
+  .step-option:focus-visible,
+  .step-go:focus-visible {
+    outline: 2px solid var(--color-accent);
+    outline-offset: 2px;
+  }
+  .step-hint {
+    margin: 0.4rem 0 0;
+    padding: 0.6rem 0.9rem;
+    background: var(--color-warn-bg);
+    border: 1px solid var(--color-warn-border);
+    border-radius: var(--radius-md);
+    font-size: 0.84rem;
+  }
+  .step-note {
+    margin: 0.3rem 0 0;
+    font-size: 0.8rem;
+    color: var(--color-text-muted);
+  }
+  .step-go-row .step-go {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.4rem;
+    text-decoration: none;
+  }
+  @media (max-width: 720px) {
+    .step-selector {
+      padding: 1rem;
+    }
+    .step-go {
+      width: 100%;
+    }
+  }
+</style>

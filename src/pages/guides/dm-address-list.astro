@@ -1,0 +1,67 @@
+---
+import Layout from "../../layouts/Layout.astro";
+import Breadcrumbs from "../../components/Breadcrumbs.astro";
+
+const publishedDate = "2026-09-27";
+const articleJsonLd = {
+  "@context": "https://schema.org",
+  "@type": "Article",
+  headline: "宛名リストがない状態からDMを送るには",
+  description: "DM(ダイレクトメール)の宛名リストが手元にない場合の選択肢と、依頼時の注意点をまとめました。",
+  datePublished: publishedDate,
+  dateModified: publishedDate,
+  author: { "@type": "Organization", name: "SOKUNOBANK運営事務局" },
+  publisher: { "@type": "Organization", name: "SOKUNOBANK運営事務局" },
+};
+---
+
+<Layout
+  title="宛名リストがない状態からDMを送るには"
+  description="DM(ダイレクトメール)の宛名リストが手元にない場合の選択肢と、依頼時の注意点をまとめました。"
+>
+  <Breadcrumbs
+    items={[
+      { label: "ホーム", href: "/" },
+      { label: "DM(ダイレクトメール)発送代行", href: "/categories/dm/" },
+      { label: "宛名リストがない状態からDMを送るには" },
+    ]}
+  />
+
+  <div class="container section-tight prose">
+    <h1>宛名リストがない状態からDMを送るには</h1>
+
+    <p>
+      宛名リストが手元にない場合でも、DM発送代行サービスによっては業者側で
+      リストを用意する選択肢が用意されています。ただし、自社リストを使う場合に比べて
+      発送までの日数が長くなる点、費用が別途かかる点に注意が必要です。
+    </p>
+
+    <h2>業者側でリストを用意する主な方法</h2>
+    <ul>
+      <li>
+        <strong>企業リストの購入</strong>: 業者が保有する企業リストを購入する方式です。
+        (例)ラクスルは商品ページから企業リストを購入できます(レンタルではなく購入のみ)。
+      </li>
+      <li>
+        <strong>リスト作成代行</strong>: 条件を伝えてリストの作成自体を代行してもらう方式です。
+        (例)NEXLINKは「DMリストメーカー」というリスト作成代行サービスを提供しています(1件5円〜、既存リストの購入とは別のサービスです)。
+      </li>
+    </ul>
+    <p>
+      対応の有無・条件は業者によって異なります。本サイトのDM発送代行比較ページでは、
+      確認が取れていない項目は「要確認」として明示しています。
+    </p>
+
+    <h2>依頼前に確認しておきたいこと</h2>
+    <ul>
+      <li>リストの入手方法によって、通常のデータ持ち込みに比べて発送までの日数が長くなる傾向があります。</li>
+      <li>リストの取得・利用にあたっては、個人情報保護法など関連法令を遵守した提供元であるかを確認してください。</li>
+      <li>ターゲット層との合致度によって効果が変わるため、業者が保有するリストの属性(業種・地域等)が自社の目的に合っているか確認することをおすすめします。</li>
+    </ul>
+
+    <h2>業者ごとの対応状況を比較する</h2>
+    <p>企業リスト購入・リスト作成代行への対応状況は、DM発送代行サービスの比較ページで確認できます。</p>
+    <p><a href="/categories/dm/">DM発送代行サービスの比較はこちら →</a></p>
+  </div>
+</Layout>
+<script type="application/ld+json" set:html={JSON.stringify(articleJsonLd)} />

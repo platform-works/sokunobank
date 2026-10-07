@@ -1,0 +1,160 @@
+---
+import Layout from "../../layouts/Layout.astro";
+import Breadcrumbs from "../../components/Breadcrumbs.astro";
+import FaqSection from "../../components/FaqSection.astro";
+
+const title = "停電時にやることと今日中の準備｜生活・ビジネス継続";
+const description = "停電が起きたときの対応手順と、今日中に準備すべき対策。懐中電灯、ポータブル電源、冷蔵食品の保管、事業継続対策をまとめました。";
+
+const faqs = [
+  {
+    question: "停電が起きたらまず何をすればいいですか？",
+    answer: "1. ブレーカーのトリップを確認、2. 情報収集（ラジオ・スマートフォン）、3. 周囲の安全確認、4. 冷蔵庫・冷凍庫を開けない、5. 懐中電灯の用意。これが最初の5分の行動です。",
+  },
+  {
+    question: "停電中に冷蔵庫の中身は傷みますか？",
+    answer: "冷蔵庫は開けなければ24時間程度冷気が保持されます。冷凍庫なら48時間程度大丈夫です。停電中は絶対に開けないことが重要です。",
+  },
+  {
+    question: "仕事が停電で中断した場合、どうすればいいですか？",
+    answer: "1. クライアント・関係者へ連絡、2. ポータブル電源でスマートフォン・ノートパソコンを充電、3. オフィス以外での業務継続を検討。移動可能な仕事は他の場所で継続できます。",
+  },
+  {
+    question: "停電中にポータブル電源は何が動きますか？",
+    answer: "スマートフォン（50回以上）、ノートパソコン（10～15時間）、LED照明（30時間以上）、小型ラジオ（24時間以上）が動作します。冷蔵庫・エアコンは容量によります。",
+  },
+];
+---
+
+<Layout {title} {description}>
+  <Breadcrumbs items={[{ label: "ホーム", href: "/" }, { label: "ガイド", href: "/guides/" }, { label: title }]} />
+
+  <div class="container">
+    <article class="guide-article">
+      <h1>停電時にやることと今日中の準備｜生活・ビジネス継続</h1>
+
+      <p class="lead">
+        停電は予告なく発生することがあります。停電が起きたときの対応手順を事前に把握し、今日中に最低限の対策を講じておくことで、落ち着いた対応が可能になります。このガイドでは、停電発生時の対応フロー、生活継続に必要な物資、ビジネス継続対策をまとめます。
+      </p>
+
+      <section>
+        <h2>停電が起きたら｜最初の30分の対応フロー</h2>
+        <ol>
+          <li><strong>安全確認（1分）</strong>：火気を扱っていないか、ガスコンロの火を消す</li>
+          <li><strong>分電盤を確認（2分）</strong>：ブレーカーがトリップしていないか、全体が落ちているか確認</li>
+          <li><strong>周囲の安全確認（3分）</strong>：階段・廊下に障害物がないか、家族の位置を確認</li>
+          <li><strong>情報収集（5分）</strong>：スマートフォン・ラジオで停電範囲・復旧予定を確認</li>
+          <li><strong>懐中電灯・ランタン準備（3分）</strong>：懐中電灯を全室に配置。火災の危険があるためろうそくは使わない</li>
+          <li><strong>冷蔵庫の開閉制限を周知（2分）</strong>：家族全員に「停電中は冷蔵庫を開けない」と伝える</li>
+          <li><strong>ポータブル電源確認（5分）</strong>：発電機またはポータブル電源を起動、接続準備</li>
+        </ol>
+        <p>合計21分で基本的な対応が完了します。その後の対応は停電の規模・復旧予定に応じて判断します。</p>
+      </section>
+
+      <section>
+        <h2>停電中の生活継続｜冷蔵食品・衛生・情報</h2>
+        <ul>
+          <li><strong>冷蔵庫の管理</strong>：絶対に開けない。温度計で温度上昇を監視。24時間以上開けなければ腐敗のリスク低い</li>
+          <li><strong>食事の工夫</strong>：停電前の食事を済ませる。停電中は乾パン・缶詰・弁当など加熱不要な食べ物を用意</li>
+          <li><strong>飲料水</strong>：飲み水は停電とは無関係（給水管は重力給水）。調理用水も確保可能</li>
+          <li><strong>トイレ・排水</strong>：水道は流せる場合が多い。確認して同じように使用可能。下水が流れない場合のみバケツ対応</li>
+          <li><strong>情報入手</strong>：スマートフォンの充電を温存。ラジオで停電情報を確認。SNS・ニュースアプリで最新情報を定期確認</li>
+          <li><strong>衛生管理</strong>：ウェットティッシュ・アルコール消毒液で衛生管理。トイレ後の手洗いはドライシャンプーで対応</li>
+        </ul>
+      </section>
+
+      <section>
+        <h2>停電中のビジネス継続対策</h2>
+        <ul>
+          <li><strong>連絡体制</strong>：停電発生直後にクライアント・従業員・関係者へ連絡。メール＋電話で状況報告</li>
+          <li><strong>ポータブル電源で移動業務**：スマートフォン・ノートパソコンをポータブル電源で充電し、カフェ・図書館など他の場所での業務継続を検討</li>
+          <li><strong>オフィス以外の作業スペース**：ビジネス継続計画に基づいて、プリント資料での業務遂行、手書き対応など検討</li>
+          <li><strong>メール・クラウド対応</strong>：スマートフォンのテザリングでWifi接続。重要なクライアント業務から優先対応</li>
+          <li><strong>データバックアップ**：PCのデータをクラウド自動保存に依存。停電前にWifi接続状態の確認推奨</li>
+          <li><strong>復旧後の対応</strong>：通常業務再開前に、クライアント・従業員・関係者へ復旧報告。サーバー・システムの再起動確認</li>
+        </ul>
+      </section>
+
+      <section>
+        <h2>停電中にやってはいけないこと</h2>
+        <ul>
+          <li><strong>冷蔵庫を繰り返し開ける</strong>：温度がどんどん上がり、腐敗が進む</li>
+          <li><strong>ろうそく・懐中電灯以外の火を使う</strong>：火災のリスク。懐中電灯・LEDランタン推奨</li>
+          <li><strong>エレベーターに乗る</strong>：停止した場合、閉じ込められる危険</li>
+          <li><strong>湯を沸かす、ガスを使う</strong>：ガス漏れのリスク。直火調理は不可</li>
+          <li><strong>スマートフォンを無駄に使う</strong>：充電がなくなると連絡手段を失う。情報確認に絞る</li>
+          <li><strong>無理に外出</strong>：街灯がない夜間外出は危険。日中の短時間移動に限定</li>
+        </ul>
+      </section>
+
+      <section>
+        <h2>今日中に準備すべき停電対策グッズ</h2>
+        <ul>
+          <li><strong>懐中電灯・ランタン</strong>：LED式で電池が長持ち。複数個（リビング・寝室・玄関）用意</li>
+          <li><strong>乾電池</strong>：単3・単2・単1を各20本以上。ラジオ・懐中電灯用</li>
+          <li><strong>ポータブル電源</strong>：3000Wh程度があれば、スマートフォン・ノートパソコン・冷蔵庫の一部が動作</li>
+          <li><strong>発電機</strong>：長時間停電対応。ガソリン式で燃料を備蓄。ただし屋外専用</li>
+          <li><strong>飲料水・乾パン・缶詰**：3日分の備蓄。保存期限を確認して定期交換</li>
+          <li><strong>ラジオ・手回しライト</strong>：電池不要で情報入手可能。災害時の必須アイテム</li>
+        </ul>
+      </section>
+
+      <section>
+        <h2>停電復旧後の確認事項</h2>
+        <ul>
+          <li><strong>電気器具の状態確認</strong>：冷蔵庫・エアコン・電子レンジが正常に動作するか確認</li>
+          <li><strong>デジタル時計・アラームの再設定</strong>：停電で時刻がリセットされている場合がある</li>
+          <li><strong>PCサーバーの再起動確認</strong>：オフィスのサーバー・システムが正常に起動したか確認</li>
+          <li><strong>医療機器の確認</strong>：人工呼吸器など命に関わる機器が正常か確認</li>
+          <li><strong>食材の廃棄判定</strong>：12時間以上停電した冷凍品は廃棄推奨</li>
+          <li><strong>クライアント・従業員への復旧報告</strong>：通常業務再開を全方面へ連絡</li>
+        </ul>
+      </section>
+
+      <section>
+        <h2>停電時の生活・ビジネス継続グッズを準備する</h2>
+        <p>
+          以下のリンクから、ポータブル電源・懐中電灯・乾電池を翌日配送で手配できます。停電対策を今日中に整備しましょう。
+        </p>
+        <p style="text-align: center; margin: 2rem 0;">
+          <a href="/categories/generator/" class="btn btn-primary" style="display: inline-block;">
+            即納対応のポータブル電源を比較する
+          </a>
+        </p>
+      </section>
+
+      <section>
+        <h2>停電時の対応のよくある質問</h2>
+      </section>
+    </article>
+
+    <FaqSection items={faqs} />
+  </div>
+</Layout>
+
+<style is:global>
+  .guide-article {
+    max-width: 800px;
+    margin: 2rem auto;
+  }
+  .guide-article h2 {
+    margin-top: 2rem;
+    margin-bottom: 1rem;
+  }
+  .guide-article p {
+    line-height: 1.8;
+    margin-bottom: 1rem;
+  }
+  .guide-article ul, .guide-article ol {
+    margin-left: 1.5rem;
+    margin-bottom: 1.5rem;
+  }
+  .guide-article li {
+    margin-bottom: 0.75rem;
+  }
+  .lead {
+    font-size: 1.1rem;
+    color: var(--color-text-muted);
+    margin-bottom: 2rem;
+  }
+</style>

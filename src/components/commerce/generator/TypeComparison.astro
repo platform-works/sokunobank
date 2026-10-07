@@ -1,0 +1,145 @@
+---
+// 「発電機とポータブル電源の違い」比較表(2026-09-30導入。旧ComparisonSection.astroを置き換え)。
+// 屋内利用・排気は公的機関(NITE・消費者庁)の情報で確認できた事実。それ以外の項目は
+// 製品ごとに大きく異なるため、優劣を示す記号(◎○△)は使わず、表記の仕方と確認すべき点を示す。
+import { CONTENT_UPDATED_LABEL } from "../../../lib/commerce/generatorContent";
+
+const rows = [
+  {
+    label: "屋内での使用",
+    portable: "排気を出さない構造。使用条件は製品の取扱説明書に従う",
+    gasoline: "不可。屋内では絶対に使用しない(NITE・消費者庁)",
+    cassette: "不可。エンジン式の発電機として屋内では使用しない",
+  },
+  {
+    label: "排気(一酸化炭素)",
+    portable: "出ない(バッテリー式)",
+    gasoline: "排ガスに一酸化炭素を含む",
+    cassette: "排ガスに一酸化炭素を含む(エンジン式)",
+  },
+  {
+    label: "騒音",
+    portable: "製品による(ファン等の作動音)",
+    gasoline: "エンジンの運転音がある(大きさは製品による)",
+    cassette: "エンジンの運転音がある(大きさは製品による)",
+  },
+  {
+    label: "容量の表記",
+    portable: "バッテリー容量 Wh",
+    gasoline: "燃料タンク容量・連続運転時間(製品ごとの表記)",
+    cassette: "ボンベ1本あたりの運転時間(製品ごとの表記)",
+  },
+  {
+    label: "定格出力の表記",
+    portable: "W(製品による)",
+    gasoline: "W または kVA",
+    cassette: "W または VA",
+  },
+  {
+    label: "連続運転",
+    portable: "蓄えた電力量(Wh)と使う電力で決まる",
+    gasoline: "燃料がある限り運転できる。給油はエンジンを停止して行う",
+    cassette: "ボンベを交換して運転を続ける(製品による)",
+  },
+  {
+    label: "燃料・充電",
+    portable: "コンセント等で充電(製品によりソーラー・車載充電にも対応)",
+    gasoline: "ガソリン(金属製の携行缶で扱う)",
+    cassette: "カセットボンベ",
+  },
+  {
+    label: "重量",
+    portable: "製品による。容量が大きいほど重くなる",
+    gasoline: "製品による(製品ページの本体質量を確認)",
+    cassette: "製品による(製品ページの本体質量を確認)",
+  },
+  {
+    label: "防災での使いやすさ",
+    portable: "屋内で使える点が扱いやすい。事前の充電が必要",
+    gasoline: "屋外の設置場所と燃料の備えが必要",
+    cassette: "屋外の設置場所とボンベの備えが必要",
+  },
+  {
+    label: "工事・業務での使用",
+    portable: "必要な出力(W)と容量(Wh)を確認して選ぶ",
+    gasoline: "高出力の機種がある(出力は製品による)",
+    cassette: "出力は製品による(製品ページで確認)",
+  },
+  {
+    label: "持ち運び",
+    portable: "製品による(容量で大きさ・重さが大きく異なる)",
+    gasoline: "製品による(燃料を別に運ぶ必要がある)",
+    cassette: "製品による(ボンベを別に用意する)",
+  },
+  {
+    label: "価格帯",
+    portable: "製品による(下の商品一覧で実際の価格を確認)",
+    gasoline: "製品による(下の商品一覧で実際の価格を確認)",
+    cassette: "製品による(下の商品一覧で実際の価格を確認)",
+  },
+];
+---
+
+<section class="type-section" id="difference">
+  <div class="type-heading">
+    <h2>発電機とポータブル電源の違い</h2>
+    <p>
+      使う場所と、必要な出力・使う時間で選び方が変わります。屋内で使えるのは排気を出さないバッテリー式のポータブル電源で、エンジン式の発電機は屋外で使用します。
+    </p>
+  </div>
+  <div class="type-table-wrap">
+    <table class="type-table responsive-table">
+      <thead>
+        <tr>
+          <th scope="col">項目</th>
+          <th scope="col">ポータブル電源</th>
+          <th scope="col">ガソリン発電機</th>
+          <th scope="col">カセットガス発電機</th>
+        </tr>
+      </thead>
+      <tbody>
+        {
+          rows.map((r) => (
+            <tr>
+              <th scope="row">{r.label}</th>
+              <td data-label="ポータブル電源">{r.portable}</td>
+              <td data-label="ガソリン発電機">{r.gasoline}</td>
+              <td data-label="カセットガス発電機">{r.cassette}</td>
+            </tr>
+          ))
+        }
+      </tbody>
+    </table>
+  </div>
+  <p class="type-note">
+    屋内使用・排気の項目は、NITE(製品評価技術基盤機構)と消費者庁の注意喚起で確認した内容です。詳しくは<a href="#safety">安全情報</a>をご覧ください。その他の項目は製品によって異なります。最終更新: {CONTENT_UPDATED_LABEL}
+  </p>
+</section>
+
+<style>
+  .type-section {
+    margin: 2rem 0;
+  }
+  .type-heading h2 {
+    margin: 0 0 0.3rem;
+  }
+  .type-heading p {
+    margin: 0 0 1rem;
+    color: var(--color-text-muted);
+    font-size: 0.88rem;
+  }
+  .type-table-wrap {
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+  }
+  .type-table {
+    margin: 0;
+    font-size: 0.86rem;
+  }
+  .type-note {
+    margin: 0.6rem 0 0;
+    font-size: 0.8rem;
+    color: var(--color-text-muted);
+  }
+</style>

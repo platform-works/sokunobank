@@ -1,0 +1,159 @@
+---
+import Layout from "../../layouts/Layout.astro";
+import Breadcrumbs from "../../components/Breadcrumbs.astro";
+import FaqSection from "../../components/FaqSection.astro";
+
+const title = "防災セットを今日中に用意する｜懐中電灯・乾電池・必需品";
+const description = "災害時に必要な防災セット・懐中電灯・乾電池を今日中に手配する方法。配送地域別の翌日配達対応商品をまとめました。";
+
+const faqs = [
+  {
+    question: "防災セットを今日発注・明日配達できますか？",
+    answer: "はい。懐中電灯・乾電池・防災キットの多くは当日発注で翌日配達が可能です。ただしお届け先エリアにより異なるため、商品ページで配送日をご確認ください。",
+  },
+  {
+    question: "最低限必要な防災グッズは何ですか？",
+    answer: "懐中電灯、乾電池、飲料水、乾パン、応急手当キット、ラジオが最低限です。さらに医薬品、食料、衣類、毛布があるとより安心です。",
+  },
+  {
+    question: "防災セットと個別購入はどちらが得ですか？",
+    answer: "防災セットは一度に揃えられるメリットがあり、個別購入より割安な場合が多いです。ただし、用途に合わせて不要な商品が含まれることもあるため、家族構成や保管場所に応じて選んでください。",
+  },
+  {
+    question: "人数別に必要な防災セットのサイズはありますか？",
+    answer: "はい。1～2人向け・3～4人向け・5人以上向けなど複数サイズがあります。1人あたり3日分の水・食料が目安です。",
+  },
+];
+---
+
+<Layout {title} {description}>
+  <Breadcrumbs items={[{ label: "ホーム", href: "/" }, { label: "ガイド", href: "/guides/" }, { label: title }]} />
+
+  <div class="container">
+    <article class="guide-article">
+      <h1>防災セットを今日中に用意する｜懐中電灯・乾電池・必需品</h1>
+
+      <p class="lead">
+        地震・台風・大雪などの災害は予測が難しく、直前の準備が重要です。防災セットや懐中電灯・乾電池は当日発注で翌日配達が可能なため、「今日中に用意したい」という急ぎのニーズに対応できます。このガイドでは、今日中に手配できる防災グッズ、人数別セット選び、配送地域別の納期をまとめます。
+      </p>
+
+      <section>
+        <h2>防災セットを今日中に用意する｜最短の手順</h2>
+        <ol>
+          <li><strong>家族人数・必需品を確認</strong>（5分）：1～5人以上のどのサイズが必要か判断</li>
+          <li><strong>配送可能地域を確認</strong>（5分）：商品ページで配送条件を確認</li>
+          <li><strong>防災セットを選定</strong>（10分）：人数・内容・ブランドから選択</li>
+          <li><strong>配送日を確認</strong>（5分）：翌日配送対応を確認</li>
+          <li><strong>注文確定</strong>（5分）：配送予定日を確認して注文</li>
+        </ol>
+        <p>合計30分程度で完了します。14時までの注文が翌日配達の目安なので、午前中に手配するのがお勧めです。</p>
+      </section>
+
+      <section>
+        <h2>防災セット選びの基準｜人数別と内容確認</h2>
+        <p>防災セットを選ぶ際の最重要ポイントは、家族人数と避難期間に応じた容量の選択です。</p>
+        <ul>
+          <li><strong>1～2人向け</strong>：懐中電灯・乾電池・飲料水・乾パン・応急手当キット・ラジオ。価格帯3千～8千円。保管しやすい</li>
+          <li><strong>3～4人向け</strong>：上記に加えて医薬品・毛布・ヘルメット。価格帯8千～2万円。リビング・寝室に配置</li>
+          <li><strong>5人以上向け</strong>：さらに食料・衣類・トイレセット追加。価格帯2万～4万円。玄関に大型保管</li>
+        </ul>
+        <p>
+          防災セットの中身を確認し、既に持っているグッズとの重複を避けることも大切です。懐中電灯・乾電池が複数個含まれるものが推奨です。
+        </p>
+      </section>
+
+      <section>
+        <h2>防災セットに含まれる主要アイテム</h2>
+        <ul>
+          <li><strong>懐中電灯</strong>：LED式が電池長持ち。予備電池も含まれるか確認</li>
+          <li><strong>乾電池</strong>：単3・単2・単1混在で購入。最低20本</li>
+          <li><strong>飲料水</strong>：1人あたり3日分（1日1リットル）が目安</li>
+          <li><strong>乾パン・缶詰</strong>：3日分の食料。保存期限を確認</li>
+          <li><strong>応急手当キット</strong>：絆創膏・包帯・消毒薬等が必須</li>
+          <li><strong>ラジオ</strong>：情報収集・懐中電灯機能付きが便利</li>
+          <li><strong>毛布・寝袋</strong>：寒冷対策用。セットに含まれない場合は別途購入</li>
+          <li><strong>トイレセット</strong>：簡易トイレ・ゴミ袋。3～4人向けセット以上に付属</li>
+        </ul>
+      </section>
+
+      <section>
+        <h2>防災セットの保管場所と管理</h2>
+        <ul>
+          <li><strong>玄関近く</strong>：避難時に素早く持ち出せる場所</li>
+          <li><strong>リビング</strong>：普段の生活空間に配置して存在を忘れない</li>
+          <li><strong>寝室</strong>：夜間の地震に対応するため、枕の側近くに小型セットを配置</li>
+          <li><strong>定期確認</strong>：3ヶ月に1回、懐中電灯・ラジオが動作するか確認。乾電池は1年に1回交換推奨</li>
+          <li><strong>保存期限チェック</strong>：乾パン・飲料水は5年が目安。期限前に消費して新しいものに交換</li>
+        </ul>
+      </section>
+
+      <section>
+        <h2>配送地域別｜翌日配送対応エリア</h2>
+        <ul>
+          <li><strong>関東（東京・神奈川・埼玉・千葉）</strong>：ほぼ全店対応、午前配達可能</li>
+          <li><strong>関西（大阪・京都・兵庫）</strong>：全店対応、翌日配送可能</li>
+          <li><strong>中部（名古屋・愛知）</strong>：全店対応、翌日配送可能</li>
+          <li><strong>その他都道府県</strong>：配送可能だが翌日配送は地域により異なる。事前確認推奨</li>
+          <li><strong>離島・山間地</strong>：配送対象外またはプラス1～2日かかる傾向</li>
+        </ul>
+      </section>
+
+      <section>
+        <h2>防災セットと同時に購入すべき追加アイテム</h2>
+        <ul>
+          <li><strong>保温アルミシート</strong>：体温保持用。セットに含まれない場合は必須</li>
+          <li><strong>医療用手袋</strong>：ケガ対応時の衛生管理</li>
+          <li><strong>マスク</strong>：粉塵・ウイルス対策</li>
+          <li><strong>ウェットティッシュ</strong>：衛生管理・清掃用</li>
+          <li><strong>ゴム手袋・ゴミ袋</strong>：清掃・衛生用</li>
+          <li><strong>予備用スマートフォン充電器</strong>：モバイルバッテリーがお勧め</li>
+        </ul>
+      </section>
+
+      <section>
+        <h2>今日中に手配できる防災セット・防災グッズを探す</h2>
+        <p>
+          以下のリンクから、翌日配送対応の防災セット・懐中電灯・乾電池が確認できます。今日14時までの注文で明日配達が可能な商品をご覧ください。
+        </p>
+        <p style="text-align: center; margin: 2rem 0;">
+          <a href="/categories/" class="btn btn-primary" style="display: inline-block;">
+            即納対応の防災グッズを探す
+          </a>
+        </p>
+      </section>
+
+      <section>
+        <h2>防災セット選びのよくある質問</h2>
+      </section>
+    </article>
+
+    <FaqSection items={faqs} />
+  </div>
+</Layout>
+
+<style is:global>
+  .guide-article {
+    max-width: 800px;
+    margin: 2rem auto;
+  }
+  .guide-article h2 {
+    margin-top: 2rem;
+    margin-bottom: 1rem;
+  }
+  .guide-article p {
+    line-height: 1.8;
+    margin-bottom: 1rem;
+  }
+  .guide-article ul, .guide-article ol {
+    margin-left: 1.5rem;
+    margin-bottom: 1.5rem;
+  }
+  .guide-article li {
+    margin-bottom: 0.75rem;
+  }
+  .lead {
+    font-size: 1.1rem;
+    color: var(--color-text-muted);
+    margin-bottom: 2rem;
+  }
+</style>

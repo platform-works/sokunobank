@@ -64,9 +64,9 @@ function speedKey(category: (typeof categories)[number]) {
       }
 
       {
-        upcomingCategories.map((name) => (
-          <div class="category-grid-item" data-name={name}>
-            <CategoryCard name={name} />
+        upcomingCategories.map((u) => (
+          <div class="category-grid-item" data-name={u.name}>
+            <CategoryCard name={u.name} href={u.href} ctaLabel={u.href ? "読む →" : undefined} />
           </div>
         ))
       }

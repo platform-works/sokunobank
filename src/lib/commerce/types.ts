@@ -21,6 +21,12 @@ export interface RankableProduct {
   affiliateRate: number;
   /** 0=当日, 1=翌日, 2=翌々日, null=不明(APIから配送日情報が得られなかった) */
   deliveryDay: number | null;
+  /**
+   * Yahoo!ショッピングAPIのbrand.nameをそのまま保持(2026-09-27、GA4のoutbound_product_click
+   * イベント用に追加)。取得できない商品もあるためnull許容。検索・フィルタ・ランキングには使わない
+   * (商品選定ロジックには一切影響しない、表示用の付随データ)。
+   */
+  brand: string | null;
 }
 
 export interface ScoredProduct extends RankableProduct {
@@ -49,7 +55,7 @@ export interface RankingWeights {
   revenue: number;
 }
 
-export type SortKey = "recommended" | "trust" | "reviewCount" | "priceAsc";
+export type SortKey = "recommended" | "trust" | "reviewCount" | "priceAsc" | "deliveryAsc";
 
 export interface SortOption {
   key: SortKey;
@@ -70,6 +76,23 @@ export interface CommerceAdConfig {
   pcBannerHtml?: string;
   /** スマートフォン専用のオーバーレイバナー等(ページ末尾・Footer直前に配置) */
   mobileOverlayHtml?: string;
+}
+
+/**
+ * 説明文つきの広告セクション(2026-10-03導入、プリンター・複合機が最初の利用者)。
+ * バナー等の広告タグ(bannerHtml)は規約上の改変禁止のため、必ず元のタグを一切変更せず文字列として
+ * そのまま持たせ、描画側は set:html でそのまま出力する。広告であることが分かる「PR」表記と
+ * 注記(caption)を必ず表示する。active が false の間は何も出力しない(案件停止時・規約未確認時用)。
+ */
+export interface CommerceSponsoredSection {
+  active: boolean;
+  heading: string;
+  body: string[];
+  checklistHeading?: string;
+  checklist?: string[];
+  /** 広告の直前に表示する注記(広告であること・条件は提供元サイトで確認すること) */
+  caption: string;
+  bannerHtml: string;
 }
 
 /** カテゴリー(projector, 胡蝶蘭...)ごとに1ファイルで定義する設定 */
@@ -113,18 +136,49 @@ export interface CommerceCategoryConfig {
    * 低報酬の商品を足切りする用途(2026-09-26導入、ユーザー指示)。未設定なら足切りしない。
    */
   minEstimatedCommission?: number;
+  /**
+   * 任意(2026-09-30導入、発電機カテゴリーが最初の利用者)。Yahoo APIから集める候補の目標件数。
+   * 未設定なら共通の既定値(100件)。増やすとAPI呼び出し回数(レート制限:1分30回)が増えるため、
+   * 絞り込みUIで母数が必要なカテゴリーだけが設定する。
+   */
+  candidatesTargetCount?: number;
+  /** 任意。1回の応答で返す商品の最大件数。未設定なら既定値(50件) */
+  maxDisplayCount?: number;
   seoSections: { heading: string; body: string[] }[];
   faq: CommerceFaqItem[];
   /** 任意。ValueCommerce等の広告タグ(PC/スマホ)。無ければ何も表示しない */
   ads?: CommerceAdConfig;
+  /** 任意。説明文つきの広告セクション。商品一覧の下に表示される。無ければ何も表示しない */
+  sponsoredSection?: CommerceSponsoredSection;
   /**
-   * 任意。ValueCommerce MyLinkBoxを使った「ピックアップブランド」セクション(2026-09-27 PoC導入)。
-   * 設定したカテゴリーのみ、絞り込みUIの直前に表示される。無ければ何も表示しない。
-   * myLinkBoxHtmlはValueCommerce管理画面で発行された形式のまま、一切改変せず保持すること。
+   * 任意。「即納人気ブランドから探す」セクション(2026-09-27、ValueCommerce MyLinkBoxの
+   * PoCから自前実装に置き換え)。設定したカテゴリーのみ、絞り込みUIの直前に表示される。
+   * 無ければ何も表示しない。複数ブランドを配列で持たせ、カード形式で横展開できるようにしている。
    */
-  pickupBrand?: {
-    brandNameEn: string;
-    brandNameJa: string;
-    myLinkBoxHtml: string;
-  };
+  popularBrands?: PopularBrand[];
+}
+
+/** 「即納人気ブランドから探す」セクションの1ブランド分のデータ */
+export interface PopularBrand {
+  /** 内部識別用の英語スラッグ的な名称(例: "Ergohuman") */
+  brand: string;
+  /** 表示用ブランド名(例: "エルゴヒューマン / Ergohuman") */
+  displayName: string;
+  /** ブランドの事実に基づく概要(1〜2文)。根拠のない誇張表現は使わない */
+  description: string;
+  /** 成り立ち・沿革(事実確認できる内容のみ)。スマホでは<details>で折りたたむ */
+  history: string;
+  /** 特徴(事実ベースの箇条書き) */
+  features: string[];
+  /** 人気のタイプ・代表モデル名 */
+  popularTypes: string[];
+  /** Yahoo!ショッピングの実商品データから取得した画像(自社ホスティングせず外部URLをそのまま参照) */
+  image: { src: string; alt: string };
+  /**
+   * Yahoo!ショッピングの検索結果ページURL(カテゴリ:オフィスチェア相当のgenreCategoryId + ブランド名
+   * キーワード + 優良配送:すべて[astk=2])。実際にブラウザで検索・フィルタ操作を行いURLを
+   * 確認した上で組み立てること(推測で組み立てない)。LinkSwitchが自動でアフィリエイトリンクに
+   * 変換するため、ここには常にYahoo!ショッピングの通常URLを入れる。
+   */
+  yahooSearchUrl: string;
 }

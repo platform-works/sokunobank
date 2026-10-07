@@ -1,0 +1,174 @@
+---
+import Layout from "../../layouts/Layout.astro";
+import Breadcrumbs from "../../components/Breadcrumbs.astro";
+import FaqSection from "../../components/FaqSection.astro";
+
+const title = "ポータブル電源を今日中に手配する｜容量選び・翌日配送";
+const description = "ポータブル電源が今日中に必要な場合の選び方。容量（Wh）の見積もり、配送地域別の納期、ブランド別の特徴をまとめました。";
+
+const faqs = [
+  {
+    question: "ポータブル電源を今日発注・明日配達できますか？",
+    answer: "はい。SOKUNOBANK掲載のポータブル電源は翌日配送対応が多く、配送エリア内なら今日14時までの注文で明日配達が可能です。ただしお届け先の地域により配送日が異なるため、商品ページで配送日をご確認ください。",
+  },
+  {
+    question: "何Whのポータブル電源を選べばいいですか？",
+    answer: "使用時間により異なります。一般的な目安は、スマートフォン充電なら1000Wh、家庭用冷蔵庫・照明を複数台なら3000Wh、エアコンを含む複数家電なら5000Wh以上が目安です。SOKUNOBANK の『何W必要？』セクションで、動かしたい機器から必要容量が確認できます。",
+  },
+  {
+    question: "ポータブル電源と発電機はどちらを選びますか？",
+    answer: "ポータブル電源は屋内でも使え、騒音がなく、一酸化炭素の危険がありません。発電機より容量に限界がありますが、停電対策・キャンプ・イベント向けなら最適です。長時間の連続使用が必要な場合は発電機を検討ください。",
+  },
+  {
+    question: "充電にかかる時間はどのくらいですか？",
+    answer: "AC100V充電で、小型（1000Wh）なら6～8時間、中型（3000Wh）なら12～16時間、大型（5000Wh）なら18～24時間が目安です。到着後、すぐに使用できるよう早めに充電を開始することをお勧めします。",
+  },
+];
+---
+
+<Layout {title} {description}>
+  <Breadcrumbs items={[{ label: "ホーム", href: "/" }, { label: "ガイド", href: "/guides/" }, { label: title }]} />
+
+  <div class="container">
+    <article class="guide-article">
+      <h1>ポータブル電源を今日中に手配する｜容量選び・翌日配送</h1>
+
+      <p class="lead">
+        停電・防災・キャンプ・イベント時に電源が必要な場合、ポータブル電源は「今日14時までに注文→明日配達」が実現可能です。発電機と異なり屋内でも安全に使用でき、騒音がないため、防災対策として最優先で用意すべきアイテムです。このガイドでは、ポータブル電源選びの失敗しないポイント、容量（Wh）の見積もり方、配送地域別の納期をまとめます。
+      </p>
+
+      <section>
+        <h2>ポータブル電源を今日中に手配する｜最短の流れ</h2>
+        <ol>
+          <li><strong>必要な容量（Wh）を確認</strong>（5分）：使用時間と同時に動かす機器から容量を算出</li>
+          <li><strong>配送可能地域を確認</strong>（5分）：商品ページで配送条件を確認</li>
+          <li><strong>商品を選定</strong>（10分）：翻日配送対応・予算・ブランドから選択</li>
+          <li><strong>カスタマーサポートに納期確認</strong>（10分）：「○月○日に必要」と連絡</li>
+          <li><strong>注文確定</strong>（5分）：配送予定日を確認して注文</li>
+        </ol>
+        <p>
+          合計35分程度で完了します。14時までの注文が翌日配達の目安なので、午前中に手配するのがお勧めです。
+        </p>
+      </section>
+
+      <section>
+        <h2>ポータブル電源選びの鍵｜容量（Wh）の見積もり</h2>
+        <p>
+          ポータブル電源を選ぶ際、最も重要なのは<strong>「必要な容量（Wh）を把握すること」</strong>です。
+        </p>
+        <p>
+          各機器の消費電力と稼働時間から必要容量を計算します。
+        </p>
+        <ul>
+          <li><strong>スマートフォン充電</strong>：20Wh消費、1000Wh あれば50回充電可能</li>
+          <li><strong>ノートパソコン充電</strong>：50Wh消費、3000Wh あれば60回充電可能</li>
+          <li><strong>冷蔵庫</strong>：500W × 24時間 = 12000Wh（1日分）</li>
+          <li><strong>照明（LED）</strong>：20W × 8時間 = 160Wh（1日分）</li>
+          <li><strong>テレビ</strong>：100W × 5時間 = 500Wh</li>
+        </ul>
+        <p>
+          複数の機器を同時に使う場合は、各消費電力を合算し、さらに<strong>1.5倍の安全係数</strong>を掛けた容量を選ぶのが推奨です。
+        </p>
+      </section>
+
+      <section>
+        <h2>容量別｜ポータブル電源の選び方ガイド</h2>
+        <ul>
+          <li><strong>小型（1000Wh以下）</strong>：スマートフォン・タブレット・ノートパソコン対応。重さ10kg以下。価格5万～10万円。短期キャンプ向け</li>
+          <li><strong>中型（1000～3000Wh）</strong>：スマートフォン・パソコン・小型家電対応。冷蔵庫は数時間。重さ30kg以下。価格10万～30万円。一般家庭の防災向け</li>
+          <li><strong>大型（3000～5000Wh）</strong>：家庭用家電複数台対応。冷蔵庫・エアコンも長時間可能。重さ30～50kg。価格30万～50万円。広い家・複数人向け</li>
+          <li><strong>超大型（5000Wh以上）</strong>：工事現場・施設向け。据置式。重さ50kg以上。価格50万円以上</li>
+        </ul>
+      </section>
+
+      <section>
+        <h2>ポータブル電源のメリット・デメリット</h2>
+        <p><strong>メリット</strong></p>
+        <ul>
+          <li>屋内・屋外どちらでも安全に使用可能</li>
+          <li>騒音ゼロ（発電機と異なり周囲に迷惑をかけない）</li>
+          <li>一酸化炭素の危険がない</li>
+          <li>充電さえしていれば繰り返し使用可能</li>
+          <li>持ち運び可能（小～中型）</li>
+        </ul>
+        <p><strong>デメリット</strong></p>
+        <ul>
+          <li>連続使用時間に限界がある（容量に依存）</li>
+          <li>充電に時間がかかる（6～24時間）</li>
+          <li>発電機より初期コストが高い傾向</li>
+          <li>劣化により容量が減少する（バッテリーの性質）</li>
+        </ul>
+      </section>
+
+      <section>
+        <h2>配送地域別｜翌日配送対応エリア</h2>
+        <ul>
+          <li><strong>関東（東京・神奈川・埼玉・千葉）</strong>：ほぼ全店対応、午前配達可能</li>
+          <li><strong>関西（大阪・京都・兵庫）</strong>：全店対応、翌日配送可能</li>
+          <li><strong>中部（名古屋・愛知）</strong>：全店対応、翌日配送可能</li>
+          <li><strong>その他都道府県</strong>：配送可能だが翌日配送は地域に左右される。事前確認推奨</li>
+          <li><strong>離島・山間地</strong>：配送対象外またはプラス1～2日かかる傾向</li>
+        </ul>
+        <p>
+          配送予定日が「目安」のため、「絶対に明日必要」な場合はカスタマーサポートに直接確認することをお勧めします。
+        </p>
+      </section>
+
+      <section>
+        <h2>到着後の重要な注意</h2>
+        <ul>
+          <li><strong>到着時は充電がゼロに近い</strong>：すぐに AC100V充電を開始してください</li>
+          <li><strong>充電時間は容量に依存</strong>：小型6～8時間、中型12～16時間、大型18～24時間</li>
+          <li><strong>初回充電は満充電まで</strong>：バッテリーの性能を最大限発揮するため</li>
+          <li><strong>使用前に取扱説明書を確認</strong>：接続可能な機器・容量を必ず確認</li>
+          <li><strong>定期的な放電・充電が寿命を延ばす</strong>：3ヶ月に1回程度は全容量を使い切る</li>
+        </ul>
+      </section>
+
+      <section>
+        <h2>今日中に手配できるポータブル電源を探す</h2>
+        <p>
+          以下のリンクから、翌日配送対応のポータブル電源が確認できます。今日14時までの注文で明日配達が可能な商品をご覧ください。
+        </p>
+        <p style="text-align: center; margin: 2rem 0;">
+          <a href="/categories/generator/" class="btn btn-primary" style="display: inline-block;">
+            即納対応のポータブル電源を比較する
+          </a>
+        </p>
+      </section>
+
+      <section>
+        <h2>ポータブル電源選びのよくある質問</h2>
+      </section>
+    </article>
+
+    <FaqSection items={faqs} />
+  </div>
+</Layout>
+
+<style is:global>
+  .guide-article {
+    max-width: 800px;
+    margin: 2rem auto;
+  }
+  .guide-article h2 {
+    margin-top: 2rem;
+    margin-bottom: 1rem;
+  }
+  .guide-article p {
+    line-height: 1.8;
+    margin-bottom: 1rem;
+  }
+  .guide-article ul, .guide-article ol {
+    margin-left: 1.5rem;
+    margin-bottom: 1.5rem;
+  }
+  .guide-article li {
+    margin-bottom: 0.75rem;
+  }
+  .lead {
+    font-size: 1.1rem;
+    color: var(--color-text-muted);
+    margin-bottom: 2rem;
+  }
+</style>

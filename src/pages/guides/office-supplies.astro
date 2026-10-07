@@ -1,0 +1,95 @@
+---
+import Layout from "../../layouts/Layout.astro";
+import Breadcrumbs from "../../components/Breadcrumbs.astro";
+import FaqSection from "../../components/FaqSection.astro";
+
+const amazonTag = "sokunobank-22";
+function amazonSearch(keyword: string) {
+  return `https://www.amazon.co.jp/s?k=${encodeURIComponent(keyword)}&tag=${amazonTag}`;
+}
+
+const publishedDate = "2026-09-27";
+const updatedDate = "2026-09-28";
+const articleJsonLd = {
+  "@context": "https://schema.org",
+  "@type": "Article",
+  headline: "総務用品を手配するときに確認すべきポイント",
+  description: "総務部門で扱う消耗品・備品を手配する際に確認しておきたい在庫管理・発注ルート・法人向け通販の使い方をまとめました。",
+  datePublished: publishedDate,
+  dateModified: updatedDate,
+  author: { "@type": "Organization", name: "SOKUNOBANK運営事務局" },
+  publisher: { "@type": "Organization", name: "SOKUNOBANK運営事務局" },
+};
+
+const faqItems = [
+  {
+    question: "総務用品はどこまでの範囲を指しますか?",
+    answer:
+      "コピー用紙・文房具などの事務用品のほか、清掃用品、什器・備品、来客用品(お茶・紙コップ等)、防災用品まで、オフィス運営に関わる幅広い消耗品・備品を指すのが一般的です。範囲が広いため、カテゴリーごとに発注ルートを決めておくと管理しやすくなります。",
+  },
+  {
+    question: "法人向けのオフィス用品通販とAmazon等の一般ECサイト、どちらを使うべきですか?",
+    answer:
+      "法人向けオフィス用品通販は、請求書払い・掛売り(月締め請求)・大量まとめ買いへの対応など、企業の購買業務に合わせた機能を持っていることが多いです。一方、単発の少量調達や急ぎの場合は、一般的なECサイトの方が手続きが簡単なこともあります。定期発注と単発調達で使い分けるのが現実的です。",
+  },
+  {
+    question: "在庫切れを防ぐにはどうすればよいですか?",
+    answer:
+      "消耗が早い品目(コピー用紙・トイレットペーパー等)は、一定の在庫数を下回ったら自動的に発注される定期便・定期購入の仕組みを使うと、発注忘れによる欠品を防ぎやすくなります。使用頻度が低い品目は、必要になった時点で都度調達する方が在庫の保管コストを抑えられます。",
+  },
+];
+---
+
+<Layout
+  title="総務用品を手配するときに確認すべきポイント"
+  description="総務部門で扱う消耗品・備品を手配する際に確認しておきたい在庫管理・発注ルート・法人向け通販の使い方をまとめました。"
+>
+  <Breadcrumbs items={[{ label: "ホーム", href: "/" }, { label: "カテゴリー一覧", href: "/categories/" }, { label: "総務用品" }]} />
+
+  <div class="container section-tight prose">
+    <h1>総務用品を手配するときに確認すべきポイント</h1>
+
+    <p>
+      「総務用品」は文房具・コピー用紙・清掃用品・什器・防災用品など対象範囲が広く、
+      急な欠品時の手配ルートをあらかじめ決めておくと対応がスムーズです。
+    </p>
+
+    <h2>確認しておきたいポイント</h2>
+    <ul>
+      <li><strong>在庫の可視化</strong>: 何がどれだけ手元にあるかを把握しておくと、急な欠品を防ぎやすくなります。</li>
+      <li>
+        <strong>発注ルートの複線化</strong>: 定期発注先(法人向けオフィス用品通販等)に加え、即日調達できる店舗・ECサイトも把握しておくと安心です。
+      </li>
+      <li>
+        <strong>まとめ買いと単品調達の使い分け</strong>: 消耗が早いものはまとめ買い・定期購入、単発の需要品(イベント用品等)はその都度調達が向いています。
+      </li>
+      <li>
+        <strong>支払い方法</strong>: 法人向け通販の多くは請求書払い(掛売り)に対応しており、都度のクレジットカード決済より経理処理をまとめやすい場合があります。
+      </li>
+    </ul>
+
+    <h2>法人向けオフィス用品通販の特徴</h2>
+    <p>
+      国内では「アスクル」に代表される法人向けオフィス用品通販サービスが広く使われています。
+      アスクルという名称自体、「明日来る」(注文の翌日に届く)という意味に由来するとされており、
+      コピー用紙・文房具・清掃用品から什器・防災用品まで幅広いカテゴリーを1つの窓口でまとめて発注できる点が特徴です。
+      配送スピード・取扱商品・価格は変動するため、発注前に必ず公式サイトで最新情報をご確認ください。
+    </p>
+
+    <h2>急ぎで手配したい場合</h2>
+    <p>
+      文房具・コピー用紙など一般的な消耗品であれば、法人向け通販に加えて、ECサイトでの当日〜翌日配送に対応した
+      商品を探すのも一つの方法です。以下はAmazonで探す際のリンクです(アソシエイトリンクを含みます)。
+    </p>
+    <p>
+      <a href={amazonSearch("オフィス 文房具 まとめ買い")} target="_blank" rel="sponsored noopener">
+        オフィス文房具をAmazonで探す →
+      </a>
+    </p>
+
+    <FaqSection items={faqItems} />
+
+    <p><a href="/categories/">カテゴリー一覧に戻る →</a></p>
+  </div>
+</Layout>
+<script type="application/ld+json" set:html={JSON.stringify(articleJsonLd)} />

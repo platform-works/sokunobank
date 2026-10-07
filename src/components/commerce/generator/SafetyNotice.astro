@@ -1,0 +1,117 @@
+---
+// 安全情報セクション(2026-09-28導入、2026-09-30に一次情報の出典付きへ改訂)。
+// ここに載せる各項目は、NITE・消費者庁・国民生活センター・本田技研工業(Honda)公式の各ページ本文で
+// 確認できた内容だけ(確認日 SOURCES_CONFIRMED_ON)。推測による安全情報は追加しない。
+import { safetyEngine, safetyPortable, safetySources, SOURCES_CONFIRMED_ON } from "../../../lib/commerce/generatorContent";
+---
+
+<section class="safety-section" id="safety">
+  <h2>安全情報</h2>
+
+  <div class="safety-box safety-strong">
+    <h3>エンジン式の発電機(ガソリン・カセットガス等)</h3>
+    <p class="safety-lead">
+      屋内・自動車内・テント内では使用しないでください。排ガスの一酸化炭素(CO)による中毒で、死亡事故も報告されています。
+    </p>
+    <ul>
+      {
+        safetyEngine.map((f) => (
+          <li>
+            {f.text}
+            <span class="safety-src">(出典:{f.source})</span>
+          </li>
+        ))
+      }
+    </ul>
+  </div>
+
+  <div class="safety-box">
+    <h3>ポータブル電源(リチウムイオン電池)</h3>
+    <ul>
+      {
+        safetyPortable.map((f) => (
+          <li>
+            {f.text}
+            <span class="safety-src">(出典:{f.source})</span>
+          </li>
+        ))
+      }
+    </ul>
+  </div>
+
+  <p class="safety-foot">
+    使用方法・保管方法・給油方法は、必ず製品ごとの取扱説明書の指示に従ってください。上記は各機関のページで確認できた内容の要約です(確認日 {SOURCES_CONFIRMED_ON})。
+  </p>
+  <details class="safety-sources">
+    <summary>参照した情報源</summary>
+    <ul>
+      {
+        safetySources.map((s) => (
+          <li>
+            {s.org}「<a href={s.url} target="_blank" rel="noopener">{s.title}</a>」
+          </li>
+        ))
+      }
+    </ul>
+  </details>
+</section>
+
+<style>
+  .safety-section {
+    margin: 2rem 0;
+  }
+  .safety-section h2 {
+    margin: 0 0 0.75rem;
+  }
+  .safety-box {
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-lg);
+    padding: 1rem 1.3rem;
+    margin-bottom: 0.9rem;
+    background: var(--color-bg);
+  }
+  .safety-strong {
+    background: var(--color-warn-bg);
+    border-color: var(--color-warn-border);
+  }
+  .safety-box h3 {
+    margin: 0 0 0.5rem;
+    font-size: 1rem;
+  }
+  .safety-lead {
+    margin: 0 0 0.6rem;
+    font-size: 0.92rem;
+    font-weight: 700;
+  }
+  .safety-box ul {
+    margin: 0;
+    padding-left: 1.1rem;
+    font-size: 0.88rem;
+  }
+  .safety-box li {
+    margin-bottom: 0.4rem;
+  }
+  .safety-src {
+    color: var(--color-text-muted);
+    font-size: 0.78rem;
+  }
+  .safety-foot {
+    margin: 0.4rem 0;
+    font-size: 0.82rem;
+    color: var(--color-text-muted);
+  }
+  .safety-sources {
+    font-size: 0.8rem;
+    color: var(--color-text-muted);
+  }
+  .safety-sources summary {
+    cursor: pointer;
+    min-height: 44px;
+    display: flex;
+    align-items: center;
+  }
+  .safety-sources ul {
+    margin: 0;
+    padding-left: 1.1rem;
+  }
+</style>

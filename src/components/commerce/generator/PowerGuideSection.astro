@@ -1,0 +1,170 @@
+---
+// 「何W必要?」セクション(2026-09-28導入、2026-09-29用途変更)。発電機カテゴリー専用。
+// Yahoo!ショッピングの商品データには構造化された定格出力フィールドが無いため、
+// SOKUNOBANK側の商品をW数で自動分類・疑似フィルタすることはしない。
+// このセクションの役割は「必要出力の目安を理解する→Yahoo!ショッピング上で該当条件を探す」の
+// 1クリック遷移に限定し、商品比較セクションへのページ内アンカーは使わない
+// (以前は#productsへのアンカー移動だったが、Outbound CTRを主KPIとするため廃止した)。
+// リンク先はYahoo!ショッピングの検索結果ページの通常URLで、既存のPickupBrandSection.astro
+// (popularBrands.yahooSearchUrl)と同じURL形式(https://shopping.yahoo.co.jp/search/<クエリ>/0/?astk=2)を
+// 踏襲している。アフィリエイトリンクへの変換はLayout.astro設置済みのValueCommerce LinkSwitchが
+// ブラウザ側で自動的に行うため、ここでURLを加工・事前変換しない。
+const tiers = [
+  {
+    value: "500w",
+    label: "〜500W",
+    examples: "スマホ・ノートPC・Wi-Fi・LED照明など、小型機器中心",
+    ctaLabel: "500Wクラスの商品をYahooで見る",
+    searchUrl: "https://shopping.yahoo.co.jp/search/%E7%99%BA%E9%9B%BB%E6%A9%9F+500W/0/?astk=2",
+  },
+  {
+    value: "1000w",
+    label: "500〜1,000W",
+    examples: "PC複数台・小型家電・防災用電源など",
+    ctaLabel: "1,000Wクラスの商品をYahooで見る",
+    searchUrl: "https://shopping.yahoo.co.jp/search/%E7%99%BA%E9%9B%BB%E6%A9%9F+1000W/0/?astk=2",
+  },
+  {
+    value: "2000w",
+    label: "1,000〜2,000W",
+    examples: "冷蔵庫・電動工具・オフィスの停電対策など",
+    ctaLabel: "2,000Wクラスの商品をYahooで見る",
+    searchUrl: "https://shopping.yahoo.co.jp/search/%E7%99%BA%E9%9B%BB%E6%A9%9F+2000W/0/?astk=2",
+  },
+  {
+    value: "high-output",
+    label: "2,000W以上",
+    examples: "工事現場・イベント・複数機器を同時使用したい場合",
+    ctaLabel: "高出力発電機をYahooで見る",
+    searchUrl: "https://shopping.yahoo.co.jp/search/%E7%99%BA%E9%9B%BB%E6%A9%9F+%E9%AB%98%E5%87%BA%E5%8A%9B/0/?astk=2",
+  },
+];
+---
+
+<section class="power-section" id="power">
+  <div class="power-heading">
+    <h2>何W必要?出力から選ぶ</h2>
+    <p>動かしたい機器の目安から、確認すべき出力クラスがわかります。カードからYahoo!ショッピングの該当商品を探せます。</p>
+  </div>
+  <ul class="power-grid">
+    {
+      tiers.map((t) => (
+        <li>
+          <a
+            class="power-card"
+            href={t.searchUrl}
+            target="_blank"
+            rel="sponsored noopener"
+            data-event="generator_power_outbound"
+            data-value={t.value}
+            data-ga-link-text={t.ctaLabel}
+          >
+            <span class="power-card-label">{t.label}</span>
+            <span class="power-card-examples">{t.examples}</span>
+            <span class="power-card-cta">
+              {t.ctaLabel}
+              <span aria-hidden="true"> →</span>
+            </span>
+            <span class="power-card-external" aria-hidden="true">
+              Yahoo!ショッピングへ移動
+            </span>
+          </a>
+        </li>
+      ))
+    }
+  </ul>
+</section>
+
+<script is:inline>
+  // Outbound CTR計測(2026-09-29導入)。このセクションのカードはすべてYahoo!ショッピングへの
+  // 外部リンクで、target="_blank"のため現在のページは遷移しない(=計測のための遷移抑止は不要)。
+  // 既存のoutbound_product_click(商品カード・ブランドカード用、product_name/price等を持つ)とは
+  // 意味が異なる(こちらは「出力クラスからの検索導線」であり特定商品ではない)ため、
+  // 専用イベント名generator_power_outboundのみを発火し、outbound_product_clickは発火しない
+  // (二重計測を避けるため)。
+  (function () {
+    document.querySelectorAll('.power-card[data-event="generator_power_outbound"]').forEach(function (a) {
+      a.addEventListener("click", function () {
+        if (!window.sokunobankDebounceClick) return;
+        window.sokunobankDebounceClick(a, function () {
+          if (window.sokunobankTrackEvent) {
+            window.sokunobankTrackEvent("generator_power_outbound", {
+              category: "generator",
+              value: a.dataset.value,
+              link_url: a.href,
+              link_text: a.dataset.gaLinkText || undefined,
+              page_path: window.location.pathname,
+            });
+          }
+        });
+      });
+    });
+  })();
+</script>
+
+<style>
+  .power-section {
+    margin: 2rem 0;
+  }
+  .power-heading h2 {
+    margin: 0 0 0.3rem;
+  }
+  .power-heading p {
+    margin: 0 0 1rem;
+    color: var(--color-text-muted);
+    font-size: 0.88rem;
+  }
+  .power-grid {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+  }
+  .power-card {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+    height: 100%;
+    padding: 1.1rem 1.2rem;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-lg);
+    background: var(--color-bg);
+    text-decoration: none;
+    color: var(--color-text);
+    transition:
+      border-color 0.15s ease,
+      box-shadow 0.15s ease;
+  }
+  .power-card:hover,
+  .power-card:focus-visible {
+    border-color: var(--color-accent);
+    box-shadow: var(--shadow-sm);
+  }
+  .power-card:focus-visible {
+    outline: 2px solid var(--color-accent);
+    outline-offset: 2px;
+  }
+  .power-card-label {
+    font-size: 1.15rem;
+    font-weight: 700;
+    color: var(--color-accent-dark);
+  }
+  .power-card-examples {
+    font-size: 0.85rem;
+    color: var(--color-text-muted);
+    flex: 1;
+  }
+  .power-card-cta {
+    margin-top: 0.4rem;
+    font-size: 0.82rem;
+    font-weight: 700;
+    color: var(--color-accent-dark);
+  }
+  .power-card-external {
+    font-size: 0.72rem;
+    color: var(--color-text-muted);
+  }
+</style>

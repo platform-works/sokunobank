@@ -1,0 +1,154 @@
+---
+import Layout from "../../layouts/Layout.astro";
+import Breadcrumbs from "../../components/Breadcrumbs.astro";
+import FaqSection from "../../components/FaqSection.astro";
+
+const title = "明日のイベント向け発電機を選ぶ｜容量選びと配送";
+const description = "明日のイベント・パーティー・屋外イベント向けに発電機を選ぶ方法。必要な容量、ブランド別の特徴、翌日配送対応商品をまとめました。";
+
+const faqs = [
+  {
+    question: "イベント用発電機を明日までに手配できますか？",
+    answer: "はい。SOKUNOBANK掲載の発電機は翌日配送対応が多く、配送エリア内なら今日14時までの注文で明日配達が可能です。ただしお届け先の地域により異なるため確認が必要です。",
+  },
+  {
+    question: "屋外イベント向けの発電機は何Wが目安ですか？",
+    answer: "小規模イベント（10～50人）は2000W、中規模（50～100人）は5000W、大規模（100人以上）は10000W以上が目安です。音響機器・ライト・冷蔵設備の合計消費電力から選んでください。",
+  },
+  {
+    question: "発電機の騒音は気になりますか？",
+    answer: "屋外イベント向けの発電機は通常80～90dBの音量です。近隣への配慮が必要な場合はより低騒音モデル（70dB以下）を選ぶか、防音ボックスの併用を検討してください。",
+  },
+  {
+    question: "イベント中の燃料補給はどうすればいいですか？",
+    answer: "ガソリン発電機の場合、容量により3～8時間連続使用が可能です。長時間イベントの場合は予備燃料を用意するか、ガソリンスタンドの営業時間を事前に確認してください。",
+  },
+];
+---
+
+<Layout {title} {description}>
+  <Breadcrumbs items={[{ label: "ホーム", href: "/" }, { label: "ガイド", href: "/guides/" }, { label: title }]} />
+
+  <div class="container">
+    <article class="guide-article">
+      <h1>明日のイベント向け発電機を選ぶ｜容量選びと配送</h1>
+
+      <p class="lead">
+        結婚式・パーティー・屋外イベント・展示会など、明日に開催されるイベントで急に電源が必要になることがあります。発電機を翌日配送で手配することで、イベント開始までに間に合わせることが可能です。このガイドでは、イベント規模別の必要容量、運用上の注意点、配送地域別の納期をまとめます。
+      </p>
+
+      <section>
+        <h2>イベント用発電機を明日中に手配する｜最短手順</h2>
+        <ol>
+          <li><strong>イベント規模・参加人数を確認</strong>（5分）：必要な電源容量を想定</li>
+          <li><strong>使用電気製品の消費電力を合算</strong>（10分）：音響・照明・冷蔵等の合計W数</li>
+          <li><strong>配送可能地域を確認</strong>（5分）：イベント会場への配送が可能か確認</li>
+          <li><strong>発電機を選定</strong>（10分）：容量・騒音・燃料・価格から選択</li>
+          <li><strong>配送日を確認して注文</strong>（5分）：翌日配送対応を確認</li>
+        </ol>
+        <p>合計35分程度で完了します。午前中の注文が翌日配達の目安です。</p>
+      </section>
+
+      <section>
+        <h2>イベント規模別｜必要発電機容量の見積もり</h2>
+        <p>イベント規模と使用機器から必要な発電機容量を判断します。</p>
+        <ul>
+          <li><strong>小規模イベント（10～50人）</strong>：マイク・スピーカー・LED照明。目安2000W。例：ウェディングパーティー・小型セミナー</li>
+          <li><strong>中規模イベント（50～100人）</strong>：上記に加えて冷蔵庫・追加ライト。目安5000W。例：企業イベント・展示会小ブース</li>
+          <li><strong>大規模イベント（100人以上）</strong>：複数冷蔵設備・本格照明・映像機器。目安10000W以上。例：屋外フェスティバル・大型展示会</li>
+        </ul>
+        <p>複数の機器を同時に使う場合は、各機器の消費電力を合算し、さらに1.5倍の余裕を持たせることを推奨します。</p>
+      </section>
+
+      <section>
+        <h2>イベント現場での発電機選び｜騒音と燃料</h2>
+        <ul>
+          <li><strong>騒音レベル</strong>：屋外で80～90dB（普通の会話より大きい）。近隣への配慮が必要な場合は低騒音モデル（70dB以下）を選択</li>
+          <li><strong>燃料タイプ</strong>：ガソリン（安価・入手性良）vs 軽油（燃費良・連続運用向け）。小規模イベントはガソリン推奨</li>
+          <li><strong>連続運用時間</strong>：2000Wクラスで6～8時間、5000Wクラスで4～6時間が目安。長時間イベントは予備燃料を用意</li>
+          <li><strong>重量・運搬</strong>：2000W級は30kg程度（台車推奨）、5000W級は50kg以上（2人以上で搬入）</li>
+        </ul>
+      </section>
+
+      <section>
+        <h2>イベント前日のチェックリスト</h2>
+        <ul>
+          <li><strong>発電機の到着確認</strong>：配送予定時間内に到着したか、外装に破損がないか確認</li>
+          <li><strong>動作テスト</strong>：開始1～2時間前に試運転。エンジンが正常に始動するか、コンセント出力が正常か確認</li>
+          <li><strong>燃料補給</strong>：ガソリン満タンで納品されるか確認。不足していれば事前補給</li>
+          <li><strong>接続準備</strong>：延長コード、分岐コンセント、アース対応を準備</li>
+          <li><strong>安全確認</strong>：設置場所は水・雨の影響がない場所か、通路の邪魔にならないか確認</li>
+          <li><strong>取扱説明書確認</strong>：緊急時の対応方法、シャットダウン手順を事前読</li>
+        </ul>
+      </section>
+
+      <section>
+        <h2>配送地域別｜翌日配送対応エリア</h2>
+        <ul>
+          <li><strong>関東（東京・神奈川・埼玉・千葉）</strong>：ほぼ全店対応、午前配達可能</li>
+          <li><strong>関西（大阪・京都・兵庫）</strong>：全店対応、翌日配送可能</li>
+          <li><strong>中部（名古屋・愛知）</strong>：全店対応、翌日配送可能</li>
+          <li><strong>その他都道府県</strong>：配送可能だが翌日配送は地域・天候に左右される。事前確認推奨</li>
+          <li><strong>離島・山間地</strong>：配送対象外またはプラス1～2日かかる傾向</li>
+        </ul>
+      </section>
+
+      <section>
+        <h2>イベント開催時の発電機運用上の注意点</h2>
+        <ul>
+          <li><strong>設置場所</strong>：平坦な場所に水平に置く。傾斜地やぬかるみを避ける</li>
+          <li><strong>換気</strong>：排気ガスに一酸化炭素が含まれるため、屋内・テント内での使用は禁止。屋外で最低1m以上の距離を確保</li>
+          <li><strong>接続順序</strong>：発電機起動後に機器を接続。停止前にすべての機器を切る</li>
+          <li><strong>電圧・周波数</strong>：消費電力が容量を超えないよう管理。サーキットブレーカーが跳ねないか監視</li>
+          <li><strong>騒音対策</strong>：大人数イベントは防音ボックス・ガード使用を検討。近隣への事前告知を推奨</li>
+          <li><strong>燃料管理</strong>：連続運用時間を把握し、途中で燃料切れにならないよう補給タイミングを計画</li>
+        </ul>
+      </section>
+
+      <section>
+        <h2>明日のイベント向け発電機を探す</h2>
+        <p>
+          以下のリンクから、翌日配送対応の発電機が確認できます。イベント開始までに間に合わせる場合は、今日14時までの注文をお勧めします。
+        </p>
+        <p style="text-align: center; margin: 2rem 0;">
+          <a href="/categories/generator/" class="btn btn-primary" style="display: inline-block;">
+            即納対応の発電機を比較する
+          </a>
+        </p>
+      </section>
+
+      <section>
+        <h2>イベント向け発電機のよくある質問</h2>
+      </section>
+    </article>
+
+    <FaqSection items={faqs} />
+  </div>
+</Layout>
+
+<style is:global>
+  .guide-article {
+    max-width: 800px;
+    margin: 2rem auto;
+  }
+  .guide-article h2 {
+    margin-top: 2rem;
+    margin-bottom: 1rem;
+  }
+  .guide-article p {
+    line-height: 1.8;
+    margin-bottom: 1rem;
+  }
+  .guide-article ul, .guide-article ol {
+    margin-left: 1.5rem;
+    margin-bottom: 1.5rem;
+  }
+  .guide-article li {
+    margin-bottom: 0.75rem;
+  }
+  .lead {
+    font-size: 1.1rem;
+    color: var(--color-text-muted);
+    margin-bottom: 2rem;
+  }
+</style>

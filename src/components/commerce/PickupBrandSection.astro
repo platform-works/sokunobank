@@ -1,86 +1,316 @@
 ---
-// ValueCommerce MyLinkBoxを使った「ピックアップブランド」セクション(2026-09-27 PoC導入)。
-// commerce系カテゴリー共通のCommerceCategoryConfigに任意フィールド(pickupBrand)として
-// 設定された場合のみ描画する。現状はオフィスチェアカテゴリーのみ設定しており、
-// 他カテゴリーには一切表示されない。
+// 「即納人気ブランドから探す」セクション(2026-09-27、ValueCommerce MyLinkBoxのPoCから
+// 自前実装に置き換え)。commerce系カテゴリー共通のCommerceCategoryConfigに任意フィールド
+// (popularBrands)として設定された場合のみ描画する。現状はオフィスチェアカテゴリーのみ設定。
 //
-// 【重要】MyLinkBoxのタグ(<script>+<div data-vc_mylinkbox_id="...">)は
-// ValueCommerce管理画面で発行された形式のまま、一切改変せずに描画する。
-// hrefの抽出・アフィリエイトURLの解析・別ボタンへの移植・IDの書き換え・
-// 計測パラメータの変更は行わない。既存のValueCommerce広告タグ(ads.pcBannerHtml等)と
-// 同じ理由で、Astroのテンプレート構文(JSX風記法)では直接書かず、
-// 必ず set:html でそのまま出力する(Astroはテンプレート内の全要素に
-// data-astro-cid-*属性を自動付与するため、テンプレート経由だと意図せずタグを改変してしまう)。
+// カード全体をクリック可能にしたいが、成り立ち・特徴の折りたたみ(<details><summary>)も
+// カード内に置く必要があり、<a>で全体を囲むと<summary>(インタラクティブ要素)が入れ子になり
+// HTML仕様違反(クリックがトグルとナビゲーションで競合し、どちらも正しく動かない挙動を実機で確認済み)。
+// そのため「stretched link」パターンを採用: カードの背面いっぱいに広げた透明な<a>を1枚敷き、
+// <details>には position:relative + 高いz-indexを与えて背面リンクより手前に来るようにすることで、
+// 通常のクリックはカード全体でリンクとして機能しつつ、summaryのクリックだけは独立してトグルできる。
+// リンク先はYahoo!ショッピングの検索結果ページの通常URLで、アフィリエイトリンクへの変換は
+// Layout.astroに設置済みのValueCommerce LinkSwitchがブラウザ側で自動的に行う
+// (ここでURLを加工・事前変換しない)。
+import type { PopularBrand } from "../../lib/commerce/types";
+
 interface Props {
-  brandNameEn: string;
-  brandNameJa: string;
-  /** ValueCommerce管理画面で発行されたMyLinkBoxのタグ(script+div)。無改変の文字列 */
-  myLinkBoxHtml: string;
+  brands: PopularBrand[];
+  /** GA4のoutbound_product_clickイベントのcategoryパラメータに使う(2026-09-27追加) */
+  slug: string;
 }
-const { brandNameEn, brandNameJa, myLinkBoxHtml } = Astro.props;
+const { brands, slug } = Astro.props;
 ---
 
-<section class="pickup-brand">
-  <div class="pickup-brand-heading">
-    <span class="pickup-brand-eyebrow">PICK UP BRAND</span>
-    <span class="pickup-brand-pr">PR</span>
+<section class="popular-brands">
+  <div class="popular-brands-heading">
+    <span class="popular-brands-eyebrow">PICK UP BRAND</span>
+    <span class="popular-brands-pr">PR</span>
   </div>
-  <h2 class="pickup-brand-title">人気ブランドから探す</h2>
-  <p class="pickup-brand-name">{brandNameEn} / {brandNameJa}</p>
-  <p class="pickup-brand-description">
-    高機能オフィスチェアの人気ブランド。Yahoo!ショッピングでラインアップを比較できます。
+  <h2 class="popular-brands-title">即納人気ブランドから探す</h2>
+  <p class="popular-brands-lead">
+    Yahoo!ショッピングで在庫・優良配送に対応した商品が多いブランドです。ブランドカードから該当商品の一覧をご覧いただけます。
   </p>
-  <div class="pickup-brand-mylinkbox" set:html={myLinkBoxHtml} />
+
+  <ul class="brand-list">
+    {
+      brands.map((b, i) => (
+        <li class="brand-card">
+          <a
+            class="brand-card-cover"
+            href={b.yahooSearchUrl}
+            target="_blank"
+            rel="sponsored noopener"
+            aria-label={`${b.displayName}をYahoo!ショッピングで見る`}
+            data-ga-category={slug}
+            data-ga-brand={b.brand}
+            data-ga-link-text={b.displayName}
+            data-ga-position={i}
+          />
+          <div class="brand-card-inner">
+            <div class="brand-card-image">
+              {
+                /*
+                  2026-09-27: monitorカテゴリー(6ブランド)でPC版の画像が表示されない不具合が
+                  発生した。原因はloading="lazy"— PCでは成り立ち・特徴がデフォルトで開くため
+                  ページが非常に縦長になり、4枚目以降の画像が画面から遠く、ブラウザの遅延読み込み
+                  判定でしばらく読み込まれないままになっていた(実際に壊れていたわけではなく、
+                  スクロールすれば読み込まれる状態だった)。このセクションの画像は最大でも
+                  数枚(ブランド数)しかなく、商品グリッド(最大40件超)のような多数の画像を
+                  遅延させる本来の目的が当てはまらないため、eager読み込みに変更した。
+                */
+              }
+              <img src={b.image.src} alt={b.image.alt} loading="eager" width="380" height="280" />
+            </div>
+            <div class="brand-card-body">
+              <h3 class="brand-card-name">{b.displayName}</h3>
+              <p class="brand-card-description">{b.description}</p>
+              <details class="brand-card-history" open>
+                <summary>成り立ち・特徴を見る</summary>
+                <p class="brand-card-history-text">{b.history}</p>
+                <ul class="brand-card-features">
+                  {b.features.map((f) => (
+                    <li>{f}</li>
+                  ))}
+                </ul>
+                <p class="brand-card-types">人気のタイプ: {b.popularTypes.join(" / ")}</p>
+              </details>
+              <span class="brand-card-cta">
+                <span class="brand-card-cta-full">Yahoo!ショッピングで商品を見る</span>
+                <span class="brand-card-cta-short">商品を見る</span>
+                <span aria-hidden="true">→</span>
+              </span>
+            </div>
+          </div>
+        </li>
+      ))
+    }
+  </ul>
+
+  <script is:inline>
+    // PC(721px以上)ではSEO/GEO上も有利なため「成り立ち・特徴」をデフォルトで開いた状態にし、
+    // モバイル(720px以下)では情報圧縮のため閉じる。サーバー側では常にopenでレンダリング
+    // (JS無効環境・クローラーには常に全文表示)し、モバイル幅の場合のみこのインラインスクリプトで
+    // 即座に閉じる。ここに置くことで(deferされるAstroのバンドルscriptと違い)ペイント前に
+    // 同期実行され、開いた状態が一瞬表示されてから閉じる、というちらつきを避けられる。
+    (function () {
+      if (window.matchMedia && window.matchMedia("(max-width: 720px)").matches) {
+        document.querySelectorAll(".brand-card-history").forEach(function (d) {
+          d.removeAttribute("open");
+        });
+      }
+    })();
+
+    // GA4計測(2026-09-27導入、2026-09-28拡張)。ブランドカード全体を覆う透明リンク
+    // (brand-card-cover)はカードにつき1枚のみで、1回のクリックは必ずこの1要素にしか
+    // 当たらないため多重発火しない(sokunobankDebounceClickは連続タップ等への念のためのガード)。
+    // target="_blank"のため現在のページは遷移せず、Yahoo!ショッピングは新しいタブで開く
+    // (=イベント送信のための遅延・遷移抑止は不要)。LinkSwitchはDOM上のこのリンクを
+    // 既に(表示時点で)変換済みのため、ここでのイベント送信・a.hrefの参照は
+    // LinkSwitchの変換と競合しない。
+    // ブランドカードのクリックは「Yahoo!ショッピングへの離脱」でもあり「ブランド訴求」でもあるため、
+    // outbound_product_click(離脱クリック計測・LINEヤフー広告コンバージョンと連動)と
+    // brand_click(ブランド単位の関心計測)の2つを、同じクリックから別イベントとして両方送信する
+    // (どちらも1回ずつ、二重発火はしない)。
+    (function () {
+      document.querySelectorAll(".brand-card-cover").forEach(function (a) {
+        a.addEventListener("click", function () {
+          if (!window.sokunobankDebounceClick) return;
+          window.sokunobankDebounceClick(a, function () {
+            const commonParams = {
+              category: a.dataset.gaCategory || undefined,
+              brand: a.dataset.gaBrand || undefined,
+              page_path: window.location.pathname,
+              link_url: a.href,
+              link_text: a.dataset.gaLinkText || undefined,
+              position: a.dataset.gaPosition !== undefined ? Number(a.dataset.gaPosition) : undefined,
+            };
+            if (window.sokunobankTrackOutboundClick) {
+              window.sokunobankTrackOutboundClick(Object.assign({ destination: "yahoo_shopping" }, commonParams));
+            }
+            if (window.sokunobankTrackEvent) {
+              window.sokunobankTrackEvent("brand_click", commonParams);
+            }
+          });
+        });
+      });
+    })();
+  </script>
 </section>
 
 <style>
-  .pickup-brand {
+  .popular-brands {
     margin-block: 1.5rem;
     padding: 1.25rem;
     background: var(--color-bg-soft);
     border: 1px solid var(--color-border);
     border-radius: var(--radius-md);
   }
-  .pickup-brand-heading {
+  .popular-brands-heading {
     display: flex;
     align-items: center;
     justify-content: space-between;
     gap: 0.5rem;
   }
-  .pickup-brand-eyebrow {
+  .popular-brands-eyebrow {
     font-size: 0.78rem;
     font-weight: 700;
     letter-spacing: 0.06em;
     color: var(--color-accent-dark);
   }
-  .pickup-brand-pr {
+  .popular-brands-pr {
     font-size: 0.68rem;
     font-weight: 700;
     letter-spacing: 0.04em;
     color: var(--color-text-muted);
     flex-shrink: 0;
   }
-  .pickup-brand-title {
-    margin: 0.3rem 0 0.2rem;
-    font-size: 1.05rem;
+  .popular-brands-title {
+    margin: 0.3rem 0 0.35rem;
+    font-size: 1.15rem;
   }
-  .pickup-brand-name {
-    margin: 0 0 0.3rem;
-    font-weight: 600;
-    color: var(--color-text);
-  }
-  .pickup-brand-description {
-    margin: 0 0 0.75rem;
+  .popular-brands-lead {
+    margin: 0 0 1rem;
     font-size: 0.85rem;
     color: var(--color-text-muted);
   }
-  /*
-    MyLinkBox自体の内部デザイン・幅はValueCommerce側のスクリプトが決めるため触らない。
-    このラッパーは「画面幅を超えてはみ出す・横スクロールを発生させる」ことだけを防ぐ
-    (max-width/overflowはラッパー側の制約であり、MyLinkBox内部のCSSを書き換えるものではない)。
-  */
-  .pickup-brand-mylinkbox {
-    max-width: 100%;
-    overflow-x: auto;
+
+  .brand-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+  .brand-card {
+    position: relative;
+    background: var(--color-bg);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+  }
+  /* カード全体を覆う透明なリンク。z-index:1で背面に敷き、詳細折りたたみ(z-index:2)より
+     手前には来ないようにすることで、summaryのクリックだけをこのリンクから独立させる */
+  .brand-card-cover {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+  }
+  .brand-card-cover:focus-visible {
+    outline: 2px solid var(--color-accent);
+    outline-offset: -2px;
+  }
+  .brand-card-inner {
+    position: relative;
+    display: flex;
+    /* コンテンツ側はpointer-eventsを持たせたまま、下敷きのbrand-card-coverへ
+       クリックを届かせるためz-indexは上げない(detailsのみ個別に手前へ出す) */
+  }
+  .brand-card:hover .brand-card-image img {
+    transform: scale(1.015);
+  }
+  .brand-card-image {
+    flex: 0 0 42%;
+    max-width: 420px;
+    min-width: 260px;
+    background: var(--color-bg-soft);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+  }
+  .brand-card-image img {
+    width: 100%;
+    height: 100%;
+    max-height: 320px;
+    min-height: 240px;
+    object-fit: contain;
+    transition: transform 0.15s ease;
+  }
+  .brand-card-body {
+    flex: 1;
+    min-width: 0;
+    padding: 1.1rem 1.25rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+  .brand-card-name {
+    margin: 0;
+    font-size: 1.05rem;
+  }
+  .brand-card-description {
+    margin: 0;
+    font-size: 0.88rem;
+    color: var(--color-text-muted);
+    line-height: 1.6;
+  }
+  .brand-card-history {
+    /* summaryのクリックをbrand-card-cover(z-index:1)より手前で受け取るための重ね順指定 */
+    position: relative;
+    z-index: 2;
+    font-size: 0.85rem;
+    color: var(--color-text-muted);
+  }
+  .brand-card-history summary {
+    cursor: pointer;
+    color: var(--color-accent-dark);
+    font-weight: 600;
+  }
+  .brand-card-history summary:focus-visible {
+    outline: 2px solid var(--color-accent);
+    outline-offset: 2px;
+  }
+  .brand-card-history-text {
+    margin: 0.5rem 0;
+    line-height: 1.6;
+  }
+  .brand-card-features {
+    margin: 0.3rem 0;
+    padding-left: 1.1rem;
+  }
+  .brand-card-types {
+    margin: 0.3rem 0 0;
+  }
+  .brand-card-cta {
+    margin-top: auto;
+    padding-top: 0.5rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    font-weight: 700;
+    color: var(--color-accent-dark);
+    font-size: 0.9rem;
+  }
+  .brand-card-cta-short {
+    display: none;
+  }
+
+  @media (max-width: 720px) {
+    .brand-card-inner {
+      flex-direction: column;
+    }
+    .brand-card-image {
+      flex: none;
+      max-width: none;
+      min-width: 0;
+      width: 100%;
+    }
+    .brand-card-image img {
+      max-height: 260px;
+      min-height: 0;
+      height: auto;
+      aspect-ratio: 4 / 3;
+    }
+    .brand-card-body {
+      padding: 0.9rem 1rem;
+    }
+    .brand-card-cta-full {
+      display: none;
+    }
+    .brand-card-cta-short {
+      display: inline;
+    }
   }
 </style>

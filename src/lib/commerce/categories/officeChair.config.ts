@@ -129,14 +129,57 @@ export const officeChairConfig: CommerceCategoryConfig = {
     mobileOverlayHtml:
       '<script language="javascript" src="//ad.jp.ap.valuecommerce.com/servlet/smartphonebanner?sid=3782308&pid=892713452&position=overlay"></script>',
   },
-  // 2026-09-27 PoC導入(ユーザー指示): ValueCommerce MyLinkBoxを使った「ピックアップブランド」
-  // セクション。オフィスチェアカテゴリーのみに表示する検証目的の実装で、他カテゴリーには
-  // 波及させない。myLinkBoxHtmlはValueCommerce管理画面で発行された形式のまま、
-  // 一切改変せず保持している(広告スペースID: 892714349)。
-  pickupBrand: {
-    brandNameEn: "Ergohuman",
-    brandNameJa: "エルゴヒューマン",
-    myLinkBoxHtml:
-      '<script type="text/javascript" src="//mlb.valuecommerce.com/mylinkbox.js" async></script><div data-vc_mylinkbox_id="892714349"></div>',
-  },
+  // 2026-09-27: ValueCommerce MyLinkBoxのPoCから、独自実装の「即納人気ブランドから探す」
+  // セクションに置き換えた。yahooSearchUrlは実際にブラウザで
+  // https://shopping.yahoo.co.jp/category/4359/list/ の「こだわり条件」→優良配送を操作し、
+  // astk=2 というクエリパラメータであることを確認した上で組み立てている(推測ではない)。
+  // 画像はYahoo!ショッピングの実商品データ(各ブランドの実際の出品)からURLをそのまま参照し、
+  // 自社ホスティングはしていない。
+  popularBrands: [
+    {
+      brand: "Ergohuman",
+      displayName: "エルゴヒューマン / Ergohuman",
+      description:
+        "2005年発売のハイエンドオフィスチェアシリーズ。体格や姿勢に応じて自動でポジションが調整される「独立式ランバーサポート」を最大の特徴とし、日本国内では関家具が正規代理店として展開しています。",
+      history:
+        "2005年に発売が開始されたシリーズで、以来ユーザーの声を反映しながら操作性・組み立てやすさ・耐久性の改良を重ねてモデルチェンジを続けています。日本国内の正規代理店は関家具です。",
+      features: ["独立式ランバーサポートによる自動姿勢サポート", "オットマン内蔵モデルあり", "5Dアームレスト搭載モデルあり"],
+      popularTypes: ["PRO2(オットマン/ハイタイプ/ロータイプ)", "FIT2 Lite", "ENJOY2"],
+      image: {
+        src: "https://item-shopping.c.yimg.jp/i/j/e-casa_ofc-sk-21at003?resolution=2x",
+        alt: "エルゴヒューマン プロ2 オットマン Ergohuman Pro2 Ottoman",
+      },
+      yahooSearchUrl: "https://shopping.yahoo.co.jp/search/%E3%82%AA%E3%83%95%E3%82%A3%E3%82%B9%E3%83%81%E3%82%A7%E3%82%A2+%E3%82%A8%E3%83%AB%E3%82%B4%E3%83%92%E3%83%A5%E3%83%BC%E3%83%9E%E3%83%B3/4359/?astk=2",
+    },
+    {
+      brand: "FlexiSpot",
+      displayName: "FlexiSpot",
+      description:
+        "昇降式スタンディングデスクで知られるLoctek(回天科技)のブランドで、デスクに続いてエルゴノミクスチェアのラインナップも展開しています。",
+      history:
+        "デスク・チェアを中心とした人間工学家具ブランドとして展開されており、Yahoo!ショッピングでは「loctek」ストアからチェア製品が出品されています。",
+      features: ["ランバーサポート自動適応モデルあり(C7 Morpher / C7 Pro2など)", "リクライニング角度・アームレスト・ヘッドレストを多段階調整できるモデルが中心"],
+      popularTypes: ["C7 Morpher", "C7 Pro2", "C7 Lite", "C8"],
+      image: {
+        src: "https://item-shopping.c.yimg.jp/i/j/loctek_c7pro2?resolution=2x",
+        alt: "FlexiSpot C7 Pro2 オフィスチェア",
+      },
+      yahooSearchUrl: "https://shopping.yahoo.co.jp/search/%E3%82%AA%E3%83%95%E3%82%A3%E3%82%B9%E3%83%81%E3%82%A7%E3%82%A2+FlexiSpot/4359/?astk=2",
+    },
+    {
+      brand: "SANWA SUPPLY",
+      displayName: "SANWA SUPPLY / サンワサプライ",
+      description:
+        "PC・タブレット周辺機器を主力とするサンワサプライが展開するオフィスチェアラインナップです。メッシュ素材やハイバックタイプなど複数モデルを扱っています。",
+      history:
+        "PC・タブレット周辺機器メーカーとして知られるサンワサプライが、テレワーク環境整備向けにオフィスチェアの取り扱いを拡大しています。",
+      features: ["メッシュ素材モデルあり", "ハイバック・オットマン付きモデルあり", "価格帯の異なる複数モデルから選択可能"],
+      popularTypes: ["メッシュ ハイバックタイプ", "PUレザー ハイバックタイプ"],
+      image: {
+        src: "https://item-shopping.c.yimg.jp/i/j/sanwadirect_150-sncm030?resolution=2x",
+        alt: "サンワサプライ メッシュ ハイバック オフィスチェア",
+      },
+      yahooSearchUrl: "https://shopping.yahoo.co.jp/search/%E3%82%AA%E3%83%95%E3%82%A3%E3%82%B9%E3%83%81%E3%82%A7%E3%82%A2+%E3%82%B5%E3%83%B3%E3%83%AF%E3%82%B5%E3%83%97%E3%83%A9%E3%82%A4/4359/?astk=2",
+    },
+  ],
 };

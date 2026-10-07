@@ -15,7 +15,9 @@ const {
   speedValue,
   minQuantityValue,
   providerCount,
-  ctaLabel = "比較する",
+  // hrefがあり比較用の実データ(speedValue)がまだ無いカード(読み物コンテンツへのリンク等)は
+  // 「比較する」という文言が実態と合わないため、ctaLabelを明示的に渡して上書きできるようにしている。
+  ctaLabel = href ? `${name}を比較 →` : "比較する",
 } = Astro.props;
 
 const isUrgentText = (v?: string) => !!v && /(当日|即日|翌日)/.test(v);
@@ -37,11 +39,11 @@ const isUrgentText = (v?: string) => !!v && /(当日|即日|翌日)/.test(v);
         <span class="stat-label">{speedLabel}</span>
         <span class:list={["stat-value", { urgent: isUrgentText(speedValue) }]}>{speedValue}</span>
       </p>
-    ) : (
+    ) : !href ? (
       <p class="stat-row">
         <span class="badge-soon">準備中</span>
       </p>
-    )
+    ) : null
   }
 
   {
@@ -65,7 +67,7 @@ const isUrgentText = (v?: string) => !!v && /(当日|即日|翌日)/.test(v);
   {
     href ? (
       <a class="btn btn-secondary card-cta" href={href}>
-        {name}を比較 →
+        {ctaLabel}
       </a>
     ) : (
       <span class="btn btn-disabled card-cta" aria-disabled="true">

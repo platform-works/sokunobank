@@ -42,6 +42,7 @@ interface YahooHit {
   };
   affiliateRate?: number;
   delivery?: { area?: string; deadLine?: string; day?: number };
+  brand?: { id?: number; name?: string };
 }
 
 interface YahooSearchResponse {
@@ -135,6 +136,8 @@ function normalizeHit(hit: YahooHit): RankableProduct | null {
     storeReviewCount: hit.seller?.review?.count ?? 0,
     affiliateRate: hit.affiliateRate ?? 0,
     deliveryDay: typeof hit.delivery?.day === "number" ? hit.delivery.day : null,
+    // GA4のoutbound_product_clickイベント用(2026-09-27追加)。フィルタ・ランキングには使わない。
+    brand: hit.brand?.name && hit.brand.name.trim() !== "" ? hit.brand.name : null,
   };
 }
 

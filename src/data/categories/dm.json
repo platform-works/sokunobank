@@ -282,15 +282,18 @@
   "guides": [
     {
       "title": "DMを今日中に発送する方法",
-      "description": "宛名リスト・デザインデータの準備状況別に、当日発送を狙うための進め方を整理します。"
+      "description": "宛名リスト・デザインデータの準備状況別に、当日発送を狙うための進め方を整理します。",
+      "href": "/guides/dm-same-day-shipping/"
     },
     {
       "title": "DM1,000通を最短で発送する方法",
-      "description": "部数別の目安納期と、依頼前に確認すべきポイントをまとめます。"
+      "description": "部数別の目安納期と、依頼前に確認すべきポイントをまとめます。",
+      "href": "/guides/dm-1000-fastest/"
     },
     {
       "title": "宛名リストがない状態からDMを送るには",
-      "description": "企業リストの購入という選択肢と、注意点を解説します。"
+      "description": "企業リストの購入という選択肢と、注意点を解説します。",
+      "href": "/guides/dm-address-list/"
     },
     {
       "title": "少量のDMなら自分で発送する方法",

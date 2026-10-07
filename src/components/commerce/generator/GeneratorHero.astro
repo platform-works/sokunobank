@@ -1,0 +1,93 @@
+---
+// 発電機カテゴリー専用のファーストビュー(2026-09-28導入、UX改善)。
+// 既存のCommerceCategoryPage.astroのhero(全カテゴリー共通)は使わず、
+// generatorページだけ専用のヒーローに差し替える(他カテゴリーへの影響を避けるため)。
+// 2026-09-30: ページ内リンクのチップ(GA4未計測だった)を廃止し、用途・容量の選択は
+// StepSelector.astro に集約した。
+import { CONTENT_UPDATED_LABEL } from "../../../lib/commerce/generatorContent";
+
+interface Props {
+  h1: string;
+  subheadline: string;
+  deliveryNote: string;
+  pcBannerHtml?: string;
+}
+const { h1, subheadline, deliveryNote, pcBannerHtml } = Astro.props;
+---
+
+<section class="generator-hero">
+  <div class="generator-hero-main">
+    <h1>{h1}</h1>
+    <p class="subheadline">{subheadline}</p>
+    <p class="delivery-note">{deliveryNote}</p>
+
+    <p class="updated">最終更新: {CONTENT_UPDATED_LABEL}</p>
+  </div>
+
+  {
+    pcBannerHtml && (
+      <div class="hero-ad">
+        <span class="hero-ad-label">PR</span>
+        <div class="hero-ad-embed" set:html={pcBannerHtml} />
+      </div>
+    )
+  }
+</section>
+
+<style>
+  .generator-hero {
+    margin-top: 1.5rem;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 1.25rem;
+  }
+  .generator-hero-main {
+    flex: 1 1 480px;
+    min-width: 0;
+  }
+  .generator-hero h1 {
+    margin-bottom: 0.6rem;
+  }
+  .subheadline {
+    font-size: 1.02rem;
+    color: var(--color-text);
+    margin: 0 0 0.4rem;
+  }
+  .delivery-note {
+    font-size: 0.82rem;
+    color: var(--color-text-muted);
+    margin: 0 0 1rem;
+  }
+  .updated {
+    font-size: 0.78rem;
+    color: var(--color-text-muted);
+    margin: 0;
+  }
+  .hero-ad {
+    flex: 0 0 auto;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.4rem;
+    background: var(--color-bg-soft);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    padding: 0.75rem;
+  }
+  .hero-ad-label {
+    font-size: 0.68rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    color: var(--color-text-muted);
+  }
+  @media (max-width: 720px) {
+    .hero-ad {
+      display: none;
+    }
+    .generator-hero h1 {
+      font-size: 1.5rem;
+    }
+  }
+</style>

@@ -1,0 +1,171 @@
+---
+import Layout from "../../layouts/Layout.astro";
+import Breadcrumbs from "../../components/Breadcrumbs.astro";
+import FaqSection from "../../components/FaqSection.astro";
+
+const title = "今日中に発電機を手配する方法｜最短配送・注意点";
+const description = "発電機が今日中に必要な場合の手配方法。翌日配送対応の商品確認、配送可能地域、発電機選びの注意点をまとめました。";
+
+const faqs = [
+  {
+    question: "発電機を今日発注・明日配達できますか？",
+    answer: "はい。SOKUNOBANK掲載の発電機は翌日配送対応が多く、配送エリア内なら今日14時までの注文で明日配達が可能です。ただしお届け先の地域・天候・配送状況により1日延びる可能性があるため、カスタマーサポートに確認することをお勧めします。",
+  },
+  {
+    question: "発電機の選び方がわかりません",
+    answer: "発電機選びで最も重要なのは『必要な電力(W数)』です。冷蔵庫なら500W、エアコンなら1500W、複数台同時に使う場合は2000W以上が目安。SOKUNOBANK の『何W必要？出力から選ぶ』セクションで、動かしたい機器から必要W数が確認できます。",
+  },
+  {
+    question: "発電機とポータブル電源はどちらが良いですか？",
+    answer: "ポータブル電源は屋内でも使え騒音がありませんが、容量（Wh）により連続使用時間に限界があります。発電機は燃料があれば長時間使用でき、より大きな電力が必要な場合に向いています。停電期間が不明な場合や騒音が避けたい環境ではポータブル電源が最適です。",
+  },
+  {
+    question: "配送地域に不安があります",
+    answer: "配送可能地域は全国ですが、配送日の目安は地域により異なります。離島・山間地は配送対象外または2日以上かかる可能性があります。ご注文前に商品ページの配送条件をご確認いただくか、カスタマーサポートに『○月○日必要』と明記してお問い合わせください。",
+  },
+];
+---
+
+<Layout {title} {description}>
+  <Breadcrumbs items={[{ label: "ホーム", href: "/" }, { label: "ガイド", href: "/guides/" }, { label: title }]} />
+
+  <div class="container">
+    <article class="guide-article">
+      <h1>今日中に発電機を手配する方法｜最短配送・注意点</h1>
+
+      <p class="lead">
+        発電機が急に必要になった場合、SOKUNOBANK掲載の翌日配送対応商品なら「今日14時までに注文→明日配達」が実現可能です。ただし配送地域・天候・配送業者の状況により1日延びる可能性があるため、余裕を持った手配が重要です。このガイドでは、今日中に発電機を手配する手順、失敗しないW数選び、配送地域別の納期をまとめます。
+      </p>
+
+      <section>
+        <h2>発電機を今日中に手配する｜最短の流れ</h2>
+        <ol>
+          <li><strong>何W必要か確認</strong>（5分）：動かしたい機器の消費電力を合算</li>
+          <li><strong>配送可能地域を確認</strong>（5分）：SOKUNOBANK掲載商品の配送条件を確認</li>
+          <li><strong>商品を選定</strong>（10分）：即納対応・予算・機能から選択</li>
+          <li><strong>カスタマーサポートに納期確認</strong>（10分）：「○月○日の午前/午後に必要」と連絡</li>
+          <li><strong>注文確定</strong>（5分）：配送予定日を確認して注文</li>
+        </ol>
+        <p>
+          合計30分程度で完了します。14時までの注文が翌日配達の目安なので、朝～早めの時間帯に手配するのがお勧めです。
+        </p>
+      </section>
+
+      <section>
+        <h2>発電機選びで失敗しないポイント｜W数の見積もり</h2>
+        <p>
+          発電機の選び方は<strong>「必要な電力を把握すること」</strong>に尽きます。
+        </p>
+        <ul>
+          <li><strong>冷蔵庫</strong>：500W前後</li>
+          <li><strong>エアコン</strong>：1500W～2000W</li>
+          <li><strong>電子レンジ</strong>：1000W～1500W</li>
+          <li><strong>洗濯機</strong>：1000W～1500W</li>
+          <li><strong>工事用電動工具</strong>：500W～2000W（工具による）</li>
+          <li><strong>複数台同時使用</strong>：各消費電力を合算</li>
+        </ul>
+        <p>
+          複数の機器を同時に使う予定があれば、各消費電力を足して、<strong>さらに1.5倍の余裕</strong>を持たせた発電機を選ぶのが安全です（例：合算1000W → 1500W以上の発電機を選択）。
+        </p>
+      </section>
+
+      <section>
+        <h2>小型・軽量 vs 大型・高出力｜選び方の判断基準</h2>
+        <p>
+          発電機は持ち運び性と出力のトレードオフがあります。
+        </p>
+        <ul>
+          <li><strong>小型（1000W以下）</strong>：重さ20kg以下、持ち運び可能。スマートフォン充電・小型家電向け。価格5万～10万円</li>
+          <li><strong>中型（1000～2000W）</strong>：重さ30～50kg、持ち運び可能（台車推奨）。家庭用・中小工事現場向け。価格10万～20万円</li>
+          <li><strong>大型（2000W以上）</strong>：重さ50kg以上、据置式。大規模工事・複数機器同時使用向け。価格20万～50万円以上</li>
+        </ul>
+        <p>
+          今日中に手配する場合は、「確実に間に合う」小型～中型から検討を始め、より大きな出力が必要と判明した場合に上げる方が失敗を防げます。
+        </p>
+      </section>
+
+      <section>
+        <h2>配送地域別｜翌日配送対応エリア</h2>
+        <p>
+          SOKUNOBANK掲載の発電機は以下の地域で翌日配送対応です。
+        </p>
+        <ul>
+          <li><strong>関東（東京・神奈川・埼玉・千葉）</strong>：ほぼ全店対応、午前配達可能</li>
+          <li><strong>関西（大阪・京都・兵庫）</strong>：全店対応、翌日配送可能</li>
+          <li><strong>中部（名古屋・愛知）</strong>：全店対応、翌日配送可能</li>
+          <li><strong>その他都道府県</strong>：配送可能だが翌日配送は地域・天候に左右される。事前確認推奨</li>
+          <li><strong>離島・山間地</strong>：配送対象外またはプラス1～2日かかる傾向</li>
+        </ul>
+      </section>
+
+      <section>
+        <h2>注文から配送までの注意点</h2>
+        <ul>
+          <li><strong>配送予定日は「目安」</strong>：天候・配送業者の状況で延びる可能性があります。「明日絶対に必要」な場合は必ずカスタマーサポートに相談</li>
+          <li><strong>受け取り時間帯を指定</strong>：午前指定なら確実性が高い</li>
+          <li><strong>搬入経路を確認</strong>：発電機は重いため、搬入口の幅・段差を事前確認</li>
+          <li><strong>使用可能な状態で到着</strong>：ほぼの場合、ガソリン・エンジンオイルは別途購入が必要（商品説明を確認）</li>
+          <li><strong>納期が間に合わない場合の対応</strong>：ポータブル電源への切り替え検討、または2日納期の商品から選択</li>
+        </ul>
+      </section>
+
+      <section>
+        <h2>燃料式発電機の安全使用方法</h2>
+        <p style="color: var(--color-urgent); font-weight: bold; margin-bottom: 1rem;">
+          ガソリン・灯油を使う燃料式発電機は排気ガスに一酸化炭素が含まれています。使用場所の安全性が極めて重要です。
+        </p>
+        <ul>
+          <li><strong>屋内・車内・テント内での使用は絶対禁止</strong></li>
+          <li><strong>屋外の風通しの良い場所で使用</strong></li>
+          <li><strong>窓・ドアを閉じたまま屋外に置かない</strong>：排気が室内に流入する危険</li>
+          <li><strong>使用方法は取扱説明書に従う</strong></li>
+        </ul>
+      </section>
+
+      <section>
+        <h2>今日中に手配できる発電機を探す</h2>
+        <p>
+          以下のリンクから、翌日配送対応の発電機が確認できます。今日14時までの注文で明日配達が可能な商品をご覧ください。
+        </p>
+        <p style="text-align: center; margin: 2rem 0;">
+          <a href="/categories/generator/" class="btn btn-primary" style="display: inline-block;">
+            即納対応の発電機を比較する
+          </a>
+        </p>
+      </section>
+
+      <section>
+        <h2>発電機手配のよくある質問</h2>
+      </section>
+    </article>
+
+    <FaqSection items={faqs} />
+  </div>
+</Layout>
+
+<style is:global>
+  .guide-article {
+    max-width: 800px;
+    margin: 2rem auto;
+  }
+  .guide-article h2 {
+    margin-top: 2rem;
+    margin-bottom: 1rem;
+  }
+  .guide-article p {
+    line-height: 1.8;
+    margin-bottom: 1rem;
+  }
+  .guide-article ul, .guide-article ol {
+    margin-left: 1.5rem;
+    margin-bottom: 1.5rem;
+  }
+  .guide-article li {
+    margin-bottom: 0.75rem;
+  }
+  .lead {
+    font-size: 1.1rem;
+    color: var(--color-text-muted);
+    margin-bottom: 2rem;
+  }
+</style>

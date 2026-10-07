@@ -22,6 +22,7 @@ const FALLBACK_CACHE_TTL_SECONDS = 86400; // 24時間
 // この件数に達するまでYahoo APIのページを追加取得する。1クエリあたりの上限ページ数を
 // 設けてレート制限(1分30リクエスト)を超えないようにする。
 const CANDIDATES_TARGET_COUNT = 100;
+const DEFAULT_MAX_DISPLAY_COUNT = 50;
 const MAX_PAGES_PER_QUERY = 3;
 // キャッシュに保存するScoredProductの「形」を変えるコード変更(フィールドの追加・削除・改名等)を
 // するたびにこの値を上げること。2026-09-27、affiliateUrl→productUrlへのフィールド改名時に、
@@ -50,7 +51,9 @@ function validateSort(config: CommerceCategoryConfig, value: string | null): Sor
   return "recommended";
 }
 
-function sortProducts<T extends { totalScore: number; reviewCount: number; price: number; estimatedCommission: number }>(
+function sortProducts<
+  T extends { totalScore: number; reviewCount: number; price: number; estimatedCommission: number; deliveryDay: number | null },
+>(
   products: T[],
   sort: SortKey
 ): T[] {
@@ -62,6 +65,10 @@ function sortProducts<T extends { totalScore: number; reviewCount: number; price
       return copy.sort((a, b) => b.reviewCount - a.reviewCount);
     case "priceAsc":
       return copy.sort((a, b) => a.price - b.price);
+    case "deliveryAsc":
+      // 2026-09-30追加(発電機カテゴリー)。配送日が判定できた商品(明日=1→翌々日=2)を先に、
+      // 判定できなかった商品(null)は後ろに置く。同順位内は総合スコア順。
+      return copy.sort((a, b) => (a.deliveryDay ?? 99) - (b.deliveryDay ?? 99) || b.totalScore - a.totalScore);
     case "recommended":
     default:
       return copy.sort((a, b) => b.totalScore - a.totalScore);
@@ -95,7 +102,8 @@ export async function handleProductsRequest(config: CommerceCategoryConfig, cont
   candidatesCacheKeyUrl.search = new URLSearchParams({
     area: area ?? "",
     delivery: effectiveDeliveryDay !== undefined ? String(effectiveDeliveryDay) : "",
-    v: String(CACHE_SCHEMA_VERSION),
+    // 候補件数を個別に設定したカテゴリーだけキャッシュを分離する(他カテゴリーのキャッシュは無効化しない)
+    v: String(CACHE_SCHEMA_VERSION) + (config.candidatesTargetCount ? `-t${config.candidatesTargetCount}` : ""),
   }).toString();
   const candidatesCacheKey = new Request(candidatesCacheKeyUrl.toString());
   // 通常キャッシュと同じ内容を、Yahoo API障害時のフォールバック専用として長期保持する別キー
@@ -140,7 +148,7 @@ export async function handleProductsRequest(config: CommerceCategoryConfig, cont
         excludeKeywords: config.excludeKeywords,
         longLeadTimeExcludeKeywords: config.longLeadTimeExcludeKeywords,
         minEstimatedCommission: config.minEstimatedCommission,
-        targetCount: CANDIDATES_TARGET_COUNT,
+        targetCount: config.candidatesTargetCount ?? CANDIDATES_TARGET_COUNT,
         maxPagesPerQuery: MAX_PAGES_PER_QUERY,
       });
 
@@ -178,13 +186,14 @@ export async function handleProductsRequest(config: CommerceCategoryConfig, cont
     }
   }
 
-  const sorted = sortProducts(deduped, sort).slice(0, 50);
+  const sorted = sortProducts(deduped, sort).slice(0, config.maxDisplayCount ?? DEFAULT_MAX_DISPLAY_COUNT);
   return new Response(
     JSON.stringify({
       products: sorted.map((p) => ({
         code: p.code,
         name: p.name,
         image: p.image,
+        brand: p.brand,
         price: p.price,
         reviewRate: p.reviewRate,
         reviewCount: p.reviewCount,

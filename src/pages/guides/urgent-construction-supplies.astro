@@ -1,0 +1,160 @@
+---
+import Layout from "../../layouts/Layout.astro";
+import Breadcrumbs from "../../components/Breadcrumbs.astro";
+import FaqSection from "../../components/FaqSection.astro";
+
+const title = "工事現場の急な必要物資を用意する｜発電機・照明・電動工具";
+const description = "工事現場で急に必要な物資を今日中に手配する方法。発電機、照明設備、電動工具、安全装備の翌日配送対応商品をまとめました。";
+
+const faqs = [
+  {
+    question: "工事用発電機を今日発注・明日配達できますか？",
+    answer: "はい。SOKUNOBANK掲載の工事用発電機は翌日配送対応が多く、配送エリア内なら今日14時までの注文で明日配達が可能です。ただしお届け先により異なるため確認が必要です。",
+  },
+  {
+    question: "小規模な工事に必要な発電機は何Wですか？",
+    answer: "電動工具（ドリル・サンダー）の使用なら2000～3000W、複数の工具を同時に使う場合は5000W以上が目安です。溶接機を使う場合は別途相談が必要です。",
+  },
+  {
+    question: "工事用照明は発電機で直接つなげますか？",
+    answer: "はい。工事用照明（ハロゲン・LED）は発電機から直接接続可能です。合計消費電力が発電機容量を超えないよう注意してください。",
+  },
+  {
+    question: "工事現場の安全装備は何が必須ですか？",
+    answer: "ヘルメット、作業用手袋、安全ベスト、安全靴が必須です。さらに保護眼鏡、耳栓、マスク、懐中電灯も用意することを推奨します。",
+  },
+];
+---
+
+<Layout {title} {description}>
+  <Breadcrumbs items={[{ label: "ホーム", href: "/" }, { label: "ガイド", href: "/guides/" }, { label: title }]} />
+
+  <div class="container">
+    <article class="guide-article">
+      <h1>工事現場の急な必要物資を用意する｜発電機・照明・電動工具</h1>
+
+      <p class="lead">
+        工事現場では急に電源が必要になったり、道具が足りなくなることがあります。発電機、照明設備、電動工具を翌日配送で手配することで、明日の工事を予定通り進めることが可能です。このガイドでは、工事規模別の必要物資、発電機の選び方、配送地域別の納期をまとめます。
+      </p>
+
+      <section>
+        <h2>工事現場の急な必要物資を用意する｜最短手順</h2>
+        <ol>
+          <li><strong>必要な工事機器・工具を確認</strong>（5分）：発電機容量・照明・工具の確認</li>
+          <li><strong>必要電力を計算</strong>（10分）：全機器の消費電力を合算</li>
+          <li><strong>配送可能地域を確認</strong>（5分）：工事現場への配送が可能か確認</li>
+          <li><strong>必要物資を選定</strong>（15分）：発電機・照明・工具から選択</li>
+          <li><strong>配送日を確認して注文</strong>（5分）：翌日配送対応を確認</li>
+        </ol>
+        <p>合計40分程度で完了します。午前中の注文が翌日配達の目安です。</p>
+      </section>
+
+      <section>
+        <h2>工事規模別｜必要な発電機容量</h2>
+        <ul>
+          <li><strong>小規模工事（1～3人、手作業中心）</strong>：電動工具数台。目安2000～3000W。掘削・溶接なし</li>
+          <li><strong>中規模工事（4～10人、機械作業含む）</strong>：複数の電動工具+照明。目安5000W。コンプレッサー・小型機械含む</li>
+          <li><strong>大規模工事（10人以上、重機使用）</strong>：複数の照明+大型機械。目安10000W以上。別途電工に相談推奨</li>
+        </ul>
+        <p>複数の工具を同時に使う場合は、各工具の消費電力を合算し、さらに1.5倍の余裕を持たせることを推奨します。</p>
+      </section>
+
+      <section>
+        <h2>工事用発電機選び｜燃費・騒音・メンテナンス</h2>
+        <ul>
+          <li><strong>燃料タイプ</strong>：ガソリン（安価・小規模向け）vs 軽油（燃費良・長時間向け）。小規模工事はガソリン推奨</li>
+          <li><strong>連続運用時間</strong>：2000Wクラスで5～6時間、5000Wクラスで3～4時間。燃料補充タイミングを計画</li>
+          <li><strong>騒音レベル</strong>：工事用は80～85dB程度。近隣への配慮が必要な場合は低騒音モデルを検討</li>
+          <li><strong>メンテナンス</strong>：納品時にエンジンオイル・ガソリンが満タンか確認。毎日の動作確認推奨</li>
+        </ul>
+      </section>
+
+      <section>
+        <h2>工事用照明・投光機の選び方</h2>
+        <ul>
+          <li><strong>ハロゲン投光機（従来型）</strong>：明るさ2000W以上、発熱量大。小型工事現場向け。価格3千～1万円</li>
+          <li><strong>LED投光機（最新型）</strong>：消費電力少なく（50W程度）明るさ十分。ハロゲンより長寿命。価格1～3万円</li>
+          <li><strong>スタンド・マウント</strong>：三脚式で移動可能、または磁石式で機械に装着可能。工事場所に応じて選択</li>
+          <li><strong>複数配置</strong>：広い工事現場は複数の投光機を配置。発電機容量で制約あり</li>
+        </ul>
+      </section>
+
+      <section>
+        <h2>工事用電動工具・安全装備</h2>
+        <ul>
+          <li><strong>電動工具</strong>：ドリル（500W）、サンダー（800W）、グラインダー（1000W）など。消費電力を確認して発電機を選定</li>
+          <li><strong>安全装備（必須）</strong>：ヘルメット、安全ベスト、作業用手袋、安全靴。すべてセットで5千～1万円</li>
+          <li><strong>保護具**：保護眼鏡、耳栓、防塵マスク。粉塵・騒音が大きい工事では必須</li>
+          <li><strong>照度計</strong>：作業現場の明るさを測定。100ルクス以上が目安</li>
+        </ul>
+      </section>
+
+      <section>
+        <h2>工事現場での発電機・照明の配置</h2>
+        <ul>
+          <li><strong>設置場所</strong>：平坦で水はけの良い場所。ぬかるみ・傾斜を避ける</li>
+          <li><strong>排気方向</strong>：排気ガスが作業員に当たらない方向に配置</li>
+          <li><strong>電源コード**：引火性材料から離す。断線防止のため踏まれない配置</li>
+          <li><strong>照明の角度</strong>：作業面を明るく照らしながら、目に直接光が入らないよう調整</li>
+          <li><strong>安全標識</strong>：発電機・高所作業・重機操作エリアに警告表示</li>
+        </ul>
+      </section>
+
+      <section>
+        <h2>配送地域別｜翌日配送対応エリア</h2>
+        <ul>
+          <li><strong>関東（東京・神奈川・埼玉・千葉）</strong>：ほぼ全店対応、午前配達可能</li>
+          <li><strong>関西（大阪・京都・兵庫）</strong>：全店対応、翌日配送可能</li>
+          <li><strong>中部（名古屋・愛知）</strong>：全店対応、翌日配送可能</li>
+          <li><strong>その他都道府県</strong>：配送可能だが翌日配送は地域により異なる。事前確認推奨</li>
+          <li><strong>離島・山間地</strong>：配送対象外またはプラス1～2日かかる傾向</li>
+        </ul>
+      </section>
+
+      <section>
+        <h2>工事現場の急な必要物資を探す</h2>
+        <p>
+          以下のリンクから、翌日配送対応の工事用発電機が確認できます。工事開始までに間に合わせる場合は、今日14時までの注文をお勧めします。
+        </p>
+        <p style="text-align: center; margin: 2rem 0;">
+          <a href="/categories/generator/" class="btn btn-primary" style="display: inline-block;">
+            即納対応の発電機を比較する
+          </a>
+        </p>
+      </section>
+
+      <section>
+        <h2>工事現場の物資のよくある質問</h2>
+      </section>
+    </article>
+
+    <FaqSection items={faqs} />
+  </div>
+</Layout>
+
+<style is:global>
+  .guide-article {
+    max-width: 800px;
+    margin: 2rem auto;
+  }
+  .guide-article h2 {
+    margin-top: 2rem;
+    margin-bottom: 1rem;
+  }
+  .guide-article p {
+    line-height: 1.8;
+    margin-bottom: 1rem;
+  }
+  .guide-article ul, .guide-article ol {
+    margin-left: 1.5rem;
+    margin-bottom: 1.5rem;
+  }
+  .guide-article li {
+    margin-bottom: 0.75rem;
+  }
+  .lead {
+    font-size: 1.1rem;
+    color: var(--color-text-muted);
+    margin-bottom: 2rem;
+  }
+</style>

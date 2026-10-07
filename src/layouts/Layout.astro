@@ -71,6 +71,116 @@ const organizationJsonLd = {
     <script type="application/ld+json" set:html={JSON.stringify(organizationJsonLd)} />
 
     <!--
+      GA4(2026-09-27導入、2026-09-28計測強化)。全ページ共通のこのLayout.astroに1回だけ設置する
+      (二重設置しない)。LINEヤフー広告からの流入がSOKUNOBANK内でどこまで進んだかを計測する目的。
+      window.sokunobankTrackEvent/TrackOutboundClickは、商品カード・ブランドカード・フィルター操作の
+      計測を行うための共通ヘルパー(ProductGrid.astro・PickupBrandSection.astro・
+      CommerceFilterPanel.astroから呼び出す)。ここに集約することで、測定IDの変更や
+      イベント送信方法の変更を1箇所で完結できるようにしている。
+    -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-SL36YEB0P6"></script>
+    <script is:inline>
+      window.dataLayer = window.dataLayer || [];
+      function gtag() {
+        dataLayer.push(arguments);
+      }
+      gtag("js", new Date());
+      gtag("config", "G-SL36YEB0P6");
+
+      // 2026-09-28導入: LINEヤフー広告経由の流入をGA4イベントと将来結合できるように、
+      // URLにutm_*/yclidが含まれる場合はセッション中(タブを閉じるまで)保持する。
+      // 初回訪問時のクエリのみを対象とし(ファーストタッチ)、以降のページ遷移で上書きしない。
+      // sessionStorageが使えない環境(プライベートブラウズ等)でも致命的にしないtry/catch。
+      (function () {
+        try {
+          var qs = new URLSearchParams(window.location.search);
+          var keys = ["utm_source", "utm_medium", "utm_campaign", "utm_term", "utm_content", "yclid"];
+          var hasAny = keys.some(function (k) {
+            return qs.has(k) && qs.get(k);
+          });
+          if (hasAny && !sessionStorage.getItem("sokunobank_attribution")) {
+            var data = {};
+            keys.forEach(function (k) {
+              var v = qs.get(k);
+              if (v) data[k] = v;
+            });
+            sessionStorage.setItem("sokunobank_attribution", JSON.stringify(data));
+          }
+        } catch (e) {
+          // no-op
+        }
+      })();
+
+      function sokunobankGetAttribution() {
+        try {
+          var raw = sessionStorage.getItem("sokunobank_attribution");
+          return raw ? JSON.parse(raw) : {};
+        } catch (e) {
+          return {};
+        }
+      }
+
+      // 同一要素での短時間の連続発火(ダブルタップ等)を防ぐ共通ガード。
+      // 個々のクリックハンドラーは1要素につき1回しかaddEventListenerしていないため
+      // 通常は二重発火しないが、念のためのセーフティネットとして用意している。
+      window.sokunobankDebounceClick = function (el, fn) {
+        var now = Date.now();
+        var last = Number(el.dataset.gaLastClick || 0);
+        if (now - last < 600) return;
+        el.dataset.gaLastClick = String(now);
+        fn();
+      };
+
+      // 汎用のGA4イベント送信ヘルパー。値がundefined/null/空文字のキーは送信しない
+      // (「取得できない項目は空文字ではなく送信自体を省略してよい」という要件に対応)。
+      window.sokunobankTrackEvent = function (eventName, params) {
+        if (typeof gtag !== "function") return;
+        var cleaned = {};
+        for (var key in params) {
+          var value = params[key];
+          if (value !== undefined && value !== null && value !== "") {
+            cleaned[key] = value;
+          }
+        }
+        gtag("event", eventName, cleaned);
+      };
+
+      window.sokunobankTrackOutboundClick = function (params) {
+        var merged = Object.assign({}, sokunobankGetAttribution(), params);
+        window.sokunobankTrackEvent("outbound_product_click", merged);
+        if (typeof ytag === "function") {
+          // LINEヤフー広告のコンバージョン測定タグ(2026-09-27発行、コンバージョン測定の目的:
+          // 「離脱クリック」)。config内の値(yahoo_conversion_id等)は管理画面発行時のまま
+          // 一切変更していない。呼び出しタイミングだけをページ読み込み時からクリック時に
+          // 変更している(コンバージョン種別が「離脱クリック」のため、この対応が正しい)。
+          ytag({
+            type: "yss_conversion",
+            config: {
+              yahoo_conversion_id: "1001413776",
+              yahoo_conversion_label: "ZcvJCPGzwYcdEPD7tehE",
+              yahoo_conversion_value: "0",
+            },
+          });
+        }
+      };
+    </script>
+
+    <!--
+      LINEヤフー広告 Yahoo!タグ(サイトジェネラルタグ、2026-09-27導入)。全ページ共通のこの
+      Layout.astroに1回だけ設置する(二重設置しない)。管理画面発行時のタグをそのまま使用。
+      コンバージョン測定タグ自体は上のwindow.sokunobankTrackOutboundClick内でクリック時に
+      呼び出す(離脱クリック計測のため)。
+    -->
+    <script async src="https://s.yimg.jp/images/listing/tool/cv/ytag.js"></script>
+    <script is:inline>
+      window.yjDataLayer = window.yjDataLayer || [];
+      function ytag() {
+        yjDataLayer.push(arguments);
+      }
+      ytag({ type: "ycl_cookie", config: { ycl_use_non_cookie_storage: true } });
+    </script>
+
+    <!--
       ValueCommerce LinkSwitch(2026-09-27導入)。全ページ共通のこのLayout.astroに1回だけ設置し、
       個別ページ・商品カード側では絶対に重複設置しない。Yahoo!ショッピングへの通常の商品URLを
       ブラウザ側で自動的にアフィリエイトリンクへ変換する仕組みのため、商品カード生成側では

@@ -1,0 +1,176 @@
+---
+import Layout from "../../layouts/Layout.astro";
+import Breadcrumbs from "../../components/Breadcrumbs.astro";
+import FaqSection from "../../components/FaqSection.astro";
+
+const title = "会議を明日開く時に必要な機器｜プロジェクター・モニター・チェア";
+const description = "明日の会議・説明会向けに必要な会議室機器を今日中に手配する方法。プロジェクター、モニター、オフィスチェアの翌日配送対応商品をまとめました。";
+
+const faqs = [
+  {
+    question: "会議用プロジェクター・モニターを明日までに手配できますか？",
+    answer: "はい。SOKUNOBANK掲載の会議用プロジェクター・PCモニターは翌日配送対応が多く、配送エリア内なら今日14時までの注文で明日配達が可能です。ただしお届け先により異なるため確認が必要です。",
+  },
+  {
+    question: "参加者50人の会議に必要なプロジェクターの明るさは何lmですか？",
+    answer: "昼間の明るい会議室には3000～4000lm、夜間や暗い部屋なら2500lm程度が目安です。画面サイズ100インチ以上の場合は3500lm以上を推奨します。",
+  },
+  {
+    question: "会議室にプロジェクターとモニター両方必要ですか？",
+    answer: "参加者数が30人以下ならモニター、30人以上ならプロジェクター推奨です。プロジェクター+スクリーンの組み合わせでスペースが限定される場合は大型モニター（65インチ以上）の選択も検討してください。",
+  },
+  {
+    question: "オフィスチェアは本当に会議に必要ですか？",
+    answer: "長時間会議（2時間以上）の場合は腰痛対策として必須です。既存の安いチェアからの換装で、参加者の集中力・満足度が大きく向上します。初対面の外部参加者がいる場合はより重要です。",
+  },
+];
+---
+
+<Layout {title} {description}>
+  <Breadcrumbs items={[{ label: "ホーム", href: "/" }, { label: "ガイド", href: "/guides/" }, { label: title }]} />
+
+  <div class="container">
+    <article class="guide-article">
+      <h1>会議を明日開く時に必要な機器｜プロジェクター・モニター・チェア</h1>
+
+      <p class="lead">
+        急な会議・説明会の開催が決まった場合、プロジェクター、PCモニター、オフィスチェアを翌日配送で手配することで、明日の開催に間に合わせることが可能です。参加者数・会議室の大きさから必要な機器を判断し、今日中に発注することが重要です。このガイドでは、参加者規模別の機器選び、配送地域別の納期をまとめます。
+      </p>
+
+      <section>
+        <h2>会議を明日開く｜必要機器の最短手配手順</h2>
+        <ol>
+          <li><strong>参加者数・会議室サイズを確認</strong>（5分）：必要な表示サイズを想定</li>
+          <li><strong>必要機器を判定</strong>（5分）：プロジェクター vs モニター、チェア数</li>
+          <li><strong>配送可能地域を確認</strong>（5分）：会議室への配送が可能か確認</li>
+          <li><strong>機器を選定</strong>（15分）：スペック・価格・在庫から選択</li>
+          <li><strong>配送日を確認して注文</strong>（5分）：翌日配送対応を確認</li>
+        </ol>
+        <p>合計35分程度で完了します。午前中の注文が翌日配達の目安です。</p>
+      </section>
+
+      <section>
+        <h2>参加者規模別｜プロジェクター vs PCモニター選び</h2>
+        <p>会議参加者数と会議室のサイズから、最適な表示機器を選択します。</p>
+        <ul>
+          <li><strong>10～20人・小会議室</strong>：24～27インチのPCモニターで十分。価格2～4万円。スペース効率が良い</li>
+          <li><strong>20～30人・中会議室</strong>：43～55インチの大型モニター or 2500lm以上のプロジェクター。価格3～8万円</li>
+          <li><strong>30～50人・大会議室</strong>：3000～4000lm以上のプロジェクター+80インチスクリーンが必須。価格8～15万円</li>
+          <li><strong>50人以上・講演会</strong>：4000lm以上の高光度プロジェクター+100インチ以上のスクリーン。複数の小型モニター併配置も検討</li>
+        </ul>
+      </section>
+
+      <section>
+        <h2>会議用プロジェクター選び｜明るさ・接続方式・価格</h2>
+        <ul>
+          <li><strong>明るさ（ルーメン）</strong>：3000～4000lmが会議用標準。WUXGA以上の解像度推奨</li>
+          <li><strong>接続方式</strong>：HDMI・ワイヤレス接続対応が必須。USB-C対応ならMacBook・タブレット直結可能</li>
+          <li><strong>冷却ファン音</strong>：35dB以下が静かと言える。会議中に気になる騒音は避ける</li>
+          <li><strong>キーストーン補正</strong>：上下左右の傾斜映写に対応。会議室の条件に応じた調整が可能</li>
+          <li><strong>価格帯</strong>：翌日配送対応の入門機が5～10万円、機能充実型が10～20万円</li>
+        </ul>
+      </section>
+
+      <section>
+        <h2>PCモニター選び｜サイズ・解像度・スタンド</h2>
+        <ul>
+          <li><strong>サイズ</strong>：20～30人向けは43～55インチ。30人以上はプロジェクター推奨</li>
+          <li><strong>解像度</strong>：フルHD（1920×1080）が最低限。4K対応なら細かい文字・グラフが見やすい</li>
+          <li><strong>表示速度</strong>：60Hz以上。スポーツ映像・ゲーム画面でもなければ問題なし</li>
+          <li><strong>スタンド・壁掛け</strong>：会議室のレイアウトに応じて選択。すべてのモニターが壁掛け対応なので事前確認不要</li>
+          <li><strong>価格帯</strong>：43インチで6～10万円、55インチで10～20万円</li>
+        </ul>
+      </section>
+
+      <section>
+        <h2>オフィスチェア選び｜会議の品質を左右</h2>
+        <p>長時間会議では、チェアの座り心地が参加者の集中力・満足度に大きく影響します。</p>
+        <ul>
+          <li><strong>背中サポート</strong>：腰をしっかり支える機能が重要。ハイバック（背もたれが高い）が推奨</li>
+          <li><strong>座面の高さ調整</strong>：身長差のある参加者に対応。ガス圧式で無段階調整が可能</li>
+          <li><strong>キャスター・ベース</strong>：会議室の移動が多い場合はキャスター付き、固定会議室ならベースの安定性重視</li>
+          <li><strong>肘掛け</strong>：あると疲れにくいが、テーブル下に収納する場合は不要か可動式を選択</li>
+          <li><strong>座面の素材</strong>：メッシュ（通気性良）or クッション（高級感）。会議の雰囲気に応じて選択</li>
+          <li><strong>価格帯</strong>：入門機2～4万円、機能充実型4～10万円。5人以上必要な場合は価格交渉を検討</li>
+        </ul>
+      </section>
+
+      <section>
+        <h2>配送地域別｜翌日配送対応エリア</h2>
+        <ul>
+          <li><strong>関東（東京・神奈川・埼玉・千葉）</strong>：ほぼ全店対応、午前配達可能</li>
+          <li><strong>関西（大阪・京都・兵庫）</strong>：全店対応、翌日配送可能</li>
+          <li><strong>中部（名古屋・愛知）</strong>：全店対応、翌日配送可能</li>
+          <li><strong>その他都道府県</strong>：配送可能だが翌日配送は地域により異なる。事前確認推奨</li>
+          <li><strong>離島・山間地</strong>：配送対象外またはプラス1～2日かかる傾向</li>
+        </ul>
+      </section>
+
+      <section>
+        <h2>会議前日の机器設置・テスト</h2>
+        <ul>
+          <li><strong>搬入・配置</strong>：午前中の配送なら午後から設置・テスト可能。スペース確保を事前に準備</li>
+          <li><strong>接続テスト</strong>：ノートパソコン・スマートフォンから実際に接続確認。HDMI・ワイヤレス両方試す</li>
+          <li><strong>画質・音量調整</strong>：映写画面の明るさ、テーブルの位置確認。スピーカー音量が会議室全体に聞こえるか確認</li>
+          <li><strong>照明調整</strong>：プロジェクター使用時は会議室の照明を暗くする。窓からの日光対策を確認</li>
+          <li><strong>オフィスチェアの高さ調整</strong>：参加者の平均身長に合わせて調整。必要に応じて個別調整の案内も準備</li>
+        </ul>
+      </section>
+
+      <section>
+        <h2>明日の会議に必要な機器を探す</h2>
+        <p>
+          以下のリンクから、翌日配送対応の会議用プロジェクター・PCモニター・オフィスチェアが確認できます。会議開始までに間に合わせる場合は、今日14時までの注文をお勧めします。
+        </p>
+        <p style="text-align: center; margin: 2rem 0;">
+          <a href="/categories/projector/" class="btn btn-primary" style="display: inline-block;">
+            即納対応のプロジェクターを比較する
+          </a>
+        </p>
+        <p style="text-align: center; margin: 1rem 0;">
+          <a href="/categories/monitor/" class="btn btn-primary" style="display: inline-block;">
+            即納対応のPCモニターを比較する
+          </a>
+        </p>
+        <p style="text-align: center; margin: 1rem 0;">
+          <a href="/categories/office-chair/" class="btn btn-primary" style="display: inline-block;">
+            即納対応のオフィスチェアを比較する
+          </a>
+        </p>
+      </section>
+
+      <section>
+        <h2>会議機器のよくある質問</h2>
+      </section>
+    </article>
+
+    <FaqSection items={faqs} />
+  </div>
+</Layout>
+
+<style is:global>
+  .guide-article {
+    max-width: 800px;
+    margin: 2rem auto;
+  }
+  .guide-article h2 {
+    margin-top: 2rem;
+    margin-bottom: 1rem;
+  }
+  .guide-article p {
+    line-height: 1.8;
+    margin-bottom: 1rem;
+  }
+  .guide-article ul, .guide-article ol {
+    margin-left: 1.5rem;
+    margin-bottom: 1.5rem;
+  }
+  .guide-article li {
+    margin-bottom: 0.75rem;
+  }
+  .lead {
+    font-size: 1.1rem;
+    color: var(--color-text-muted);
+    margin-bottom: 2rem;
+  }
+</style>

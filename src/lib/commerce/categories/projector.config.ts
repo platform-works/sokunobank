@@ -112,4 +112,58 @@ export const projectorConfig: CommerceCategoryConfig = {
     mobileOverlayHtml:
       '<script language="javascript" src="//ad.jp.ap.valuecommerce.com/servlet/smartphonebanner?sid=3782308&pid=892713452&position=overlay"></script>',
   },
+  // 2026-09-27: office-chairで確立した「即納人気ブランドから探す」テンプレートを移植
+  // (.claude/skills/add-popular-brand-section/SKILL.md参照)。genreCategoryId=21176は
+  // Yahoo!ショッピングの「プロジェクター｜パソコン周辺機器」カテゴリーで、実際にブラウザで
+  // ブランド絞り込み・優良配送(astk=2)フィルタを操作し、結果件数が正しく絞り込まれることを
+  // 確認済み(Anker 75件/エプソン 231件/Aladdin X 98件)。画像は各ブランドのYahoo!ショッピング
+  // 実商品データから取得し、自社ホスティングはしていない。説明文は各社公式サイト
+  // (ankerjapan.com/epson.jp/aladdinx.jp)で確認できた事実のみを記載している。
+  popularBrands: [
+    {
+      brand: "Anker",
+      displayName: "Anker(Nebula) / アンカー",
+      description:
+        "モバイルバッテリー等で知られるAnkerが展開するプロジェクターブランド「Nebula」。モバイル・ホーム・ホームシアターシステムの3カテゴリでラインナップし、世界累計販売台数320万台以上(2025年12月時点、Nebulaシリーズ累計)。",
+      history:
+        "Anker発のプロジェクターブランドとして「Nebula」シリーズを展開。バッテリー技術のノウハウを活かしたコンパクト設計が特徴で、会員登録により最長24ヶ月の製品保証を受けられます。",
+      features: ["モバイル/ホーム/ホームシアターシステムの3ラインナップ", "バッテリー内蔵のモバイルモデルあり(Capsuleシリーズ等)", "会員登録で最長24ヶ月の製品保証"],
+      popularTypes: ["Nebula Capsule 3", "Nebula Capsule 3 Laser", "Nebula X1"],
+      image: {
+        src: "https://item-shopping.c.yimg.jp/i/j/ankerdirect_d2200?resolution=2x",
+        alt: "Anker Soundcore Nebula P1i プロジェクター",
+      },
+      yahooSearchUrl: "https://shopping.yahoo.co.jp/search/%E3%83%97%E3%83%AD%E3%82%B8%E3%82%A7%E3%82%AF%E3%82%BF%E3%83%BC+Anker/21176/?astk=2",
+    },
+    {
+      brand: "Epson",
+      displayName: "エプソン / EPSON",
+      description:
+        "プリンター等で知られるエプソンが展開するプロジェクターブランド。映像重視の家庭用と、明るさ重視のビジネス・教育用の両ラインナップを持ちます。",
+      history:
+        "会議・プレゼン・授業向けの「ビジネスプロジェクター」と、映画・ゲーム向けの「家庭用プロジェクター」を用途別に展開。3LCD方式を採用したモデルが多く、後継機種検索などのサポートツールも公式サイトで提供しています。",
+      features: ["3LCD方式採用モデルあり", "会議・プレゼン向けの明るさ重視モデル(ビジネスプロジェクター)を展開", "後継機種検索・お探しナビ等の公式サポートツールあり"],
+      popularTypes: ["EB-E12(ビジネスプロジェクター)", "EB-W41", "EB-W55"],
+      image: {
+        src: "https://item-shopping.c.yimg.jp/i/j/yamada-denki_9481655013?resolution=2x",
+        alt: "EPSON EB-E12 ビジネスプロジェクター",
+      },
+      yahooSearchUrl: "https://shopping.yahoo.co.jp/search/%E3%83%97%E3%83%AD%E3%82%B8%E3%82%A7%E3%82%AF%E3%82%BF%E3%83%BC+%E3%82%A8%E3%83%97%E3%82%BD%E3%83%B3/21176/?astk=2",
+    },
+    {
+      brand: "AladdinX",
+      displayName: "Aladdin X / アラジンエックス",
+      description:
+        "照明一体型の3in1プロジェクターを展開するブランドで、天井設置により工事不要で大画面を楽しめる家庭向け製品が中心です。",
+      history:
+        "2018年に発売を開始し、2025年7月時点でシリーズ累計販売台数30万台を突破。グッドデザイン賞・キッズデザイン賞など複数のアワードを受賞しています。",
+      features: ["照明・スピーカー・プロジェクターの3in1設計", "天井設置により工事不要で大画面投影", "超短焦点モデルもラインナップ"],
+      popularTypes: ["Aladdin X3", "Aladdin X2 Plus", "Aladdin Marca"],
+      image: {
+        src: "https://item-shopping.c.yimg.jp/i/j/yamada-denki_104357017?resolution=2x",
+        alt: "AladdinX Aladdin X3 3-in-1プロジェクター",
+      },
+      yahooSearchUrl: "https://shopping.yahoo.co.jp/search/%E3%83%97%E3%83%AD%E3%82%B8%E3%82%A7%E3%82%AF%E3%82%BF%E3%83%BC+Aladdin+X/21176/?astk=2",
+    },
+  ],
 };

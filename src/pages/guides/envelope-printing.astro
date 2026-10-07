@@ -1,0 +1,102 @@
+---
+import Layout from "../../layouts/Layout.astro";
+import Breadcrumbs from "../../components/Breadcrumbs.astro";
+import FaqSection from "../../components/FaqSection.astro";
+
+// Amazonアソシエイト用の検索リンクを組み立てるヘルパー。
+// PA-APIは使わず検索結果ページへのリンクのみとし、在庫・価格・配達日はAmazon側の表示に委ねる。
+const amazonTag = "sokunobank-22";
+function amazonSearch(keyword: string) {
+  return `https://www.amazon.co.jp/s?k=${encodeURIComponent(keyword)}&tag=${amazonTag}`;
+}
+
+const publishedDate = "2026-09-27";
+const updatedDate = "2026-09-28";
+const articleJsonLd = {
+  "@context": "https://schema.org",
+  "@type": "Article",
+  headline: "封筒を選ぶときに確認すべきポイント",
+  description: "封筒を発注・調達する際に確認しておきたいサイズ・仕様・納期の基本を、実際のネット印刷サービスの仕様例とあわせてまとめました。",
+  datePublished: publishedDate,
+  dateModified: updatedDate,
+  author: { "@type": "Organization", name: "SOKUNOBANK運営事務局" },
+  publisher: { "@type": "Organization", name: "SOKUNOBANK運営事務局" },
+};
+
+const faqItems = [
+  {
+    question: "長形3号と角形2号、どちらを選べばよいですか?",
+    answer:
+      "長形3号はA4用紙を3つ折りにして入れる、定形郵便で使える最も一般的なサイズです。角形2号はA4用紙を折らずにそのまま入れられるサイズで、契約書や冊子など折りたくない書類の発送に向いています。",
+  },
+  {
+    question: "部分印刷と全面印刷の違いは何ですか?",
+    answer:
+      "部分印刷は既製品封筒の決められた範囲(社名・ロゴ・住所欄など)にのみ印刷する方式で、コストを抑えやすいのが特徴です。全面印刷はフタ(ベロ)や端まで自由にデザインを配置できますが、その分単価は高くなる傾向があります。日々の事務用途なら部分印刷、ブランドイメージを表現したい案内資料等には全面印刷、という使い分けが一般的です。",
+  },
+  {
+    question: "窓付き封筒はどんな場合に便利ですか?",
+    answer:
+      "請求書等の重要書類を発送する際、中の書類に印字した宛名をそのまま窓から見せられるため、封筒側への宛名書き・宛名ラベル貼りの手間と、封入時の誤送付を防げるという利点があります。",
+  },
+];
+---
+
+<Layout title="封筒を選ぶときに確認すべきポイント" description="封筒を発注・調達する際に確認しておきたいサイズ・仕様・納期の基本を、実際のネット印刷サービスの仕様例とあわせてまとめました。">
+  <Breadcrumbs items={[{ label: "ホーム", href: "/" }, { label: "カテゴリー一覧", href: "/categories/" }, { label: "封筒" }]} />
+
+  <div class="container section-tight prose">
+    <h1>封筒を選ぶときに確認すべきポイント</h1>
+
+    <p>
+      封筒はサイズ・窓の有無・印刷範囲によって調達方法や納期が大きく変わります。
+      発注前に以下のポイントを整理しておくと、比較・発注がスムーズになります。
+    </p>
+
+    <h2>確認しておきたいポイント</h2>
+    <ul>
+      <li>
+        <strong>サイズ</strong>: 「長形3号」(A4用紙を3つ折りで封入、定形郵便の定番)、
+        「角形2号」(A4用紙を折らずに封入)、「洋形長3号」(横向きで出し入れしやすい)が代表的です。
+        同梱する書類やDMのサイズに合わせて選びます。
+      </li>
+      <li>
+        <strong>印刷範囲</strong>: 社名・ロゴ・住所などを決められた範囲に印刷する「部分印刷」と、
+        フタ(ベロ)や端まで自由にデザインできる「全面印刷」があります。部分印刷の方がコストを抑えやすい傾向があります。
+      </li>
+      <li>
+        <strong>窓付き/無窓</strong>: 請求書等、宛名を印刷済みの書類で兼用したい場合は窓付き封筒が便利です。
+      </li>
+      <li><strong>社名・ロゴ印刷の有無</strong>: 印刷なしの汎用封筒であれば、比較的短納期で調達しやすい傾向があります。</li>
+      <li><strong>数量</strong>: まとまった枚数が必要な場合は印刷会社への発注、少量であれば市販品の調達も選択肢になります。</li>
+    </ul>
+
+    <h2>実際のネット印刷サービスでの仕様例</h2>
+    <p>
+      国内大手のネット印刷サービスの一例として、ラクスルの封筒印刷では、最短出荷1営業日、
+      部分印刷(モノクロ・50部)で1枚7.6円〜という価格帯が案内されています(2026年9月確認時点、税込)。
+      長形3号・角形2号・洋形長3号を中心に多数のサイズに対応しており、窓付き仕様も選べます。
+      価格・仕様は変動するため、発注前に必ず公式サイトで最新情報をご確認ください。
+    </p>
+
+    <h2>急ぎで少量だけ用意したい場合</h2>
+    <p>
+      印刷なしの汎用封筒であれば、市販品を取り寄せる方が早いことがあります。
+      以下はAmazonで探す際のリンクです(アソシエイトリンクを含みます)。
+    </p>
+    <p>
+      <a href={amazonSearch("封筒")} target="_blank" rel="sponsored noopener"> 封筒をAmazonで探す → </a>
+    </p>
+
+    <h2>DM発送用の封筒をお探しの場合</h2>
+    <p>
+      DM(ダイレクトメール)発送に使う封筒を含め、発送代行サービスをまとめて比較したい場合は以下をご覧ください。
+    </p>
+    <p><a href="/categories/dm/">DM発送代行サービスの比較はこちら →</a></p>
+
+    <FaqSection items={faqItems} />
+
+    <p><a href="/categories/">カテゴリー一覧に戻る →</a></p>
+  </div>
+</Layout>
+<script type="application/ld+json" set:html={JSON.stringify(articleJsonLd)} />

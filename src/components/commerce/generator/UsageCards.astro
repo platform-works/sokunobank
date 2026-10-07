@@ -1,0 +1,172 @@
+---
+// 「用途別に選ぶ」セクション(2026-09-28導入、2026-09-30に5用途・H3構成へ改訂)。
+// 商品データに用途属性が無いため、商品を「防災向け」等と推測分類はしない。各用途では
+// (1)考え方の説明 (2)Yahoo!ショッピングの該当検索結果への直接リンク(既存の
+// generator_usage_outboundで計測) (3)このページのSTEP選択への反映 (4)関連ガイドへの内部リンク を提供する。
+// 外部リンクの形式は PickupBrandSection.astro と同じ(https://shopping.yahoo.co.jp/search/<クエリ>/0/?astk=2)で、
+// アフィリエイトリンクへの変換はLayout.astro設置済みのValueCommerce LinkSwitchが行うため、URLは加工しない。
+import { useCases, yahooSearchUrl } from "../../../lib/commerce/generatorContent";
+---
+
+<section class="usage-section" id="usage">
+  <div class="usage-heading">
+    <h2>用途別に選ぶ</h2>
+    <p>使う場面から、考え方とYahoo!ショッピングの該当商品を確認できます。</p>
+  </div>
+  <div class="usage-grid">
+    {
+      useCases.map((u) => (
+        <article class="usage-card" id={`usecase-${u.id}`}>
+          <h3>{u.label}</h3>
+          <p class="usage-description">{u.description}</p>
+          {u.note && <p class="usage-note">{u.note}</p>}
+          <ul class="usage-links">
+            {u.links.map((l) => (
+              <li>
+                <a
+                  class="usage-link"
+                  href={yahooSearchUrl(l.query)}
+                  target="_blank"
+                  rel="sponsored noopener"
+                  data-event="generator_usage_outbound"
+                  data-value={u.id}
+                  data-link-type={l.type}
+                  data-ga-link-text={l.label}
+                >
+                  {l.label}をYahoo!ショッピングで見る<span aria-hidden="true"> →</span>
+                </a>
+              </li>
+            ))}
+          </ul>
+          <div class="usage-actions">
+            <button type="button" class="usage-apply" data-set-usecase={u.id} data-label={u.label}>
+              この用途で絞り込む
+            </button>
+            {u.guide && (
+              <a class="usage-guide" href={u.guide.href}>
+                詳しく見る:{u.guide.label}
+              </a>
+            )}
+          </div>
+        </article>
+      ))
+    }
+  </div>
+</section>
+
+<script is:inline>
+  // Outbound CTR計測(2026-09-29導入、2026-09-30にuse_case/link_typeを追加)。target="_blank"のため
+  // 遷移抑止は不要。特定商品のクリックではないため outbound_product_click は発火せず、
+  // generator_usage_outbound のみを発火する(二重計測を避ける)。
+  (function () {
+    document.querySelectorAll('.usage-link[data-event="generator_usage_outbound"]').forEach(function (a) {
+      a.addEventListener("click", function () {
+        if (!window.sokunobankDebounceClick) return;
+        window.sokunobankDebounceClick(a, function () {
+          if (window.sokunobankTrackEvent) {
+            window.sokunobankTrackEvent("generator_usage_outbound", {
+              category: "generator",
+              value: a.dataset.value,
+              use_case: a.dataset.value,
+              link_type: a.dataset.linkType,
+              link_url: a.href,
+              link_text: a.dataset.gaLinkText || undefined,
+              page_path: window.location.pathname,
+            });
+          }
+        });
+      });
+    });
+  })();
+</script>
+
+<style>
+  .usage-section {
+    margin: 2rem 0;
+  }
+  .usage-heading h2 {
+    margin: 0 0 0.3rem;
+  }
+  .usage-heading p {
+    margin: 0 0 1rem;
+    color: var(--color-text-muted);
+    font-size: 0.88rem;
+  }
+  .usage-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1rem;
+  }
+  .usage-card {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    padding: 1.1rem 1.2rem;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-lg);
+    background: var(--color-bg);
+  }
+  .usage-card h3 {
+    margin: 0;
+    font-size: 1.05rem;
+    color: var(--color-accent-dark);
+  }
+  .usage-description {
+    margin: 0;
+    font-size: 0.86rem;
+    color: var(--color-text);
+  }
+  .usage-note {
+    margin: 0;
+    padding: 0.5rem 0.75rem;
+    background: var(--color-warn-bg);
+    border: 1px solid var(--color-warn-border);
+    border-radius: var(--radius-md);
+    font-size: 0.8rem;
+  }
+  .usage-links {
+    list-style: none;
+    margin: 0.2rem 0 0;
+    padding: 0;
+    display: grid;
+    gap: 0.3rem;
+  }
+  .usage-link {
+    display: flex;
+    align-items: center;
+    min-height: 44px;
+    font-size: 0.86rem;
+    font-weight: 700;
+    color: var(--color-accent-dark);
+    text-decoration: none;
+  }
+  .usage-link:hover {
+    text-decoration: underline;
+  }
+  .usage-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+    margin-top: auto;
+  }
+  .usage-apply {
+    min-height: 44px;
+    border: 1px solid var(--color-accent);
+    border-radius: var(--radius-md);
+    background: var(--color-accent-soft);
+    color: var(--color-accent-dark);
+    font-size: 0.86rem;
+    font-weight: 700;
+    cursor: pointer;
+  }
+  .usage-apply:hover {
+    background: var(--color-accent);
+    color: var(--color-accent-contrast);
+  }
+  .usage-guide {
+    display: flex;
+    align-items: center;
+    min-height: 44px;
+    font-size: 0.82rem;
+  }
+</style>

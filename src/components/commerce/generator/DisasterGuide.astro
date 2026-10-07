@@ -1,0 +1,157 @@
+---
+// 「災害・防災用に選ぶ」セクション(2026-09-30導入)。不安を煽らず、判断の手順と家電の消費電力の
+// 目安だけを示す。消費電力は電力会社・メーカー等が公表している想定値/仕様値で、
+// 出典は generatorContent.ts の applianceSources に記載(2026-09-30本文確認)。
+import { appliances, applianceSources, SOURCES_CONFIRMED_ON } from "../../../lib/commerce/generatorContent";
+---
+
+<section class="disaster-section" id="disaster">
+  <div class="disaster-heading">
+    <h2>災害・防災用に選ぶ</h2>
+    <p>停電時に「何を」「どのくらいの時間」動かしたいかが選ぶ基準です。</p>
+  </div>
+
+  <div class="case-grid">
+    <div class="case-card">
+      <h3>発電機が向くケース</h3>
+      <ul>
+        <li>屋外に安全な設置場所があり、燃料を備えておけるとき</li>
+        <li>出力の大きい機器を使う、または長い時間の運転が必要なとき</li>
+      </ul>
+      <p class="case-caution">エンジン式は屋内・車内・テント内では使えません。</p>
+    </div>
+    <div class="case-card">
+      <h3>ポータブル電源が向くケース</h3>
+      <ul>
+        <li>屋内で使いたいとき(排気を出さない)</li>
+        <li>スマートフォン・照明・通信機器など、消費電力の小さい機器が中心のとき</li>
+        <li>事前に充電しておき、停電時にすぐ使いたいとき</li>
+      </ul>
+    </div>
+  </div>
+
+  <h3 class="flow-title">家庭で選ぶときの考え方</h3>
+  <ol class="flow">
+    <li>停電時に動かしたい機器を決める(冷蔵庫・照明・スマートフォン・Wi-Fiなど)</li>
+    <li>同時に使う機器の消費電力(W)を合計する → 必要な<strong>出力(W)</strong>の目安</li>
+    <li>消費電力(W)× 使う時間(h)を合計する → 必要な<strong>容量(Wh)</strong>の目安。変換ロス等があるため余裕を持たせる</li>
+  </ol>
+
+  <h3 class="table-title">家電の消費電力の目安</h3>
+  <div class="applist-wrap">
+    <table class="applist responsive-table">
+      <thead>
+        <tr>
+          <th scope="col">機器</th>
+          <th scope="col">消費電力の目安</th>
+          <th scope="col">出典</th>
+        </tr>
+      </thead>
+      <tbody>
+        {
+          appliances.map((a) => (
+            <tr>
+              <th scope="row">{a.label}</th>
+              <td data-label="消費電力の目安">{a.note}</td>
+              <td data-label="出典">{a.source}</td>
+            </tr>
+          ))
+        }
+      </tbody>
+    </table>
+  </div>
+  <p class="applist-note">
+    電力会社・メーカー等が公表している想定値・仕様値で、機種により異なります。実際の消費電力は機器の銘板・取扱説明書で確認してください。冷蔵庫は始動時に大きな電流を必要とすることがあり、他の電熱機器と同時に使うと一時的に停止する場合があるとメーカー(シャープ)が案内しています。出力には余裕を持たせてください。
+  </p>
+  <details class="sources">
+    <summary>目安の出典(確認日 {SOURCES_CONFIRMED_ON})</summary>
+    <ul>
+      {
+        applianceSources.map((s) => (
+          <li>
+            {s.org}「<a href={s.url} target="_blank" rel="noopener">{s.title}</a>」
+          </li>
+        ))
+      }
+    </ul>
+  </details>
+</section>
+
+<style>
+  .disaster-section {
+    margin: 2rem 0;
+  }
+  .disaster-heading h2 {
+    margin: 0 0 0.3rem;
+  }
+  .disaster-heading p {
+    margin: 0 0 1rem;
+    color: var(--color-text-muted);
+    font-size: 0.88rem;
+  }
+  .case-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 1rem;
+  }
+  .case-card {
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-lg);
+    padding: 1rem 1.2rem;
+    background: var(--color-bg);
+  }
+  .case-card h3 {
+    margin: 0 0 0.5rem;
+    font-size: 1rem;
+  }
+  .case-card ul {
+    margin: 0;
+    padding-left: 1.1rem;
+    font-size: 0.88rem;
+  }
+  .case-caution {
+    margin: 0.6rem 0 0;
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: var(--color-text);
+  }
+  .flow-title,
+  .table-title {
+    margin: 1.5rem 0 0.5rem;
+    font-size: 1rem;
+  }
+  .flow {
+    margin: 0;
+    padding-left: 1.3rem;
+    font-size: 0.9rem;
+  }
+  .applist-wrap {
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+  }
+  .applist {
+    margin: 0;
+    font-size: 0.86rem;
+  }
+  .applist-note {
+    margin: 0.6rem 0 0;
+    font-size: 0.8rem;
+    color: var(--color-text-muted);
+  }
+  .sources {
+    margin-top: 0.5rem;
+    font-size: 0.8rem;
+    color: var(--color-text-muted);
+  }
+  .sources summary {
+    cursor: pointer;
+    min-height: 44px;
+    display: flex;
+    align-items: center;
+  }
+  .sources ul {
+    margin: 0;
+    padding-left: 1.1rem;
+  }
+</style>

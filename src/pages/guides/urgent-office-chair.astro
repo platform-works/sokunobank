@@ -1,0 +1,163 @@
+---
+import Layout from "../../layouts/Layout.astro";
+import Breadcrumbs from "../../components/Breadcrumbs.astro";
+import FaqSection from "../../components/FaqSection.astro";
+
+const title = "明日までにオフィスチェアを用意する｜座り心地・納期・選び方";
+const description = "明日までにオフィスチェアを手配する方法。身体に合ったチェア選び、複数脚の用意、配送地域別の翌日配送対応商品をまとめました。";
+
+const faqs = [
+  {
+    question: "オフィスチェアを明日までに手配できますか？",
+    answer: "はい。SOKUNOBANK掲載のオフィスチェアは翌日配送対応が多く、配送エリア内なら今日14時までの注文で明日配達が可能です。ただしお届け先により異なるため確認が必要です。",
+  },
+  {
+    question: "長時間座るのに必要なチェアのスペックは何ですか？",
+    answer: "腰をしっかり支えるハイバック、高さが調整可能（ガス圧式）、座面が広めで通気性があるメッシュ素材が推奨です。価格帯4万～10万円が目安です。",
+  },
+  {
+    question: "複数脚のオフィスチェアを揃える場合、統一感が必要ですか？",
+    answer: "色・デザイン・高さが統一されていると、オフィスの印象が整います。同じシリーズの複数脚購入を推奨します。ただし異なる色を混在させることもできます。",
+  },
+  {
+    question: "新しいオフィスチェアは組立が必要ですか？",
+    answer: "ほとんどのチェアは組立が必要です（15～30分程度）。配送業者が搬入時に組み立ててくれる有料オプションもあります。購入時に確認しましょう。",
+  },
+];
+---
+
+<Layout {title} {description}>
+  <Breadcrumbs items={[{ label: "ホーム", href: "/" }, { label: "ガイド", href: "/guides/" }, { label: title }]} />
+
+  <div class="container">
+    <article class="guide-article">
+      <h1>明日までにオフィスチェアを用意する｜座り心地・納期・選び方</h1>
+
+      <p class="lead">
+        新しいオフィスの立ち上げ、チェアの急な故障、人員増加など、明日までにオフィスチェアが必要になる場合があります。オフィスチェアを翌日配送で手配することで、デスク業務の快適性を確保できます。このガイドでは、身体に合ったチェア選び、複数脚の購入方法、配送地域別の納期をまとめます。
+      </p>
+
+      <section>
+        <h2>明日までにオフィスチェアを用意する｜最短手順</h2>
+        <ol>
+          <li><strong>必要脚数を確認</strong>（5分）：何人分のチェアが必要か確認</li>
+          <li><strong>身体寸法を確認</strong>（5分）：座面の高さ調整範囲を確認</li>
+          <li><strong>配送可能地域を確認</strong>（5分）：オフィスへの配送が可能か確認</li>
+          <li><strong>チェアを選定</strong>（15分）：座り心地・スペック・価格から選択</li>
+          <li><strong>配送日を確認して注文</strong>（5分）：翌日配送対応を確認、複数脚がある場合は一度に注文</li>
+        </ol>
+        <p>合計35分程度で完了します。午前中の注文が翌日配達の目安です。</p>
+      </section>
+
+      <section>
+        <h2>オフィスチェアの座り心地を左右する要素</h2>
+        <p>長時間座ってもの腰痛を防ぐために確認すべき要素をまとめます。</p>
+        <ul>
+          <li><strong>背もたれの高さ</strong>：ハイバック（高い）が腰・背中をサポート。ロータイプは首・肩のサポートが弱い</li>
+          <li><strong>腰部サポート</strong>：ランバーサポート機能で腰を支える。長時間作業で腰痛予防に重要</li>
+          <li><strong>座面の形状</strong>：奥行き42～50cm、幅が広めが快適。座面が柔らかすぎると腰が沈む</li>
+          <li><strong>素材**：メッシュ（通気性良・蒸れない）vs クッション（高級感・静かな座り心地）。夏場はメッシュ推奨</li>
+          <li><strong>キャスター</strong>：床の傷を防ぐソフトキャスターが推奨。大型オフィスは移動性の良い硬質キャスターも検討</li>
+        </ul>
+      </section>
+
+      <section>
+        <h2>身体寸法別｜オフィスチェア選びガイド</h2>
+        <ul>
+          <li><strong>小柄な女性（150～160cm）</strong>：座面高さ38～42cm。小さめサイズまたは高さ調整範囲が広いモデルを選択</li>
+          <li><strong>平均身長（160～175cm）</strong>：座面高さ42～48cm。標準サイズが最適。ほぼすべてのオフィスチェアが対応</li>
+          <li><strong>大柄な男性（175cm以上）</strong>：座面高さ48～52cm。大型チェアを選択。座面幅が広めを確認</li>
+          <li><strong>複数身長の従業員がいる場合</strong>：ガス圧式で無段階調整可能なモデルが推奨。高さ調整範囲が37～48cm程度あれば全員対応可能</li>
+        </ul>
+      </section>
+
+      <section>
+        <h2>価格帯別｜オフィスチェア選びのポイント</h2>
+        <ul>
+          <li><strong>入門機（2～4万円）</strong>：基本的な機能を備える。ガス圧式高さ調整、キャスター付き。新人・短期雇用向け</li>
+          <li><strong>標準機（4～7万円）</strong>：ハイバック、ランバーサポート、肘掛け付き。長時間作業向け。最も購入が多いクラス</li>
+          <li><strong>高機能機（7～15万円）</strong>：全機能搭載。ヘッドレスト、可動肘、メッシュ素材、デザイン性が高い。管理職向け</li>
+          <li><strong>複数脚購入時**：5脚以上なら価格交渉が可能。販売店に相談</li>
+        </ul>
+      </section>
+
+      <section>
+        <h2>複数脚のオフィスチェアを揃える際の注意</h2>
+        <ul>
+          <li><strong>統一感</strong>：同じシリーズで統一すると、オフィスの印象が整理されて見える。色は統一推奨</li>
+          <li><strong>在庫確認</strong>：複数脚を翌日配送する場合、在庫が充分あるか確認。一部が品切れだと分割配送になる</li>
+          <li><strong>組立・搬入</strong>：1人では組立できない重さなので、複数人で組立。配送業者の搬入時組立サービスを利用するのも手</li>
+          <li><strong>搬入経路確認</strong>：玄関・廊下・階段を通せるか事前測定。幅が広いチェアは斜めにして通す必要がある</li>
+          <li><strong>設置スペース確認</strong>：デスク下にチェアが収まるか、床面が傷つかないか事前確認</li>
+        </ul>
+      </section>
+
+      <section>
+        <h2>配送地域別｜翌日配送対応エリア</h2>
+        <ul>
+          <li><strong>関東（東京・神奈川・埼玉・千葉）</strong>：ほぼ全店対応、午前配達可能</li>
+          <li><strong>関西（大阪・京都・兵庫）</strong>：全店対応、翌日配送可能</li>
+          <li><strong>中部（名古屋・愛知）</strong>：全店対応、翌日配送可能</li>
+          <li><strong>その他都道府県</strong>：配送可能だが翌日配送は地域により異なる。事前確認推奨</li>
+          <li><strong>離島・山間地</strong>：配送対象外またはプラス1～2日かかる傾向</li>
+        </ul>
+      </section>
+
+      <section>
+        <h2>オフィスチェア到着後の設置・調整</h2>
+        <ul>
+          <li><strong>開梱・組立</strong>：梱包材を丁寧に開梱。ガス圧式の調整、キャスターの取り付けを確認</li>
+          <li><strong>高さ調整</strong>：座面の高さが足が床に付く高さになるよう調整。膝の角度が90度になるのが目安</li>
+          <li><strong>背もたれ角度調整</strong>：背もたれが100～110度程度になるよう調整。可動式なら好みの角度に固定</li>
+          <li><strong>肘掛け調整</strong>：肘が机の高さと同じになるよう調整。肘掛けが固い場合は数時間で柔らかくなる</li>
+          <li><strong>座面の沈み込み**：新品は座面が硬いが、1週間で馴染む。動きにくさを感じても調整は不要</li>
+        </ul>
+      </section>
+
+      <section>
+        <h2>明日までにオフィスチェアを探す</h2>
+        <p>
+          以下のリンクから、翌日配送対応のオフィスチェアが確認できます。複数脚必要な場合は一度にまとめて注文することで、配送を効率化できます。
+        </p>
+        <p style="text-align: center; margin: 2rem 0;">
+          <a href="/categories/office-chair/" class="btn btn-primary" style="display: inline-block;">
+            即納対応のオフィスチェアを比較する
+          </a>
+        </p>
+      </section>
+
+      <section>
+        <h2>オフィスチェア選びのよくある質問</h2>
+      </section>
+    </article>
+
+    <FaqSection items={faqs} />
+  </div>
+</Layout>
+
+<style is:global>
+  .guide-article {
+    max-width: 800px;
+    margin: 2rem auto;
+  }
+  .guide-article h2 {
+    margin-top: 2rem;
+    margin-bottom: 1rem;
+  }
+  .guide-article p {
+    line-height: 1.8;
+    margin-bottom: 1rem;
+  }
+  .guide-article ul, .guide-article ol {
+    margin-left: 1.5rem;
+    margin-bottom: 1.5rem;
+  }
+  .guide-article li {
+    margin-bottom: 0.75rem;
+  }
+  .lead {
+    font-size: 1.1rem;
+    color: var(--color-text-muted);
+    margin-bottom: 2rem;
+  }
+</style>

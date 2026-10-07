@@ -1,0 +1,99 @@
+---
+import Layout from "../../layouts/Layout.astro";
+import Breadcrumbs from "../../components/Breadcrumbs.astro";
+import FaqSection from "../../components/FaqSection.astro";
+
+const amazonTag = "sokunobank-22";
+function amazonSearch(keyword: string) {
+  return `https://www.amazon.co.jp/s?k=${encodeURIComponent(keyword)}&tag=${amazonTag}`;
+}
+
+const publishedDate = "2026-09-27";
+const updatedDate = "2026-09-28";
+const articleJsonLd = {
+  "@context": "https://schema.org",
+  "@type": "Article",
+  headline: "ポスター印刷を選ぶときに確認すべきポイント",
+  description: "ポスター印刷を発注・自作する際に確認しておきたいサイズ・用紙・掲示場所の基本を、実際のネット印刷サービスの仕様例とあわせてまとめました。",
+  datePublished: publishedDate,
+  dateModified: updatedDate,
+  author: { "@type": "Organization", name: "SOKUNOBANK運営事務局" },
+  publisher: { "@type": "Organization", name: "SOKUNOBANK運営事務局" },
+};
+
+const faqItems = [
+  {
+    question: "ポスターのサイズはどう決めればよいですか?",
+    answer:
+      "A判(A0〜A3)・B判(B0〜B3)の規格サイズが一般的です。閲覧される距離が近いほど小さいサイズ(A3・A2など)、遠くから見る想定なら大きいサイズ(A1・A0・B1・B0など)が向いています。規格外の変型サイズに対応しているネット印刷会社もあります。",
+  },
+  {
+    question: "少部数と大部数で印刷方式は変わりますか?",
+    answer:
+      "多くのネット印刷サービスで、少部数(目安10部以下)はオンデマンド印刷、まとまった部数はオフセット印刷という価格構造になっています。オフセット印刷の方が1部あたりの単価は下がりますが、少部数ではオンデマンド印刷の方が総額を抑えやすい場合があります。",
+  },
+  {
+    question: "屋外に掲示する場合、通常の用紙で問題ありませんか?",
+    answer:
+      "屋外掲示では雨や日光による色あせが起こりやすいため、耐水性・耐光性のある屋外用の用紙・インキを使った仕様を選ぶことをおすすめします。屋内用の通常仕様と比べて単価は高くなる傾向があります。",
+  },
+];
+---
+
+<Layout
+  title="ポスター印刷を選ぶときに確認すべきポイント"
+  description="ポスター印刷を発注・自作する際に確認しておきたいサイズ・用紙・掲示場所の基本を、実際のネット印刷サービスの仕様例とあわせてまとめました。"
+>
+  <Breadcrumbs items={[{ label: "ホーム", href: "/" }, { label: "カテゴリー一覧", href: "/categories/" }, { label: "ポスター" }]} />
+
+  <div class="container section-tight prose">
+    <h1>ポスター印刷を選ぶときに確認すべきポイント</h1>
+
+    <p>
+      ポスターはサイズ・用紙・掲示場所(屋内/屋外)の組み合わせで仕様や納期が変わります。
+      発注前に以下のポイントを整理しておくと、比較・発注がスムーズになります。
+    </p>
+
+    <h2>確認しておきたいポイント</h2>
+    <ul>
+      <li>
+        <strong>サイズ</strong>: A判(A0〜A3)・B判(B0〜B3)の規格サイズが一般的です。
+        A1は最も多く利用されるポスターサイズとされ、比較的距離の離れた位置からの閲覧に向いています。
+        A3・A2は室内の掲示板など近距離での閲覧向けです。変型サイズに対応しているサービスもあります。
+      </li>
+      <li>
+        <strong>屋内用/屋外用</strong>: 屋外に長期間掲示する場合は、耐水性・耐光性のある用紙・インキを使った屋外用仕様が必要です。
+        屋内掲示のみであれば、コストを抑えやすい屋内用仕様で問題ありません。
+      </li>
+      <li>
+        <strong>部数と印刷方式</strong>: 少部数はオンデマンド印刷、大部数はオフセット印刷、という価格構造になっているサービスが多く、
+        目安として10部前後がどちらを選ぶかの分かれ目になることがあります。
+      </li>
+      <li><strong>納期</strong>: イベント告知など日程が決まっている場合は、特急便対応の有無を事前に確認してください。</li>
+    </ul>
+
+    <h2>実際のネット印刷サービスでの仕様例</h2>
+    <p>
+      国内大手のネット印刷サービスの一例として、ラクスルのポスター印刷では、最短出荷1営業日・1部から注文可能、
+      屋内用オンデマンド印刷が1部1,000円台〜、屋外用(防水)オンデマンド印刷が1部1,800円弱〜という価格帯が
+      案内されています(2026年9月確認時点、税込)。A0〜A3・B0〜B3の規格サイズに加え、変型サイズにも対応しています。
+      価格・仕様は変動するため、発注前に必ず公式サイトで最新情報をご確認ください。
+    </p>
+
+    <h2>急ぎで少部数だけ用意したい場合</h2>
+    <p>
+      社内掲示など少部数であれば、大判プリンター対応の用紙を使って自社で出力できる場合があります。
+      以下はAmazonで探す際のリンクです(アソシエイトリンクを含みます)。
+    </p>
+    <p>
+      <a href={amazonSearch("ポスター用紙 光沢")} target="_blank" rel="sponsored noopener">
+        ポスター用紙をAmazonで探す →
+      </a>
+    </p>
+
+    <FaqSection items={faqItems} />
+
+    <p><a href="/categories/">カテゴリー一覧に戻る →</a></p>
+  </div>
+</Layout>
+<script type="application/ld+json" set:html={JSON.stringify(articleJsonLd)} />

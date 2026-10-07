@@ -1,0 +1,61 @@
+---
+import Layout from "../../layouts/Layout.astro";
+import Breadcrumbs from "../../components/Breadcrumbs.astro";
+
+const publishedDate = "2026-09-27";
+const articleJsonLd = {
+  "@context": "https://schema.org",
+  "@type": "Article",
+  headline: "DM1,000通を最短で発送する方法",
+  description: "DM(ダイレクトメール)を1,000通程度発送する場合に、最短の納期を狙うために確認すべきポイントをまとめました。",
+  datePublished: publishedDate,
+  dateModified: publishedDate,
+  author: { "@type": "Organization", name: "SOKUNOBANK運営事務局" },
+  publisher: { "@type": "Organization", name: "SOKUNOBANK運営事務局" },
+};
+---
+
+<Layout
+  title="DM1,000通を最短で発送する方法"
+  description="DM(ダイレクトメール)を1,000通程度発送する場合に、最短の納期を狙うために確認すべきポイントをまとめました。"
+>
+  <Breadcrumbs
+    items={[
+      { label: "ホーム", href: "/" },
+      { label: "DM(ダイレクトメール)発送代行", href: "/categories/dm/" },
+      { label: "DM1,000通を最短で発送する方法" },
+    ]}
+  />
+
+  <div class="container section-tight prose">
+    <h1>DM1,000通を最短で発送する方法</h1>
+
+    <p>
+      1,000通程度の部数は、DM発送代行サービスの多くで「少部数」の枠に含まれ、
+      比較的短納期での発送に対応しやすい部数帯です。ただし、仕様(はがき/封筒等)によって
+      対応可能な速さが大きく異なる点に注意が必要です。
+    </p>
+
+    <h2>1,000通の場合に確認したいポイント</h2>
+    <ul>
+      <li>
+        <strong>仕様による差</strong>: はがき・A4大判はがきなどはがき系の仕様は、
+        少部数(目安5,000通以下)であれば当日〜翌日発送に対応しやすい傾向があります。
+        一方、OPP封筒を使った封筒系DMは、同程度の部数でも納期が長くなる(目安10〜12営業日程度)傾向があります。
+      </li>
+      <li>
+        <strong>プランの違い</strong>: 同じ業者でも「スピード優先(納期重視・料金は高め)」と
+        「コスト優先(料金重視・納期は長め)」のプランが用意されている場合があります。
+        1,000通のような少部数で急ぎの場合は、スピード優先プランを選ぶ必要があります。
+      </li>
+      <li>
+        <strong>入稿締切時刻</strong>: 業者・仕様によって締切時刻が異なるため、発注前に公式サイトで最新の締切時刻を確認してください。
+      </li>
+    </ul>
+
+    <h2>具体的な業者・プランの比較</h2>
+    <p>仕様ごとの単価・納期の目安は、DM発送代行サービスの比較ページで確認できます。</p>
+    <p><a href="/categories/dm/">DM発送代行サービスの比較はこちら →</a></p>
+  </div>
+</Layout>
+<script type="application/ld+json" set:html={JSON.stringify(articleJsonLd)} />

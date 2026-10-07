@@ -1,0 +1,196 @@
+---
+// 発電機・ポータブル電源カテゴリー専用ページ(2026-09-28 UX改善)。
+// 他の4カテゴリー(projector/orchid/monitor/office-chair)はCommerceCategoryPage.astro
+// (共通テンプレート)を使い続けており、このページだけ専用レイアウトに切り替えている。
+// 理由: 今回のUX改善(急ぎの方セクション・用途/出力から選ぶ・クラス比較・安全上の注意等)は
+// generatorページ固有の要望であり、共通テンプレートを変更すると他4カテゴリーの見た目・挙動にも
+// 影響してしまう(スナップショットテストで検知はできるが、そもそも影響範囲を発生させないほうが安全)。
+// 商品取得(ProductGrid.astro)・フィルター(CommerceFilterPanel.astro)・ブランド訴求
+// (PickupBrandSection.astro)は既存の共通コンポーネントをそのまま再利用しており、
+// これらのコンポーネント自体は一切変更していない。
+import Layout from "../../../layouts/Layout.astro";
+import Breadcrumbs from "../../../components/Breadcrumbs.astro";
+import Disclaimer from "../../../components/Disclaimer.astro";
+import FaqSection from "../../../components/FaqSection.astro";
+import CommerceFilterPanel from "../../../components/commerce/CommerceFilterPanel.astro";
+import PickupBrandSection from "../../../components/commerce/PickupBrandSection.astro";
+import ProductGrid from "../../../components/commerce/ProductGrid.astro";
+import GeneratorHero from "../../../components/commerce/generator/GeneratorHero.astro";
+import UrgentProductsSection from "../../../components/commerce/generator/UrgentProductsSection.astro";
+import PowerGuideSection from "../../../components/commerce/generator/PowerGuideSection.astro";
+import UsageCards from "../../../components/commerce/generator/UsageCards.astro";
+import FoldSection from "../../../components/commerce/generator/FoldSection.astro";
+import StepSelector from "../../../components/commerce/generator/StepSelector.astro";
+import GeneratorRuntime from "../../../components/commerce/generator/GeneratorRuntime.astro";
+import TypeComparison from "../../../components/commerce/generator/TypeComparison.astro";
+import DisasterGuide from "../../../components/commerce/generator/DisasterGuide.astro";
+import CapacityCalculator from "../../../components/commerce/generator/CapacityCalculator.astro";
+import SafetyNotice from "../../../components/commerce/generator/SafetyNotice.astro";
+import { generatorConfig as c } from "../../../lib/commerce/categories/generator.config";
+import { CONTENT_UPDATED_ON, useCases } from "../../../lib/commerce/generatorContent";
+
+// 構造化データ(2026-09-30)。商品はクライアントJSで取得するため商品のItemList/Productは出さず、
+// ページ上に静的に表示している「用途別」の項目だけをItemListにする(表示内容との一致を保つ)。
+// 自社販売ECではないためMerchantListing/Offerは使わない。
+const canonicalUrl = new URL(Astro.url.pathname, Astro.site).toString();
+const pageJsonLd = {
+  "@context": "https://schema.org",
+  "@type": "WebPage",
+  "@id": `${canonicalUrl}#webpage`,
+  url: canonicalUrl,
+  name: c.h1,
+  description: c.metaDescription,
+  inLanguage: "ja",
+  dateModified: CONTENT_UPDATED_ON,
+  isPartOf: { "@type": "WebSite", name: "SOKUNOBANK(即納バンク)", url: new URL("/", Astro.site).toString() },
+  mainEntity: {
+    "@type": "ItemList",
+    name: "発電機・ポータブル電源の用途別ガイド",
+    itemListElement: useCases.map((u, i) => ({
+      "@type": "ListItem",
+      position: i + 1,
+      name: u.label,
+      url: `${canonicalUrl}#usecase-${u.id}`,
+    })),
+  },
+};
+---
+
+<Layout title={c.pageTitle} description={c.metaDescription}>
+  <script type="application/ld+json" set:html={JSON.stringify(pageJsonLd)} />
+  <Breadcrumbs items={[{ label: "ホーム", href: "/" }, { label: "カテゴリー一覧", href: "/categories/" }, { label: c.name }]} />
+
+  <div class="container">
+    <GeneratorRuntime />
+
+    <GeneratorHero h1={c.h1} subheadline={c.subheadline} deliveryNote={c.deliveryNote} pcBannerHtml={c.ads?.pcBannerHtml} />
+
+    <StepSelector />
+
+    <UrgentProductsSection slug={c.slug} apiPath={c.apiPath} />
+
+    <FoldSection label="発電機とポータブル電源の違い(比較表)">
+      <TypeComparison />
+    </FoldSection>
+
+    <FoldSection label="災害・防災用に選ぶ(家電の消費電力の目安)">
+      <DisasterGuide />
+    </FoldSection>
+
+    <FoldSection label="必要容量は何Wh?(計算ツール)">
+      <CapacityCalculator />
+    </FoldSection>
+
+    <FoldSection label="何W必要?出力から選ぶ">
+      <PowerGuideSection />
+    </FoldSection>
+
+    <FoldSection label="用途別に選ぶ(防災・家庭・工事・キャンプ・車中泊)">
+      <UsageCards />
+    </FoldSection>
+
+    {
+      c.popularBrands && c.popularBrands.length > 0 && (
+        <FoldSection label="ブランドから探す">
+          <PickupBrandSection brands={c.popularBrands} slug={c.slug} />
+        </FoldSection>
+      )
+    }
+
+    <section id="products" class="products-section">
+      <h2 class="products-heading">商品比較・絞り込み</h2>
+
+      <details class="filter-toggle" open>
+        <summary class="filter-toggle-summary">条件を絞り込む</summary>
+        <div class="filter-toggle-body">
+          <CommerceFilterPanel slug={c.slug} sortOptions={c.sortOptions} />
+        </div>
+      </details>
+
+      <p class="intro">{c.intro}</p>
+
+      <ProductGrid slug={c.slug} apiPath={c.apiPath} variant="generator" />
+
+      <Disclaimer text={c.deliveryNote} />
+    </section>
+
+    {
+      c.seoSections.map((section) => (
+        <section class="seo-section">
+          <h2>{section.heading}</h2>
+          {section.body.map((paragraph) => (
+            <p>{paragraph}</p>
+          ))}
+        </section>
+      ))
+    }
+
+    <SafetyNotice />
+
+    <FaqSection items={c.faq} />
+  </div>
+
+  {c.ads?.mobileOverlayHtml && <div set:html={c.ads.mobileOverlayHtml} />}
+</Layout>
+
+<script is:inline>
+  // 「条件を絞り込む」の開閉制御(2026-09-28導入)。PickupBrandSection.astroの
+  // 「成り立ち・特徴」と同じ確立済みパターンを踏襲: サーバー側では常にopenでレンダリングし
+  // (JS無効環境では常にフィルターが見える)、モバイル幅の場合だけこのインラインスクリプトで
+  // ペイント前に同期的にopen属性を外す。PC(721px以上)は常に開いたまま
+  // (=従来通りフィルターが常時表示され、挙動は変わらない)。
+  (function () {
+    if (window.matchMedia && window.matchMedia("(max-width: 720px)").matches) {
+      var details = document.querySelector(".filter-toggle");
+      if (details) details.removeAttribute("open");
+      // 知識系セクション(比較表・災害ガイド・計算ツール等)もスマホでは折りたたみ、商品一覧までの距離を縮める
+      document.querySelectorAll(".fold").forEach(function (d) {
+        d.removeAttribute("open");
+      });
+    }
+  })();
+</script>
+
+<style>
+  .products-section {
+    margin: 2rem 0;
+  }
+  .products-heading {
+    margin: 0 0 1rem;
+  }
+  .filter-toggle-summary {
+    display: none;
+  }
+  .intro {
+    font-size: 0.88rem;
+    color: var(--color-text-muted);
+    margin: 0.5rem 0 1rem;
+  }
+  .seo-section {
+    margin-block: 2.25rem;
+  }
+
+  @media (max-width: 720px) {
+    .filter-toggle-summary {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      height: 44px;
+      width: 100%;
+      margin-bottom: 0.75rem;
+      border: 1px solid var(--color-accent);
+      border-radius: var(--radius-md);
+      background: var(--color-accent-soft);
+      color: var(--color-accent-dark);
+      font-weight: 700;
+      font-size: 0.92rem;
+      cursor: pointer;
+    }
+    .filter-toggle[open] .filter-toggle-summary::after {
+      content: " ▲";
+    }
+    .filter-toggle:not([open]) .filter-toggle-summary::after {
+      content: " ▼";
+    }
+  }
+</style>

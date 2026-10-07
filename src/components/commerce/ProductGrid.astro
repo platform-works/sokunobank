@@ -2,12 +2,20 @@
 interface Props {
   slug: string;
   apiPath: string;
+  /**
+   * 任意。指定したカテゴリーだけが使う拡張ポイント(2026-09-30導入、発電機カテゴリーが最初の利用者)。
+   * window.sokunobankCardExtensions[variant] に登録されたオブジェクトが、商品カードへの追加表示
+   * (decorateCard)・配送表示の差し替え(deliveryText)・GA4パラメータの追加(trackParams)・
+   * クライアント側の絞り込み(filterProducts)・描画後の処理(afterRender)を提供する。
+   * 未指定、または未登録の場合は従来どおりの表示・計測になり、他カテゴリーには影響しない。
+   */
+  variant?: string;
 }
-const { slug, apiPath } = Astro.props;
+const { slug, apiPath, variant } = Astro.props;
 const rootId = `commerce-grid-${slug}`;
 ---
 
-<div class="commerce-grid" id={rootId} data-api-path={apiPath}>
+<div class="commerce-grid" id={rootId} data-api-path={apiPath} data-variant={variant}>
   <p class="state state-loading" data-role="loading">商品情報を取得しています…</p>
   <p class="state state-error" data-role="error" hidden>
     現在商品情報を取得できません。時間をおいて再度お試しください。
@@ -19,7 +27,7 @@ const rootId = `commerce-grid-${slug}`;
   <button type="button" class="btn btn-secondary load-more" data-role="load-more" hidden>もっと見る</button>
 </div>
 
-<script define:vars={{ rootId, slug }}>
+<script define:vars={{ rootId, slug, variant }}>
   // このscriptタグは自分のマークアップ(id={rootId}のdiv)より後にDOMへ出力されるため、
   // getElementById等はDOMContentLoadedを待たずに即実行できる。むしろCommerceFilterPanel側は
   // 初期状態をDOMContentLoaded後にイベント発火するため、ここでの購読(addEventListener)は
@@ -34,6 +42,17 @@ const rootId = `commerce-grid-${slug}`;
     const listEl = root.querySelector('[data-role="list"]');
     const loadMoreEl = root.querySelector('[data-role="load-more"]');
     const PAGE_SIZE = 40;
+    const defaultEmptyText = emptyEl.textContent;
+    // 直近のload()に渡した条件と取得結果。拡張ポイント(variant)へ文脈として渡すために保持する。
+    let lastParams = {};
+    let allProducts = [];
+
+    function getExt() {
+      return variant && window.sokunobankCardExtensions ? window.sokunobankCardExtensions[variant] : undefined;
+    }
+    function extContext() {
+      return { params: lastParams };
+    }
 
     function setState(state) {
       loadingEl.hidden = state !== "loading";
@@ -52,11 +71,6 @@ const rootId = `commerce-grid-${slug}`;
       return "配送日は商品ページでご確認ください";
     }
 
-    // 将来アナリティクスを配線する際の差し込み口。現状は外部サービスを追加しないため no-op。
-    function trackEvent(name, params) {
-      if (window.sokunobankTrackEvent) window.sokunobankTrackEvent(name, params);
-    }
-
     function makeLink(p, index, extraClass) {
       const a = document.createElement("a");
       a.className = extraClass;
@@ -67,11 +81,36 @@ const rootId = `commerce-grid-${slug}`;
       a.target = "_blank";
       a.rel = "sponsored noopener";
       a.addEventListener("click", () => {
-        trackEvent("projector_product_click", {
-          productCode: p.code,
-          rank: index + 1,
-          price: p.price,
-        });
+        // GA4計測(2026-09-27導入、2026-09-28拡張)。画像・商品名・CTAの3つのリンクは同じ商品につき
+        // 別々の<a>要素で、1回のクリックは必ずどれか1つの要素にしか当たらないため、
+        // ここで多重発火することはない(sokunobankDebounceClickは連続タップ等への念のためのガード)。
+        // target="_blank"のため現在のページは遷移せず、Yahoo!ショッピングは新しいタブで開く
+        // (=イベント送信のための遅延・遷移抑止は不要)。LinkSwitchはDOM上のこのリンクを
+        // 既に(表示時点で)変換済みのため、ここでのイベント送信・a.hrefの参照は
+        // LinkSwitchの変換と競合しない(link_urlはクリック時点のa.href=変換後のURL)。
+        if (window.sokunobankDebounceClick && window.sokunobankTrackOutboundClick) {
+          window.sokunobankDebounceClick(a, () => {
+            const ext = getExt();
+            const extra = ext && ext.trackParams ? ext.trackParams(p, extContext()) : null;
+            window.sokunobankTrackOutboundClick(
+              Object.assign(
+                {
+                  destination: "yahoo_shopping",
+                  category: slug,
+                  brand: p.brand || undefined,
+                  product_name: p.name || undefined,
+                  price: p.price,
+                  delivery_label: deliveryLabel(p.deliveryDay),
+                  page_path: window.location.pathname,
+                  link_url: a.href,
+                  link_text: (a.textContent || "").trim() || undefined,
+                  position: index,
+                },
+                extra || {}
+              )
+            );
+          });
+        }
       });
       return a;
     }
@@ -97,6 +136,9 @@ const rootId = `commerce-grid-${slug}`;
       name.textContent = p.name;
       body.appendChild(name);
 
+      const ext = getExt();
+      if (ext && ext.decorateCard) ext.decorateCard(p, body, extContext());
+
       const price = document.createElement("p");
       price.className = "product-price";
       price.textContent = `${p.price.toLocaleString()}円`;
@@ -116,7 +158,7 @@ const rootId = `commerce-grid-${slug}`;
 
       const delivery = document.createElement("p");
       delivery.className = "product-delivery";
-      delivery.textContent = deliveryLabel(p.deliveryDay);
+      delivery.textContent = (ext && ext.deliveryText && ext.deliveryText(p, extContext())) || deliveryLabel(p.deliveryDay);
       body.appendChild(delivery);
 
       const cta = makeLink(p, index, "btn btn-primary product-cta");
@@ -141,10 +183,25 @@ const rootId = `commerce-grid-${slug}`;
     loadMoreEl.addEventListener("click", renderNextBatch);
 
     function renderProducts(products) {
+      allProducts = products;
+      applyAndRender();
+    }
+
+    // 拡張ポイントによる絞り込みを適用して描画する。拡張が無い場合は従来どおり全件をそのまま描画する。
+    function applyAndRender() {
+      const ext = getExt();
+      const visible = ext && ext.filterProducts ? ext.filterProducts(allProducts, extContext()) : allProducts;
       listEl.innerHTML = "";
-      pendingProducts = products;
+      pendingProducts = visible;
       renderedCount = 0;
-      renderNextBatch();
+      if (visible.length === 0) {
+        emptyEl.textContent = (ext && ext.emptyMessage && ext.emptyMessage(extContext())) || defaultEmptyText;
+        setState("empty");
+      } else {
+        renderNextBatch();
+        setState("list");
+      }
+      if (ext && ext.afterRender) ext.afterRender({ root, shown: visible.length, total: allProducts.length }, extContext());
     }
 
     // 連続してload()が呼ばれた場合に、後から返ってきた古いレスポンスが新しい結果を
@@ -153,6 +210,7 @@ const rootId = `commerce-grid-${slug}`;
 
     async function load(params) {
       const requestId = ++latestRequestId;
+      lastParams = params || {};
       setState("loading");
       const query = new URLSearchParams();
       Object.entries(params || {}).forEach(([key, value]) => {
@@ -171,7 +229,6 @@ const rootId = `commerce-grid-${slug}`;
           return;
         }
         renderProducts(data.products);
-        setState("list");
       } catch {
         if (requestId !== latestRequestId) return;
         setState("error");
@@ -185,6 +242,11 @@ const rootId = `commerce-grid-${slug}`;
     document.addEventListener("commerce:filter-change", (event) => {
       if (event.detail?.slug !== slug) return;
       load(event.detail.params);
+    });
+    // 拡張ポイント側の絞り込み条件が変わったとき、再取得せず取得済みの結果を描画し直す。
+    document.addEventListener("commerce:rerender", (event) => {
+      if (event.detail?.slug !== slug || allProducts.length === 0) return;
+      applyAndRender();
     });
   })();
 </script>

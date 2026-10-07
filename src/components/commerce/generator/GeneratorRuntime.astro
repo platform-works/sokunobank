@@ -1,0 +1,34 @@
+---
+// 発電機カテゴリーの商品カード拡張(ブランド・容量Wh・定格出力W・お届け先付き配送表示・GA4パラメータ)を
+// ProductGrid.astro の拡張ポイント(variant="generator")へ登録する。ページに1回だけ置く。
+// 登録処理本体は src/lib/commerce/generatorClient.ts(テスト済みの純関数を含む)。
+---
+
+<script>
+  import { registerGeneratorExtension } from "../../../lib/commerce/generatorClient";
+  registerGeneratorExtension();
+</script>
+
+<style is:global>
+  /* ProductGridがJSで動的に生成するカードに追加される要素のスタイル */
+  .gen-card-brand {
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: var(--color-accent-dark);
+    margin: 0;
+  }
+  .gen-card-spec {
+    font-size: 0.8rem;
+    color: var(--color-text);
+    margin: 0;
+  }
+  .gen-filter-note {
+    background: var(--color-accent-soft);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    padding: 0.7rem 1rem;
+    margin: 0 0 1rem;
+    font-size: 0.85rem;
+    color: var(--color-text);
+  }
+</style>

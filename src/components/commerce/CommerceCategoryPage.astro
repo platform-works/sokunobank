@@ -45,15 +45,7 @@ const { config: c } = Astro.props;
       }
     </section>
 
-    {
-      c.pickupBrand && (
-        <PickupBrandSection
-          brandNameEn={c.pickupBrand.brandNameEn}
-          brandNameJa={c.pickupBrand.brandNameJa}
-          myLinkBoxHtml={c.pickupBrand.myLinkBoxHtml}
-        />
-      )
-    }
+    {c.popularBrands && c.popularBrands.length > 0 && <PickupBrandSection brands={c.popularBrands} slug={c.slug} />}
 
     <CommerceFilterPanel slug={c.slug} sortOptions={c.sortOptions} />
 
@@ -62,6 +54,34 @@ const { config: c } = Astro.props;
     <ProductGrid slug={c.slug} apiPath={c.apiPath} />
 
     <Disclaimer text={c.deliveryNote} />
+
+    {
+      c.sponsoredSection && c.sponsoredSection.active && (
+        <section class="sponsored-section">
+          <h2>{c.sponsoredSection.heading}</h2>
+          {c.sponsoredSection.body.map((paragraph) => (
+            <p>{paragraph}</p>
+          ))}
+          {c.sponsoredSection.checklist && c.sponsoredSection.checklist.length > 0 && (
+            <>
+              {c.sponsoredSection.checklistHeading && <h3>{c.sponsoredSection.checklistHeading}</h3>}
+              <ul>
+                {c.sponsoredSection.checklist.map((item) => (
+                  <li>{item}</li>
+                ))}
+              </ul>
+            </>
+          )}
+          <div class="sponsored-banner">
+            <p class="sponsored-caption">
+              <span class="sponsored-label">PR</span>
+              {c.sponsoredSection.caption}
+            </p>
+            <div class="sponsored-embed" set:html={c.sponsoredSection.bannerHtml} />
+          </div>
+        </section>
+      )
+    }
 
     {
       c.seoSections.map((section) => (
@@ -137,5 +157,42 @@ const { config: c } = Astro.props;
   }
   .seo-section {
     margin-block: 2.25rem;
+  }
+  .sponsored-section {
+    margin-block: 2.25rem;
+  }
+  .sponsored-section ul {
+    margin: 0 0 1rem;
+    padding-left: 1.2rem;
+    font-size: 0.92rem;
+  }
+  .sponsored-banner {
+    margin-top: 1rem;
+    padding: 0.9rem 1rem 1rem;
+    background: var(--color-bg-soft);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+  }
+  .sponsored-caption {
+    margin: 0 0 0.6rem;
+    font-size: 0.8rem;
+    color: var(--color-text-muted);
+  }
+  .sponsored-label {
+    display: inline-block;
+    margin-right: 0.5rem;
+    padding: 0 0.4rem;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-sm);
+    background: var(--color-bg);
+    font-size: 0.68rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+  }
+  /* 広告タグは改変禁止のため、バナー(468px幅)を縮小せずそのまま表示する。
+     スマホ幅では枠内を横スクロールさせて、ページ全体の横スクロールを防ぐ */
+  .sponsored-embed {
+    max-width: 100%;
+    overflow-x: auto;
   }
 </style>

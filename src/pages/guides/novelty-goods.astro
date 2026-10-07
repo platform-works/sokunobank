@@ -1,0 +1,103 @@
+---
+import Layout from "../../layouts/Layout.astro";
+import Breadcrumbs from "../../components/Breadcrumbs.astro";
+import FaqSection from "../../components/FaqSection.astro";
+
+const amazonTag = "sokunobank-22";
+function amazonSearch(keyword: string) {
+  return `https://www.amazon.co.jp/s?k=${encodeURIComponent(keyword)}&tag=${amazonTag}`;
+}
+
+const publishedDate = "2026-09-27";
+const updatedDate = "2026-09-28";
+const articleJsonLd = {
+  "@context": "https://schema.org",
+  "@type": "Article",
+  headline: "ノベルティを選ぶときに確認すべきポイント",
+  description: "展示会・来店特典向けノベルティを発注する際に確認しておきたい用途・素材・ロットの基本を、実際のネット印刷サービスの取扱例とあわせてまとめました。",
+  datePublished: publishedDate,
+  dateModified: updatedDate,
+  author: { "@type": "Organization", name: "SOKUNOBANK運営事務局" },
+  publisher: { "@type": "Organization", name: "SOKUNOBANK運営事務局" },
+};
+
+const faqItems = [
+  {
+    question: "展示会向けにはどんなノベルティが定番ですか?",
+    answer:
+      "クリアファイル・トートバッグが定番として挙げられることが多く、携帯性を重視する場合はミニボトル・ペットボトルラベルのような軽量なアイテムも選ばれます。資料と一緒に渡しやすいアイテムかどうかが選定のポイントです。",
+  },
+  {
+    question: "周年記念品にはどんなノベルティが向いていますか?",
+    answer:
+      "社名や団体名を入れたステンレスタンブラー・マグカップ、職場で使えるマウスパッド・モバイルバッテリーなどが周年記念品としてよく選ばれます。日常的に使ってもらえるアイテムほど、贈った後も目に触れる機会が多くなります。",
+  },
+  {
+    question: "急ぎでノベルティが必要な場合、対応できますか?",
+    answer:
+      "ノベルティは名入れ加工に時間がかかる商品が多いため、標準納期は比較的長めになりがちです。一方で「短納期対応」を明示した商品ラインナップを用意しているノベルティ専門の通販サービスもあるため、急ぎの場合はそうした短納期対応商品から探すのが現実的です。",
+  },
+];
+---
+
+<Layout
+  title="ノベルティを選ぶときに確認すべきポイント"
+  description="展示会・来店特典向けノベルティを発注する際に確認しておきたい用途・素材・ロットの基本を、実際のネット印刷サービスの取扱例とあわせてまとめました。"
+>
+  <Breadcrumbs items={[{ label: "ホーム", href: "/" }, { label: "カテゴリー一覧", href: "/categories/" }, { label: "ノベルティ" }]} />
+
+  <div class="container section-tight prose">
+    <h1>ノベルティを選ぶときに確認すべきポイント</h1>
+
+    <p>
+      ノベルティは用途(展示会配布・来店特典・周年記念・採用イベント等)によって適した種類・予算感が変わります。
+      発注前に以下のポイントを整理しておくと、比較・発注がスムーズになります。
+    </p>
+
+    <h2>確認しておきたいポイント</h2>
+    <ul>
+      <li>
+        <strong>用途</strong>: 展示会配布・来店特典・社内配布・周年記念・採用イベントなどで、求められる単価・数量が変わります。
+      </li>
+      <li>
+        <strong>名入れ方法</strong>: 印刷・刻印・刺繍など、素材によって対応できる名入れ方法が異なります。
+      </li>
+      <li>
+        <strong>最小ロット</strong>: 名入れ商品は最小ロットが設定されていることが多く、少数だけの発注は割高になりがちです。
+        1点から購入できるアイテムを扱っているサービスもあります。
+      </li>
+      <li>
+        <strong>納期</strong>: 名入れ加工には別途日数がかかるため、イベント日程から逆算して発注時期を決める必要があります。
+        「5日以内出荷」等の短納期対応を明示した商品から選ぶと、急ぎの場合に選びやすくなります。
+      </li>
+    </ul>
+
+    <h2>用途別によく選ばれるノベルティの例</h2>
+    <p>
+      国内のノベルティ通販サービスの取扱商品例を見ると、用途によって選ばれやすいアイテムに一定の傾向があります(2026年9月確認時点)。
+    </p>
+    <ul>
+      <li><strong>展示会・イベント配布</strong>: クリアファイル、トートバッグ、ミニボトル、ペットボトルラベル</li>
+      <li><strong>周年記念品・創立記念品</strong>: ステンレスタンブラー、マグカップ、マウスパッド、モバイルバッテリー</li>
+      <li><strong>採用イベント・会社説明会</strong>: ボールペン、クリアファイル、モバイルバッテリー</li>
+      <li><strong>卒業・卒園記念品</strong>: タンブラー、マグカップ、巾着袋</li>
+    </ul>
+    <p>価格・取扱商品は変動するため、発注前に必ず各社公式サイトで最新情報をご確認ください。</p>
+
+    <h2>急ぎで少量だけ用意したい場合</h2>
+    <p>
+      1点からでも購入できる汎用の実用品(文房具・タオル等)であれば、名入れなしの市販品を少量から調達する方法もあります。
+      以下はAmazonで探す際のリンクです(アソシエイトリンクを含みます)。
+    </p>
+    <p>
+      <a href={amazonSearch("ノベルティグッズ")} target="_blank" rel="sponsored noopener">
+        ノベルティグッズをAmazonで探す →
+      </a>
+    </p>
+
+    <FaqSection items={faqItems} />
+
+    <p><a href="/categories/">カテゴリー一覧に戻る →</a></p>
+  </div>
+</Layout>
+<script type="application/ld+json" set:html={JSON.stringify(articleJsonLd)} />

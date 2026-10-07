@@ -1,0 +1,157 @@
+---
+import Layout from "../../layouts/Layout.astro";
+import Breadcrumbs from "../../components/Breadcrumbs.astro";
+import FaqSection from "../../components/FaqSection.astro";
+
+const title = "停電対策を今日中にやる｜発電機・ポータブル電源・必需品";
+const description = "停電が予測される場合に今日中に手配できる発電機・ポータブル電源・懐中電灯・乾電池。配送地域別の翌日配達対応商品をまとめました。";
+
+const faqs = [
+  {
+    question: "停電対策を今日中に用意できますか？",
+    answer: "はい。SOKUNOBANK掲載の発電機・ポータブル電源は翌日配送対応が多く、今日14時までの注文で明日配達が可能です。ただしお届け先エリアを確認の上、配送日をご確認ください。",
+  },
+  {
+    question: "家庭用なら何Wの発電機が必要ですか？",
+    answer: "一般的な家庭の必需品（冷蔵庫・照明・充電器）なら1000W～1500W、複数台の家電を同時に使う場合は2000W以上が目安です。テレビ・パソコン・扇風機を同時に動かす場合は2000W推奨。",
+  },
+  {
+    question: "ポータブル電源と発電機はどちらを選びますか？",
+    answer: "ポータブル電源は屋内でも使用でき、騒音が少なく、長期保管に向いています。発電機はポータブル電源より容量が大きく、長時間の停電に対応します。停電期間が不明な場合はポータブル電源をお勧めします。",
+  },
+  {
+    question: "燃料式発電機の使用場所に注意点がありますか？",
+    answer: "ガソリン・灯油を使う発電機は屋内・車内・テント内での使用は絶対に禁止です。排気ガスに一酸化炭素が含まれ、極めて危険です。必ず屋外の風通しの良い場所で使用してください。",
+  },
+];
+---
+
+<Layout {title} {description}>
+  <Breadcrumbs items={[{ label: "ホーム", href: "/" }, { label: "ガイド", href: "/guides/" }, { label: title }]} />
+
+  <div class="container">
+    <article class="guide-article">
+      <h1>停電対策を今日中にやる｜発電機・ポータブル電源・必需品</h1>
+
+      <p class="lead">
+        台風・地震・悪天候による停電が予測される場合、今日中に対策を講じることが重要です。発電機・ポータブル電源は配送が間に合わない可能性がありますが、懐中電灯・乾電池・モバイルバッテリー・ランタンなら今日中に手配可能です。また、SOKUNOBANK掲載の電源製品の中には翌日配達対応のものも多く、緊急度に応じた選択肢をご案内します。
+      </p>
+
+      <section>
+        <h2>停電対策を今日中にやるなら｜優先順位と手配方法</h2>
+        <p>
+          停電対策の優先順位は以下の通りです。
+        </p>
+        <ol>
+          <li><strong>照明（懐中電灯・ランタン）</strong>：最優先。今日中にホームセンターで購入可能。2～3個用意</li>
+          <li><strong>乾電池</strong>：懐中電灯用。今日中に購入。単1・単2・単3を混在で購入</li>
+          <li><strong>モバイルバッテリー（10000mAh以上）</strong>：スマートフォン・連絡手段確保。今日中に購入か翌日配送で対応</li>
+          <li><strong>ポータブル電源</strong>：翌日配送対応あり。事前の用意が最善</li>
+          <li><strong>発電機</strong>：配送に日数がかかるため、今日中は難しい。翌日配送対応を確認</li>
+        </ol>
+        <p>
+          予測できる停電なら、発電機は事前に用意するのが最適です。
+        </p>
+      </section>
+
+      <section>
+        <h2>今日中に手配できる停電対策グッズ</h2>
+        <ul>
+          <li><strong>懐中電灯</strong>：LED式なら電池が長持ち。家族人数 + 1個用意（持ち運び用）</li>
+          <li><strong>単3乾電池</strong>：最も汎用性が高い。最低20本</li>
+          <li><strong>LED ランタン</strong>：リビング・寝室など複数の部屋に配置。2～3個</li>
+          <li><strong>モバイルバッテリー</strong>：20000mAh なら スマートフォン3～4回充電可能</li>
+          <li><strong>手回し充電ラジオ</strong>：電池不要で災害情報キャッチ可能</li>
+          <li><strong>懐中電灯用乾電池</strong>：予備を多めに（電池切れに備えて）</li>
+        </ul>
+        <p>
+          これらは大型ホームセンター・100円ショップ・Amazonで今日中の配達が見込めます。
+        </p>
+      </section>
+
+      <section>
+        <h2>停電が翌日以降なら｜発電機・ポータブル電源の選び方</h2>
+        <p>
+          停電予測が翌日以降なら、SOKUNOBANK掲載の発電機・ポータブル電源から選ぶことができます。
+        </p>
+        <ul>
+          <li><strong>ポータブル電源（1000Wh～2000Wh）</strong>：冷蔵庫・照明・スマートフォン・パソコンが動作。屋内でも使用可。騒音ゼロ。価格帯15万～30万円。翌日配送対応</li>
+          <li><strong>発電機（1000W～2000W）</strong>：長時間の停電に対応。燃料補充で継続使用。屋外専用。騒音あり。価格帯10万～20万円。翌日配送対応</li>
+        </ul>
+      </section>
+
+      <section>
+        <h2>停電時の過ごし方｜電源確保の手順</h2>
+        <ol>
+          <li><strong>情報収集</strong>：ラジオ・スマートフォンで停電エリア・復旧予定を確認</li>
+          <li><strong>冷蔵庫の開閉を最小化</strong>：停電中は開けない（24時間程度は冷気が保持される）</li>
+          <li><strong>懐中電灯・ランタンを配置</strong>：各部屋に1個ずつ</li>
+          <li><strong>携帯電話を節電モードに</strong>：モバイルバッテリーを温存</li>
+          <li><strong>ポータブル電源・発電機がある場合</strong>：冷蔵庫・医療用機器など重要な家電から優先的に接続</li>
+        </ol>
+      </section>
+
+      <section>
+        <h2>発電機使用時の重要な安全注意</h2>
+        <p style="color: var(--color-urgent); font-weight: bold;">
+          ガソリン・灯油を使う燃料式発電機は、排気ガスに一酸化炭素が含まれています。
+        </p>
+        <ul>
+          <li><strong>屋内・車内・テント内での使用は絶対禁止</strong>：一酸化炭素中毒の危険</li>
+          <li><strong>窓・ドアを閉じたまま屋外に置かない</strong>：排気が室内に流入する危険</li>
+          <li><strong>半屋外・物置での使用も禁止</strong>：換気が不十分</li>
+          <li><strong>屋外の風通しの良い場所で使用</strong>：最低3m以上の距離を確保</li>
+          <li><strong>使用方法は製品ごとの取扱説明書に従う</strong></li>
+        </ul>
+        <p>
+          ポータブル電源（バッテリー式）は排気ガスが出ないため屋内でも安全ですが、こちらも取扱説明書の指示に従ってください。
+        </p>
+      </section>
+
+      <section>
+        <h2>翌日配送で手配できる発電機・ポータブル電源</h2>
+        <p>
+          以下のリンクから、翌日配送対応の発電機・ポータブル電源が確認できます。停電予測が翌日以降の場合はこちらをご参照ください。
+        </p>
+        <p style="text-align: center; margin: 2rem 0;">
+          <a href="/categories/generator/" class="btn btn-primary" style="display: inline-block;">
+            即納対応の発電機を比較する
+          </a>
+        </p>
+      </section>
+
+      <section>
+        <h2>停電対策のよくある質問</h2>
+      </section>
+    </article>
+
+    <FaqSection items={faqs} />
+  </div>
+</Layout>
+
+<style is:global>
+  .guide-article {
+    max-width: 800px;
+    margin: 2rem auto;
+  }
+  .guide-article h2 {
+    margin-top: 2rem;
+    margin-bottom: 1rem;
+  }
+  .guide-article p {
+    line-height: 1.8;
+    margin-bottom: 1rem;
+  }
+  .guide-article ul, .guide-article ol {
+    margin-left: 1.5rem;
+    margin-bottom: 1.5rem;
+  }
+  .guide-article li {
+    margin-bottom: 0.75rem;
+  }
+  .lead {
+    font-size: 1.1rem;
+    color: var(--color-text-muted);
+    margin-bottom: 2rem;
+  }
+</style>

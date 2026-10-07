@@ -1,0 +1,67 @@
+---
+import Layout from "../../layouts/Layout.astro";
+import Breadcrumbs from "../../components/Breadcrumbs.astro";
+
+const publishedDate = "2026-09-27";
+const articleJsonLd = {
+  "@context": "https://schema.org",
+  "@type": "Article",
+  headline: "DMを今日中に発送する方法",
+  description: "DM(ダイレクトメール)の当日発送を狙うために、宛名リスト・デザインデータの準備状況別に確認すべきポイントをまとめました。",
+  datePublished: publishedDate,
+  dateModified: publishedDate,
+  author: { "@type": "Organization", name: "SOKUNOBANK運営事務局" },
+  publisher: { "@type": "Organization", name: "SOKUNOBANK運営事務局" },
+};
+---
+
+<Layout
+  title="DMを今日中に発送する方法"
+  description="DM(ダイレクトメール)の当日発送を狙うために確認すべき部数・締切時刻・準備状況のポイントをまとめました。"
+>
+  <Breadcrumbs
+    items={[{ label: "ホーム", href: "/" }, { label: "DM(ダイレクトメール)発送代行", href: "/categories/dm/" }, { label: "DMを今日中に発送する方法" }]}
+  />
+
+  <div class="container section-tight prose">
+    <h1>DMを今日中に発送する方法</h1>
+
+    <p>
+      DM発送代行サービスでは、部数が少なく、宛名リスト・デザインデータが手元にそろっていれば
+      当日発送を狙える場合があります。ただし、対応可否は仕様(はがき/封筒等)・部数・締切時刻によって
+      大きく変わるため、事前確認が重要です。
+    </p>
+
+    <h2>当日発送の条件として一般的に重要なポイント</h2>
+    <ul>
+      <li>
+        <strong>部数</strong>: 少部数(目安5,000通以下)であれば、はがき系DMで当日発送に対応しやすい傾向があります。
+        部数が多いほど対応可能な発送枠が限られ、納期が延びる傾向があります。
+      </li>
+      <li>
+        <strong>仕様</strong>: はがき・A4大判はがきなどはがき系の仕様は当日発送に対応しやすい一方、
+        OPP封筒を使った封筒系DMは同じ「お急ぎ」プランでも納期が長くなる(目安10〜12営業日程度)傾向があります。
+      </li>
+      <li>
+        <strong>入稿締切時刻</strong>: 各社とも当日発送には早い時間帯(午前中〜早い午後)までの
+        データ確定が必要になることが一般的です。締切時刻は業者・仕様によって異なるため、
+        発注前に必ず公式サイトで最新の締切時刻を確認してください。
+      </li>
+      <li>
+        <strong>宛名リスト・デザインデータの準備状況</strong>:
+        宛名リストとデザインデータの両方が確定済みであることが、当日発送の前提条件になります。
+      </li>
+    </ul>
+
+    <h2>具体的な業者・プランの比較</h2>
+    <p>
+      仕様ごとの単価・納期の目安、当日発送に対応しやすいプランの詳細は、DM発送代行サービスの比較ページで確認できます。
+    </p>
+    <p><a href="/categories/dm/">DM発送代行サービスの比較はこちら →</a></p>
+
+    <h2>ごく少量の場合</h2>
+    <p>数枚〜数十枚程度のごく少量であれば、自分で資材を用意して発送した方が早いこともあります。</p>
+    <p><a href="/guides/dm-self-shipping/">少量のDMなら自分で発送する方法はこちら →</a></p>
+  </div>
+</Layout>
+<script type="application/ld+json" set:html={JSON.stringify(articleJsonLd)} />
