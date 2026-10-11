@@ -35,32 +35,35 @@ const guide = buildGuide(EMPTY_ANSWERS);
         <p class="copy-sub" data-lp-sub>{DEFAULT_SUB}</p>
         <p class="copy-note">発送日・割引の適用を保証するものではありません。最新の条件はUp-T公式でご確認ください。</p>
       </div>
+      <p class="hero-note">発送日・割引の適用を保証するものではありません。最新の条件はUp-T公式でご確認ください。</p>
+
+      <div class="uphero-photo" aria-hidden="true"></div>
 
       <form class="selector card" data-lp-form onsubmit="return false" aria-label="発注条件の選択">
-        {
-          QUESTIONS.map((q, i) => (
-            <fieldset class="q" data-q={q.key}>
-              <legend>
-                <span class="qn">Q{i + 1}</span>
-                {q.label}
-              </legend>
-              <div class="opts">
-                {q.options.map((o) => (
-                  <label class="opt">
-                    <input type="radio" name={q.key} value={o.value} />
-                    <span>{o.label}</span>
-                  </label>
-                ))}
+        <div class="q-grid">
+          {
+            QUESTIONS.map((q, i) => (
+              <div class="q" data-q={q.key}>
+                <label for={`q-${q.key}`}>
+                  <span class="qn">Q{i + 1}</span>
+                  {q.label}
+                </label>
+                <select id={`q-${q.key}`} name={q.key}>
+                  <option value="">選択してください</option>
+                  {q.options.map((o) => (
+                    <option value={o.value}>{o.label}</option>
+                  ))}
+                </select>
+                {q.key === "deadline" && (
+                  <div class="date-row" data-date-row hidden>
+                    <label for="use-date">使用したい日</label>
+                    <input id="use-date" type="date" name="use-date" />
+                  </div>
+                )}
               </div>
-              {q.key === "deadline" && (
-                <div class="date-row" data-date-row hidden>
-                  <label for="use-date">使用したい日</label>
-                  <input id="use-date" type="date" name="use-date" />
-                </div>
-              )}
-            </fieldset>
-          ))
-        }
+            ))
+          }
+        </div>
         <a class="btn btn-primary btn-lg main-cta" href="#guide" data-main-cta>納期の目安と発注方法を確認</a>
       </form>
     </div>
@@ -154,7 +157,7 @@ const guide = buildGuide(EMPTY_ANSWERS);
     gap: 1rem;
     padding-top: 1rem;
     padding-bottom: 1.5rem;
-    grid-template-areas: "pr" "copy" "form";
+    grid-template-areas: "pr" "hero" "note" "form";
   }
   .pr-line {
     grid-area: pr;
@@ -177,19 +180,43 @@ const guide = buildGuide(EMPTY_ANSWERS);
     font-weight: 700;
     letter-spacing: 0.04em;
   }
+  /* スマホ用の画像(PCでは非表示。display:noneの要素の背景画像は読み込まれない) */
+  .uphero-photo {
+    grid-area: hero;
+    aspect-ratio: 5 / 4;
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--color-border);
+    background: url("/images/up-t-hero.webp") 70% bottom / cover no-repeat;
+  }
+  /* スマホ: コピーを画像の左上に重ねる(同じグリッドセルに配置)。白のグラデーションで可読性を確保 */
   .copy {
-    grid-area: copy;
+    grid-area: hero;
     align-self: start;
+    z-index: 1;
+    padding: 0.75rem 0.75rem 1.25rem;
+    border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.92) 0%, rgba(255, 255, 255, 0.8) 70%, rgba(255, 255, 255, 0) 100%);
   }
   .copy h1 {
-    font-size: clamp(1.35rem, 5.4vw, 2.1rem);
+    font-size: clamp(1.1rem, 5vw, 1.35rem);
     line-height: 1.4;
-    margin: 0 0 0.5rem;
+    margin: 0 0 0.3rem;
   }
   .copy-sub {
     color: var(--color-accent-dark);
     font-weight: 600;
-    margin: 0 0 0.5rem;
+    font-size: 0.8rem;
+    line-height: 1.5;
+    margin: 0;
+  }
+  .copy .copy-note {
+    display: none;
+  }
+  .hero-note {
+    grid-area: note;
+    margin: 0;
+    font-size: 0.8rem;
+    color: var(--color-text-muted);
   }
   .copy-note {
     margin: 0;
@@ -200,55 +227,34 @@ const guide = buildGuide(EMPTY_ANSWERS);
     grid-area: form;
     padding: 1rem;
   }
-  .q {
-    border: 0;
-    padding: 0;
-    margin: 0 0 1rem;
+  .q-grid {
+    display: grid;
+    gap: 0.75rem;
+    margin-bottom: 1rem;
   }
-  .q legend {
+  .q label {
+    display: block;
     font-weight: 700;
-    margin-bottom: 0.4rem;
-    padding: 0;
+    font-size: 0.9rem;
+    margin-bottom: 0.3rem;
   }
   .qn {
     display: inline-block;
     margin-right: 0.4rem;
     color: var(--color-accent-dark);
   }
-  .opts {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.5rem;
-  }
-  .opt {
-    position: relative;
-    cursor: pointer;
-  }
-  .opt input {
-    position: absolute;
-    opacity: 0;
-    inset: 0;
+  .q select {
     width: 100%;
-    height: 100%;
-    margin: 0;
-    cursor: pointer;
-  }
-  .opt span {
-    display: inline-flex;
-    align-items: center;
     min-height: 44px;
-    padding: 0 0.9rem;
+    padding: 0 2rem 0 0.7rem;
     border: 1px solid var(--color-border);
     border-radius: var(--radius-md);
     background: #fff;
-    font-size: 0.92rem;
+    color: var(--color-text);
+    font: inherit;
+    font-size: 0.95rem;
   }
-  .opt input:checked + span {
-    border-color: var(--color-accent-dark);
-    background: var(--color-accent-soft);
-    font-weight: 700;
-  }
-  .opt input:focus-visible + span {
+  .q select:focus-visible {
     outline: 2px solid var(--color-accent-dark);
     outline-offset: 2px;
   }
@@ -353,23 +359,43 @@ const guide = buildGuide(EMPTY_ANSWERS);
   }
 
   @media (min-width: 900px) {
+    .uphero-photo,
+    .hero-note {
+      display: none;
+    }
+    .copy .copy-note {
+      display: block;
+    }
     .uphero-grid {
-      grid-template-columns: 480px minmax(0, 1fr);
-      grid-template-areas: "pr copy" "form copy";
+      grid-template-columns: minmax(0, 540px) minmax(0, 1fr);
+      grid-template-areas: "pr ." "copy ." "form .";
       align-items: start;
       padding-top: 1.5rem;
       padding-bottom: 2.5rem;
       column-gap: 2rem;
     }
     .copy {
+      grid-area: copy;
       padding: 1.5rem;
-      justify-self: end;
-      max-width: 440px;
+      justify-self: start;
+      width: 100%;
       background: rgba(255, 255, 255, 0.86);
       border-radius: var(--radius-lg);
     }
+    .copy h1 {
+      font-size: clamp(1.35rem, 2.2vw, 2.1rem);
+      margin: 0 0 0.5rem;
+    }
+    .copy-sub {
+      font-size: 1rem;
+      margin: 0 0 0.5rem;
+    }
     .guide-grid {
       grid-template-columns: repeat(3, 1fr);
+    }
+    .q-grid {
+      grid-template-columns: repeat(2, 1fr);
+      column-gap: 1rem;
     }
   }
 </style>
@@ -466,14 +492,15 @@ const guide = buildGuide(EMPTY_ANSWERS);
     }
     const key = t.name as QuestionKey;
     if (!(key in answers)) return;
-    (answers as unknown as Record<string, string | null>)[key] = t.value;
+    const value = t.value || null;
+    (answers as unknown as Record<string, string | null>)[key] = value;
     if (key === "deadline") {
-      if (dateRow) dateRow.hidden = t.value !== "date";
-      if (t.value !== "date") answers.daysLeft = null;
+      if (dateRow) dateRow.hidden = value !== "date";
+      if (value !== "date") answers.daysLeft = null;
       else updateDays();
     }
-    render(key);
-    track("lp_select", { question: key, answer: t.value });
+    render(value ? key : null);
+    if (value) track("lp_select", { question: key, answer: value });
   });
 
   document.querySelector("[data-main-cta]")?.addEventListener("click", () => {
