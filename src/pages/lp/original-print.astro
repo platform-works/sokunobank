@@ -55,9 +55,9 @@ const reasons = [
 
       <div class="copy">
         <h1 id="lp-h1" data-lp-headline>
-          オリジナル<span data-lp-product>{product.shortName}</span>、<em>急ぎでも簡単発注。</em>
+          オリジナル<span data-lp-product>{product.shortName}</span>、<em data-lp-catch>{product.catchcopy}</em>
         </h1>
-        <p class="copy-sub" data-lp-sub>{DEFAULT_SUB}</p>
+        <p class="copy-sub" data-lp-sub>{product.subcopy}</p>
       </div>
 
       <!-- ファーストビューの主要画像: 遅延読み込みしない(fetchpriority=high)。AVIF/WebPの複数幅(srcset) -->
@@ -1139,8 +1139,9 @@ const reasons = [
       border-radius: 0;
     }
     .uphero-grid {
-      grid-template-columns: minmax(0, 630px) minmax(0, 1fr);
-      grid-template-areas: "pr ." "copy ." "form ." "note .";
+      /* 選択ボックスは幅を固定(420px)。見出しは画像側へ広げて表示する */
+      grid-template-columns: 420px minmax(0, 1fr);
+      grid-template-areas: "pr pr" "copy copy" "form ." "note .";
       align-items: start;
       padding-top: 1.25rem;
       padding-bottom: 2rem;
@@ -1149,6 +1150,9 @@ const reasons = [
     .uphero-grid > :not(.hero-pic) {
       position: relative;
       z-index: 1;
+    }
+    .copy {
+      max-width: 560px;
     }
     .copy h1 {
       font-size: clamp(2.4rem, 4vw, 3.4rem);
@@ -1169,8 +1173,8 @@ const reasons = [
       font-size: 0.8rem;
     }
     .q-grid {
-      grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
-      column-gap: 1rem;
+      grid-template-columns: minmax(0, 1fr);
+      gap: 0.85rem;
     }
     .hero-note {
       background: rgba(255, 255, 255, 0.8);
@@ -1257,6 +1261,7 @@ const reasons = [
   function renderProduct() {
     const p = getProduct(answers.product) ?? getProduct(DEFAULT_PRODUCT_ID)!;
     setText("[data-lp-product]", p.shortName);
+    setText("[data-lp-catch]", p.catchcopy);
     setText("[data-combo-label]", p.name);
     const comboArt = $("[data-combo-art]");
     if (comboArt) comboArt.innerHTML = productArt(p.art);
@@ -1301,6 +1306,7 @@ const reasons = [
       });
     }
     renderGuide();
+    renderCopy();
   }
 
   function renderGuide() {
@@ -1315,7 +1321,8 @@ const reasons = [
   function renderCopy() {
     const v = lastKey ? answers[lastKey] : null;
     const copy = lastKey && v ? HEADLINE_BY_ANSWER[`${lastKey}:${v}`] : null;
-    setText("[data-lp-sub]", copy ? copy.headline : DEFAULT_SUB);
+    const cur = getProduct(answers.product) ?? getProduct(DEFAULT_PRODUCT_ID)!;
+    setText("[data-lp-sub]", copy ? copy.headline : cur.subcopy);
   }
 
   // --- 商品の選択(PCプルダウン・PCストリップ・スマホグリッド共通) ---

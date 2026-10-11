@@ -45,6 +45,10 @@ export interface Product {
   /** 正式な商品名・販売状況をUp-T公式と照合済みか */
   verified: boolean;
   lead: string;
+  /** ヒーロー見出し(h1)の強調部分。「オリジナル○○、<catchcopy>」の形で表示する。納期・価格・対応可否を断定しない */
+  catchcopy: string;
+  /** ヒーローのサブコピー(未回答時)。広告文と整合させる。公式で未確認の事実は書かない */
+  subcopy: string;
   uses: ProductUse[];
   design: string[];
   checks: string[];
@@ -67,6 +71,8 @@ export const PRODUCTS: Product[] = [
     publish: true,
     verified: false,
     lead: "クラス・サークル・イベントのおそろいに。人数分のサイズ内訳を決めておくと、注文がスムーズです。",
+    catchcopy: "急ぎでも簡単発注。",
+    subcopy: "デザインデータがあっても、なくても。必要な枚数と使用日から発注方法をチェック。",
     uses: [
       { title: "クラス・サークル", sub: "文化祭・体育祭・部活に" },
       { title: "企業・スタッフ", sub: "展示会・店舗・社内イベントに" },
@@ -86,6 +92,8 @@ export const PRODUCTS: Product[] = [
     publish: true,
     verified: false,
     lead: "部活・サークルのチームウェアに。サイズ展開と色を、全員分そろえて決めておくと進めやすくなります。",
+    catchcopy: "部活・サークルのおそろいに。",
+    subcopy: "パーカー・スウェットのサイズと色を全員分そろえて、発注方法をチェック。",
     uses: [
       { title: "部活・チーム", sub: "チームウェア・応援に" },
       { title: "サークル・学校", sub: "学園祭・卒業記念に" },
@@ -105,6 +113,8 @@ export const PRODUCTS: Product[] = [
     publish: true,
     verified: false,
     lead: "店舗・受付・イベント運営のユニフォームに。ロゴの位置と大きさを決めておくと確認がスムーズです。",
+    catchcopy: "スタッフのユニフォームに。",
+    subcopy: "ロゴの位置と大きさ、サイズ別の枚数から、発注方法をチェック。",
     uses: [
       { title: "店舗・受付", sub: "スタッフユニフォームに" },
       { title: "展示会・イベント", sub: "運営スタッフの目印に" },
@@ -124,6 +134,8 @@ export const PRODUCTS: Product[] = [
     publish: true,
     verified: false,
     lead: "イベントスタッフやチームの目印に。刺しゅう・プリントなどの加工方法は商品ごとに異なります。",
+    catchcopy: "チームやスタッフの目印に。",
+    subcopy: "個数と色、デザインを入れる位置から、発注方法をチェック。",
     uses: [
       { title: "イベント・スタッフ", sub: "運営スタッフの目印に" },
       { title: "チーム・部活", sub: "大会・遠征に" },
@@ -143,6 +155,8 @@ export const PRODUCTS: Product[] = [
     publish: true,
     verified: false,
     lead: "店舗・工房・イベント運営の制服に。丈やサイズ展開は商品ごとに異なるため、商品ページで確認できます。",
+    catchcopy: "店舗・イベントの制服に。",
+    subcopy: "サイズと枚数、使用日から、発注方法をチェック。",
     uses: [
       { title: "飲食・店舗", sub: "制服・スタッフ用に" },
       { title: "工房・作業", sub: "制作・体験イベントに" },
@@ -162,6 +176,8 @@ export const PRODUCTS: Product[] = [
     publish: true,
     verified: false,
     lead: "展示会・イベントの配布やショップのノベルティに。印刷範囲とサイズを決めておくと確認がスムーズです。",
+    catchcopy: "配布やノベルティに。",
+    subcopy: "印刷範囲とサイズ、個数から、発注方法をチェック。",
     uses: [
       { title: "展示会・イベント", sub: "来場者への配布に" },
       { title: "ショップ", sub: "ノベルティ・購入特典に" },
@@ -181,6 +197,8 @@ export const PRODUCTS: Product[] = [
     publish: true,
     verified: false,
     lead: "応援・イベント配布・周年記念に。デザインを入れられる範囲は商品ごとに異なります。",
+    catchcopy: "応援・配布・記念に。",
+    subcopy: "デザインを入れる範囲と個数から、発注方法をチェック。",
     uses: [
       { title: "部活・応援", sub: "大会・ライブの応援に" },
       { title: "イベント配布", sub: "来場者・参加者へ" },
@@ -200,6 +218,8 @@ export const PRODUCTS: Product[] = [
     publish: true,
     verified: false,
     lead: "企業ノベルティ・卒業記念・プレゼントに。印刷できる範囲と色の再現は商品ごとに異なります。",
+    catchcopy: "ノベルティ・記念品に。",
+    subcopy: "印刷できる範囲と個数、使用日から、発注方法をチェック。",
     uses: [
       { title: "企業ノベルティ", sub: "来場者・取引先への配布に" },
       { title: "卒業・記念", sub: "卒業記念・周年記念に" },
@@ -219,6 +239,8 @@ export const PRODUCTS: Product[] = [
     publish: true,
     verified: false,
     lead: "個人制作やイベントグッズに。対応機種は商品ごとに異なるため、機種名を決めておくと確認がスムーズです。",
+    catchcopy: "自分だけのデザインで。",
+    subcopy: "機種名とデザインから、発注方法をチェック。",
     uses: [
       { title: "個人のオリジナル", sub: "自分だけの1点に" },
       { title: "イベントグッズ", sub: "イベント・サークルのグッズに" },
@@ -238,6 +260,8 @@ export const PRODUCTS: Product[] = [
     publish: true,
     verified: false,
     lead: "イベント配布や記念品に。形やサイズは商品ごとに異なります。",
+    catchcopy: "イベント配布・記念品に。",
+    subcopy: "形・サイズと個数から、発注方法をチェック。",
     uses: [
       { title: "イベント配布", sub: "来場者・参加者へ" },
       { title: "記念品", sub: "卒業・周年の記念に" },
@@ -257,6 +281,8 @@ export const PRODUCTS: Product[] = [
     publish: true,
     verified: false,
     lead: "作りたいものに合わせて、取り扱い商品をUp-T公式で確認できます。",
+    catchcopy: "作りたいものから選んで。",
+    subcopy: "作りたいものと使用日から、発注方法をチェック。",
     uses: [
       { title: "学校・サークル", sub: "学園祭・部活に" },
       { title: "企業・店舗", sub: "販促・社内イベントに" },
@@ -288,6 +314,8 @@ export const PRODUCTS: Product[] = [
       publish: false,
       verified: false,
       lead: "取り扱い・仕様はUp-T公式でご確認ください。",
+      catchcopy: "急ぎでも簡単発注。",
+      subcopy: "デザインデータがあっても、なくても。必要な枚数と使用日から発注方法をチェック。",
       uses: [],
       design: DESIGN_COMMON,
       checks: ["必要な数量", "デザインを入れる位置と大きさ", "使用日と、受け取りに必要な日程"],
