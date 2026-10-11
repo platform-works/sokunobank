@@ -64,7 +64,12 @@ const guide = buildGuide(EMPTY_ANSWERS);
             ))
           }
         </div>
-        <a class="btn btn-primary btn-lg main-cta" href="#guide" data-main-cta>納期の目安と発注方法を確認</a>
+        <!-- A8.net 素材ID 1(テキスト広告)をメインCTAとして配置。広告コードは原文のまま(文言も変更しない)。見た目は親要素のCSSのみでボタン化する -->
+        <div class="main-ad">
+          <p class="main-ad-label"><span class="pr-badge">PR</span>Up-T公式サイトへ(広告リンク)</p>
+          <div class="ad-button" data-upt-ad="1" data-ad-type="text" data-ad-position="hero" set:html={UPT_AD_TEXT_1} />
+          <a class="guide-link" href="#guide" data-guide-link>条件の整理を見る</a>
+        </div>
       </form>
     </div>
   </section>
@@ -91,9 +96,6 @@ const guide = buildGuide(EMPTY_ANSWERS);
 
       <div class="cta-box">
         <p class="cta-lead" data-guide-cta>{guide.ctaLead}</p>
-        <p class="cta-label"><span class="pr-badge">PR</span> Up-T公式サイトへ(広告リンク)</p>
-        <!-- A8.net 素材ID 1(テキスト広告)。広告コードは原文のまま。親要素のスタイルのみで装飾する -->
-        <div class="ad-text" data-upt-ad="1" data-ad-type="text" set:html={UPT_AD_TEXT_1} />
         <!-- A8.net 素材ID 74(PC・728×90)/ 15(スマホ・300×250)。表示する方だけをDOMに挿入する(二重描画しない)。type="text/plain"の<script>は解析・描画されず、画像も読み込まれない -->
         <div class="ad-banner" data-upt-banner>
           <div class="ad-banner-slot" data-banner-slot></div>
@@ -275,11 +277,42 @@ const guide = buildGuide(EMPTY_ANSWERS);
     border-radius: var(--radius-md);
     font: inherit;
   }
-  .main-cta {
+  .main-ad-label {
     display: flex;
-    width: 100%;
+    align-items: center;
+    gap: 0.5rem;
+    margin: 0 0 0.4rem;
+    font-size: 0.8rem;
+    color: var(--color-text-muted);
+  }
+  /* 広告コードは変更せず、親要素のCSSのみでボタンに見せる(リンク文言はA8の素材のまま) */
+  .ad-button :global(a) {
+    display: flex;
+    align-items: center;
     justify-content: center;
-    text-align: center;
+    width: 100%;
+    min-height: 48px;
+    padding: 0 1rem;
+    border-radius: var(--radius-md);
+    background: var(--color-accent-dark);
+    color: #fff;
+    font-weight: 700;
+    font-size: 1.05rem;
+    text-decoration: none;
+  }
+  .ad-button :global(a:hover) {
+    filter: brightness(0.92);
+  }
+  .ad-button :global(a:focus-visible) {
+    outline: 2px solid var(--color-text);
+    outline-offset: 2px;
+  }
+  .guide-link {
+    display: inline-block;
+    margin-top: 0.5rem;
+    font-size: 0.9rem;
+    color: var(--color-accent-dark);
+    text-decoration: underline;
   }
 
   .guide {
@@ -322,18 +355,6 @@ const guide = buildGuide(EMPTY_ANSWERS);
     font-size: 0.85rem;
     color: var(--color-text-muted);
     margin-bottom: 0.4rem;
-  }
-  /* 広告コード自体は変更しない。親要素のスタイルのみで、タップしやすい大きさにする */
-  .ad-text {
-    margin-bottom: 1rem;
-    font-size: 1.1rem;
-    font-weight: 700;
-  }
-  .ad-text :global(a) {
-    display: inline-block;
-    padding: 0.7rem 0;
-    color: var(--color-accent-dark);
-    text-decoration: underline;
   }
   .ad-banner-slot {
     overflow-x: auto;
@@ -503,7 +524,7 @@ const guide = buildGuide(EMPTY_ANSWERS);
     if (value) track("lp_select", { question: key, answer: value });
   });
 
-  document.querySelector("[data-main-cta]")?.addEventListener("click", () => {
+  document.querySelector("[data-guide-link]")?.addEventListener("click", () => {
     track("lp_guide_open", {
       design: answers.design ?? undefined,
       category: answers.category ?? undefined,
