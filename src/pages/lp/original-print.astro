@@ -125,7 +125,7 @@ const guide = buildGuide(EMPTY_ANSWERS);
     background: linear-gradient(110deg, #ffffff 0%, var(--color-bg-soft-2) 100%);
     border-bottom: 1px solid var(--color-border);
   }
-  /* 背景画像はPC(900px以上)のみ。既存のhero-banner.webpを再利用し、テキスト側は白グラデーションで可読性を確保する */
+  /* 背景画像はPC(900px以上)のみ。up-t-hero.webp(ユーザー提供)を使用。左の選択ボックスは白カード、右のコピーは半透明の白地で可読性を確保する */
   .uphero-bg {
     display: none;
   }
@@ -134,9 +134,18 @@ const guide = buildGuide(EMPTY_ANSWERS);
       display: block;
       position: absolute;
       inset: 0;
-      background:
-        linear-gradient(90deg, rgba(255, 255, 255, 0.96) 0%, rgba(255, 255, 255, 0.85) 38%, rgba(255, 255, 255, 0.3) 62%, rgba(255, 255, 255, 0) 80%),
-        url("/images/hero-banner.webp") right center / cover no-repeat;
+    }
+    /* 画像は右寄せ・高さいっぱいで表示し、左端は背景色へなじませる(選択ボックスと人物が重なりにくくする) */
+    .uphero-bg::before {
+      content: "";
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      right: 0;
+      aspect-ratio: 1672 / 941;
+      background: url("/images/up-t-hero.webp") center / cover no-repeat;
+      -webkit-mask-image: linear-gradient(90deg, transparent 0%, #000 22%);
+      mask-image: linear-gradient(90deg, transparent 0%, #000 22%);
     }
   }
   .uphero-grid {
@@ -170,7 +179,7 @@ const guide = buildGuide(EMPTY_ANSWERS);
   }
   .copy {
     grid-area: copy;
-    align-self: center;
+    align-self: start;
   }
   .copy h1 {
     font-size: clamp(1.35rem, 5.4vw, 2.1rem);
@@ -355,8 +364,8 @@ const guide = buildGuide(EMPTY_ANSWERS);
     .copy {
       padding: 1.5rem;
       justify-self: end;
-      max-width: 520px;
-      background: rgba(255, 255, 255, 0.82);
+      max-width: 440px;
+      background: rgba(255, 255, 255, 0.86);
       border-radius: var(--radius-lg);
     }
     .guide-grid {
