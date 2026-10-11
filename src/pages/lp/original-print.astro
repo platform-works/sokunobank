@@ -333,7 +333,7 @@ const reasons = [
       <div class="cta-box">
         <p class="cta-lead" data-guide-cta>{guide.ctaLead}</p>
         <!-- A8.net 素材ID 74(PC・728×90)/ 15(スマホ・300×250)。表示する方だけをDOMに挿入する(二重描画しない)。type="text/plain"の<script>は解析・描画されず、画像も読み込まれない -->
-        <div class="ad-banner" data-upt-banner>
+        <div class="ad-banner" data-upt-banner data-position="guide">
           <div class="ad-banner-slot" data-banner-slot></div>
           <script type="text/plain" data-variant="pc" set:html={UPT_AD_BANNER_74_PC} />
           <script type="text/plain" data-variant="mobile" set:html={UPT_AD_BANNER_15_MOBILE} />
@@ -356,6 +356,36 @@ const reasons = [
     </section>
 
     <FaqSection items={FAQ_ITEMS} />
+
+    <!-- 最後の念押し: 紹介先(Up-T)の情報と、A8素材ID 74(PC)/15(スマホ)。公式サイトのURLは直接リンクにせず、表記のみ(計測を妨げないため) -->
+    <section class="closing card" aria-labelledby="closing-h">
+      <p class="closing-pr"><span class="pr-badge">PR</span>広告</p>
+      <h2 id="closing-h">条件が決まったら、Up-T公式サイトで確認</h2>
+      <dl class="closing-info">
+        <div>
+          <dt>紹介先</dt>
+          <dd>Up-T(アップティー)</dd>
+        </div>
+        <div>
+          <dt>サービス</dt>
+          <dd>オリジナルTシャツ・グッズの制作</dd>
+        </div>
+        <div>
+          <dt>公式サイト</dt>
+          <dd>up-t.jp</dd>
+        </div>
+        <div>
+          <dt>確認すること</dt>
+          <dd>商品・数量・配送先・注文確定時刻によって、発送可能日が変わります。注文前に公式サイトの表示をご確認ください。</dd>
+        </div>
+      </dl>
+      <div class="ad-banner closing-banner" data-upt-banner data-position="footer">
+        <div class="ad-banner-slot" data-banner-slot></div>
+        <script type="text/plain" data-variant="pc" set:html={UPT_AD_BANNER_74_PC} />
+        <script type="text/plain" data-variant="mobile" set:html={UPT_AD_BANNER_15_MOBILE} />
+      </div>
+      <p class="note">リンク先はUp-T公式サイトです。納期・料金は変更されることがあります。</p>
+    </section>
   </div>
 </Layout>
 
@@ -1036,6 +1066,50 @@ const reasons = [
     font-size: 0.8rem;
     color: var(--color-text-muted);
   }
+  .closing {
+    margin: 2rem 0 2.5rem;
+    padding: 1.25rem;
+  }
+  .closing-pr {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    margin: 0 0 0.4rem;
+    font-size: 0.75rem;
+    color: var(--color-text-muted);
+  }
+  .closing h2 {
+    margin: 0 0 0.75rem;
+    font-size: 1.2rem;
+  }
+  .closing-info {
+    margin: 0 0 1rem;
+    display: grid;
+    gap: 0.5rem;
+  }
+  .closing-info div {
+    display: grid;
+    grid-template-columns: 6.5rem 1fr;
+    gap: 0.5rem;
+    padding: 0.5rem 0;
+    border-bottom: 1px solid var(--color-border);
+  }
+  .closing-info dt {
+    font-weight: 700;
+    color: var(--color-accent-dark);
+    font-size: 0.88rem;
+  }
+  .closing-info dd {
+    margin: 0;
+    font-size: 0.92rem;
+  }
+  .closing-banner {
+    text-align: center;
+  }
+  .closing-banner .ad-banner-slot {
+    display: flex;
+    justify-content: center;
+  }
   .steps {
     margin: 2rem 0;
   }
@@ -1453,18 +1527,18 @@ const reasons = [
   }
 
   // --- 広告バナー: PC用(素材ID 74)/スマホ用(素材ID 15)のうち、該当する方だけを挿入する ---
-  const bannerBox = $("[data-upt-banner]");
-  if (bannerBox) {
-    const slot = bannerBox.querySelector<HTMLElement>("[data-banner-slot]");
-    const isMobile = window.matchMedia("(max-width: 720px)").matches;
-    const src = bannerBox.querySelector<HTMLScriptElement>(`script[data-variant="${isMobile ? "mobile" : "pc"}"]`);
+  const isMobileBanner = window.matchMedia("(max-width: 720px)").matches;
+  $$("[data-upt-banner]").forEach((box) => {
+    const slot = box.querySelector<HTMLElement>("[data-banner-slot]");
+    const src = box.querySelector<HTMLScriptElement>(`script[data-variant="${isMobileBanner ? "mobile" : "pc"}"]`);
     if (slot && src?.textContent) {
       // 広告コードの原文をそのままHTMLとして挿入する(加工しない)
       slot.innerHTML = src.textContent;
-      slot.dataset.uptAd = isMobile ? "15" : "74";
+      slot.dataset.uptAd = isMobileBanner ? "15" : "74";
       slot.dataset.adType = "banner";
+      slot.dataset.adPosition = box.dataset.position ?? "";
     }
-  }
+  });
 
   // --- 広告クリックの計測(リスナー追加のみ。遷移・広告コードには干渉しない) ---
   document.addEventListener(
@@ -1476,6 +1550,7 @@ const reasons = [
         track("upt_ad_click", {
           ad_id: el.dataset.uptAd,
           ad_type: el.dataset.adType,
+          ad_position: el.dataset.adPosition || undefined,
           design: answers.design ?? undefined,
           product: answers.product ?? undefined,
           deadline: answers.deadline ?? undefined,
