@@ -321,3 +321,10 @@ FAQは必要に応じて追加する。
 - 選択UIの文言・コピー・案内文は `src/data/lp/original-print.ts`。**Up-T公式で未確認の事実(最短日数・即日対象商品・取扱カテゴリ・割引)は書かない**。納期は計算・保証せず、公式確認を案内する
 - CTAクリック計測は `sokunobankTrackEvent`(イベント: `lp_select` / `lp_guide_open` / `upt_ad_click`)。Yahoo!広告の離脱CVを発火する `sokunobankTrackOutboundClick` は使わない(ユーザー指示)
 - 公開後、A8.netの「広告掲載URL管理」へ掲載URLを提出する(ユーザー本人の作業)
+
+### Up-T LPの商品選択・画像運用(2026-10-11 追加)
+
+- 商品マスターは `src/data/lp/original-print-products.ts`(独立設定ファイル)。**Up-T公式サイトを取得できず、正式な商品名・販売状況は未照合(`verified: false`)**。表示するのは、ユーザー提示のUp-Tカテゴリ画像に載っている項目(`publish: true`)のみ。クラスTシャツ・バッジ・ステッカー・文具等は `publish: false` で保持し、公式で確認できてから公開する
+- 商品イメージは自作の簡易SVG(`product-art.ts`)で、画面に「イメージ図(実際の商品写真ではありません)」と明記する。写真を使う場合は `uses[].image` に設定する(実在のUp-T商品写真・制作実績と誤認させない)
+- 画像: マスターは `assets/lp-master/original-print/`(元の解像度・ファイル名のまま、Webには公開されない)。`node scripts/build-lp-images.mjs` で `public/images/lp/original-print/` にWebP/AVIFを複数幅で生成し、管理者向け一覧 `assets/lp-master/original-print/index.html`(原寸ダウンロード・出典・ライセンス表示)を作る。台帳は同フォルダの `manifest.json`
+- 計測: `product_selected`(product / product_group / source=dropdown|strip|grid|intent)、`lp_select`(design / deadline / qty)、`upt_ad_click`、`lp_guide_open`

@@ -1,0 +1,23 @@
+// Up-T LP用の商品イメージ図(自社作成の簡易イラストSVG)。
+// 実在する商品写真・制作実績ではない。「イメージ図」として表示し、写真と誤認させない。
+// 実際の商品写真・利用シーン写真を使う場合は original-print-products.ts の image に画像を設定する。
+
+const S = 'stroke="#94a3b8" stroke-width="1.5" stroke-linejoin="round"';
+
+const art: Record<string, string> = {
+  tshirt: `<svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false"><path d="M21 9 7 17l5 11 7-3v29h26V25l7 3 5-11-14-8c-2 5-6 7-11 7s-9-2-11-7z" fill="#fff" ${S}/><circle cx="32" cy="32" r="6" fill="#108a5f" opacity=".85"/><path d="M26 41h12" stroke="#108a5f" stroke-width="2" stroke-linecap="round"/></svg>`,
+  hoodie: `<svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false"><path d="M22 8c3 5 6 7 10 7s7-2 10-7l10 7 6 14-7 3v22H13V32l-7-3 6-14z" fill="#d94b4b" ${S}/><path d="M25 10c1 8 13 8 14 0" fill="none" stroke="#fff" stroke-width="2" opacity=".7"/><path d="M22 42h20l-2 9H24z" fill="#c13d3d" stroke="#94a3b8" stroke-width="1"/></svg>`,
+  polo: `<svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false"><path d="M21 9 7 17l5 11 7-3v29h26V25l7 3 5-11-14-8-5 6h-8z" fill="#f08a24" ${S}/><path d="M25 9l7 9 7-9" fill="#fff" stroke="#94a3b8" stroke-width="1.5"/><path d="M32 18v12" stroke="#fff" stroke-width="2"/><circle cx="32" cy="22" r="1" fill="#fff"/><circle cx="32" cy="27" r="1" fill="#fff"/></svg>`,
+  cap: `<svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false"><path d="M12 40c0-14 8-22 20-22s20 8 20 22z" fill="#1e3a8a" ${S}/><path d="M12 40c10 4 26 5 40 0 4 2 5 5 0 7-13 5-33 3-42-3-1-2 0-4 2-4z" fill="#172c6b" stroke="#94a3b8" stroke-width="1"/><circle cx="32" cy="18" r="2.5" fill="#fff"/></svg>`,
+  apron: `<svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false"><path d="M24 6c0 6 16 6 16 0M22 6l-4 0M42 6h4" stroke="#94a3b8" stroke-width="2" fill="none" stroke-linecap="round"/><path d="M24 7h16v14l8 6v28H16V27l8-6z" fill="#1f7a4d" ${S}/><rect x="25" y="38" width="14" height="10" rx="2" fill="#176240" stroke="#94a3b8" stroke-width="1"/></svg>`,
+  tote: `<svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false"><path d="M22 24V16c0-12 20-12 20 0v8" fill="none" stroke="#b8a888" stroke-width="3" stroke-linecap="round"/><path d="M13 24h38l3 32H10z" fill="#f4ecd8" ${S}/><circle cx="32" cy="40" r="7" fill="none" stroke="#1e3a8a" stroke-width="2"/><path d="M28 40h8" stroke="#1e3a8a" stroke-width="2" stroke-linecap="round"/></svg>`,
+  towel: `<svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false"><path d="M8 20l40-6 8 24-40 6z" fill="#f58a1f" ${S}/><path d="M16 44l40-6v6l-40 6z" fill="#e0780f" stroke="#94a3b8" stroke-width="1"/><path d="M20 28l26-4" stroke="#fff" stroke-width="2" stroke-linecap="round" opacity=".8"/></svg>`,
+  mug: `<svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false"><path d="M44 22h4c6 0 8 4 8 8s-3 9-10 9h-3" fill="none" stroke="#94a3b8" stroke-width="3"/><path d="M13 16h32l-2 36c0 3-2 4-5 4H20c-3 0-5-1-5-4z" fill="#fff" ${S}/><circle cx="29" cy="34" r="6" fill="#108a5f" opacity=".85"/></svg>`,
+  phonecase: `<svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false"><rect x="19" y="6" width="26" height="52" rx="7" fill="#e9f5ef" ${S}/><rect x="23" y="10" width="10" height="10" rx="3" fill="#475569"/><circle cx="28" cy="15" r="2" fill="#94a3b8"/><path d="M24 34c4-6 9-6 16 0M24 44c5-5 9-5 16 0" fill="none" stroke="#108a5f" stroke-width="2.5" stroke-linecap="round"/></svg>`,
+  keyholder: `<svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false"><circle cx="32" cy="12" r="6" fill="none" stroke="#94a3b8" stroke-width="2.5"/><path d="M32 18v6" stroke="#94a3b8" stroke-width="2.5"/><rect x="16" y="24" width="32" height="32" rx="9" fill="#fff" ${S}/><circle cx="32" cy="40" r="9" fill="#f6b73c" opacity=".9"/><circle cx="29" cy="38" r="1.5" fill="#475569"/><circle cx="35" cy="38" r="1.5" fill="#475569"/></svg>`,
+  other: `<svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false"><rect x="10" y="10" width="20" height="20" rx="5" fill="#e3f7ec" ${S}/><rect x="34" y="10" width="20" height="20" rx="5" fill="#fff" ${S}/><rect x="10" y="34" width="20" height="20" rx="5" fill="#fff" ${S}/><path d="M44 36v16M36 44h16" stroke="#108a5f" stroke-width="3" stroke-linecap="round"/></svg>`,
+};
+
+export function productArt(key: string): string {
+  return art[key] ?? art.other;
+}

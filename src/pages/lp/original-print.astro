@@ -2,68 +2,227 @@
 // Up-T(オリジナルプリント)送客LP。広告LP(noindex)。
 // 既存の /lp/[slug]/ とは別の静的ルートとして追加(カテゴリーデータ・既存LPには影響しない)。
 // 広告コード(A8.net)は upt-ads.ts の原文を set:html でそのまま出力する(改変禁止)。
+// 商品マスターは original-print-products.ts、イメージ図は product-art.ts。
 import Layout from "../../layouts/Layout.astro";
 import FaqSection from "../../components/FaqSection.astro";
+import { QUESTIONS, DEFAULT_SUB, EMPTY_ANSWERS, FAQ_ITEMS, buildGuide } from "../../data/lp/original-print";
 import {
-  QUESTIONS,
-  DEFAULT_HEADLINE,
-  DEFAULT_SUB,
-  EMPTY_ANSWERS,
-  FAQ_ITEMS,
-  buildGuide,
-} from "../../data/lp/original-print";
+  PRODUCT_GROUPS,
+  PUBLISHED_PRODUCTS,
+  DEFAULT_PRODUCT_ID,
+  getProduct,
+} from "../../data/lp/original-print-products";
+import { productArt } from "../../data/lp/product-art";
 import { UPT_AD_TEXT_1, UPT_AD_BANNER_74_PC, UPT_AD_BANNER_15_MOBILE } from "../../data/lp/upt-ads";
 
-const guide = buildGuide(EMPTY_ANSWERS);
+const product = getProduct(DEFAULT_PRODUCT_ID)!;
+const guide = buildGuide({ ...EMPTY_ANSWERS, product: product.id });
+const qs = QUESTIONS;
+const grouped = PRODUCT_GROUPS.map((g) => ({ ...g, items: PUBLISHED_PRODUCTS.filter((p) => p.group === g.id) })).filter(
+  (g) => g.items.length > 0,
+);
+const heroBase = "/images/lp/original-print/up-t-hero";
+const reasons = [
+  {
+    title: "簡単デザイン・入稿",
+    text: "データの入稿から、デザインの進め方の確認まで。条件に合わせて整理します。",
+    icon: '<svg viewBox="0 0 48 48" aria-hidden="true"><path d="M24 6C13 6 6 14 6 23s6 11 11 11h3c2 0 3 1 3 3 0 3 2 5 5 5 9 0 14-8 14-17C42 14 34 6 24 6z" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linejoin="round"/><circle cx="16" cy="22" r="2.5"/><circle cx="23" cy="15" r="2.5"/><circle cx="32" cy="18" r="2.5"/></svg>',
+  },
+  {
+    title: "豊富なアイテム",
+    text: "Tシャツから雑貨まで。作りたいものから選べます。",
+    icon: '<svg viewBox="0 0 48 48" aria-hidden="true"><path d="M24 5 7 13v22l17 8 17-8V13z" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linejoin="round"/><path d="M7 13l17 8 17-8M24 21v22" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linejoin="round"/></svg>',
+  },
+  {
+    title: "納期の確認",
+    text: "商品・数量・配送先・注文確定時刻によって、発送可能日が変わります。",
+    icon: '<svg viewBox="0 0 48 48" aria-hidden="true"><path d="M4 12h26v22H4zM30 20h9l5 6v8H30z" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linejoin="round"/><circle cx="14" cy="36" r="4" fill="#fff" stroke="currentColor" stroke-width="2.4"/><circle cx="37" cy="36" r="4" fill="#fff" stroke="currentColor" stroke-width="2.4"/></svg>',
+  },
+];
 ---
 
 <Layout
   title="オリジナルプリントの発注方法と納期確認のポイント"
-  description="オリジナルグッズの発注前に、デザインの有無・種類・納期・数量から、発注方法と事前準備を整理します。(PR)"
+  description="オリジナルグッズの発注前に、デザインの有無・商品・納期・数量から、発注方法と事前準備を整理します。(PR)"
   noindex
 >
   <section class="uphero" aria-labelledby="lp-h1">
-    <div class="uphero-bg" aria-hidden="true"></div>
     <div class="container uphero-grid">
       <p class="pr-line">
         <span class="pr-badge">PR</span>
         <span>広告を含みます。制作・発送はUp-T(広告主)が行います。</span>
       </p>
 
-      <div class="copy" id="copy">
-        <h1 id="lp-h1" data-lp-headline>{DEFAULT_HEADLINE}</h1>
+      <div class="copy">
+        <h1 id="lp-h1" data-lp-headline>
+          オリジナル<span data-lp-product>{product.shortName}</span>、<em>急ぎでも簡単発注。</em>
+        </h1>
         <p class="copy-sub" data-lp-sub>{DEFAULT_SUB}</p>
-        <p class="copy-note">発送日・割引の適用を保証するものではありません。最新の条件はUp-T公式でご確認ください。</p>
       </div>
-      <p class="hero-note">発送日・割引の適用を保証するものではありません。最新の条件はUp-T公式でご確認ください。</p>
 
-      <div class="uphero-photo" aria-hidden="true"></div>
+      <!-- ファーストビューの主要画像: 遅延読み込みしない(fetchpriority=high)。AVIF/WebPの複数幅(srcset) -->
+      <picture class="hero-pic">
+        <source
+          type="image/avif"
+          srcset={`${heroBase}-960.avif 960w, ${heroBase}-1672.avif 1672w`}
+          sizes="(min-width: 900px) 1100px, 100vw"
+        />
+        <source
+          type="image/webp"
+          srcset={`${heroBase}-960.webp 960w, ${heroBase}-1672.webp 1672w`}
+          sizes="(min-width: 900px) 1100px, 100vw"
+        />
+        <img
+          src={`${heroBase}-1672.webp`}
+          width="1672"
+          height="941"
+          alt="オリジナルグッズを手に笑顔の学生たちのイメージ"
+          fetchpriority="high"
+          decoding="async"
+        />
+      </picture>
 
       <form class="selector card" data-lp-form onsubmit="return false" aria-label="発注条件の選択">
         <div class="q-grid">
-          {
-            QUESTIONS.map((q, i) => (
-              <div class="q" data-q={q.key}>
-                <label for={`q-${q.key}`}>
-                  <span class="qn">Q{i + 1}</span>
-                  {q.label}
-                </label>
-                <select id={`q-${q.key}`} name={q.key}>
-                  <option value="">選択してください</option>
-                  {q.options.map((o) => (
-                    <option value={o.value}>{o.label}</option>
-                  ))}
-                </select>
-                {q.key === "deadline" && (
-                  <div class="date-row" data-date-row hidden>
-                    <label for="use-date">使用したい日</label>
-                    <input id="use-date" type="date" name="use-date" />
-                  </div>
-                )}
+          <!-- Q1 デザイン -->
+          <fieldset class="q" data-q="design">
+            <legend><span class="qn">Q1</span>{qs[0].label}</legend>
+            <div class="opts">
+              {
+                qs[0].options.map((o) => (
+                  <label class="opt">
+                    <input type="radio" name="design" value={o.value} />
+                    <span>{o.label}</span>
+                  </label>
+                ))
+              }
+            </div>
+          </fieldset>
+
+          <!-- Q2 商品: PCはプルダウン(階層+検索)、スマホは画像付きボタン -->
+          <div class="q q-product" data-q="product">
+            <p class="q-title" id="q-product-title"><span class="qn">Q2</span>何を作りますか?</p>
+
+            <div class="combo pc-only" data-combo>
+              <button
+                type="button"
+                class="combo-btn"
+                id="q-product"
+                aria-haspopup="listbox"
+                aria-expanded="false"
+                aria-controls="combo-pop"
+                aria-labelledby="q-product-title combo-label"
+              >
+                <span class="combo-art" data-combo-art set:html={productArt(product.art)} />
+                <span class="combo-label" id="combo-label" data-combo-label>{product.name}</span>
+                <span class="combo-caret" aria-hidden="true"></span>
+              </button>
+              <div class="combo-pop" id="combo-pop" data-combo-pop hidden>
+                <input
+                  type="search"
+                  class="combo-search"
+                  placeholder="商品名で検索"
+                  aria-label="商品名で検索"
+                  aria-controls="combo-list"
+                  autocomplete="off"
+                  data-combo-search
+                />
+                <ul class="combo-list" id="combo-list" role="listbox" aria-label="商品" data-combo-list>
+                  {
+                    grouped.map((g) => (
+                      <>
+                        <li role="presentation" class="combo-group" data-group-head={g.id}>
+                          {g.label}
+                        </li>
+                        {g.items.map((p) => (
+                          <li
+                            role="option"
+                            id={`opt-${p.id}`}
+                            class="combo-opt"
+                            data-option={p.id}
+                            data-group={g.id}
+                            data-name={`${p.name} ${p.shortName} ${p.keywords.join(" ")}`.toLowerCase()}
+                            aria-selected={p.id === product.id ? "true" : "false"}
+                          >
+                            <span class="combo-art" set:html={productArt(p.art)} />
+                            <span>{p.name}</span>
+                          </li>
+                        ))}
+                      </>
+                    ))
+                  }
+                </ul>
+                <p class="combo-empty" data-combo-empty hidden>該当する商品がありません</p>
               </div>
-            ))
-          }
+            </div>
+
+            <div class="pgrid-wrap sp-only" data-pgrid>
+              <div class="ptabs" role="tablist" aria-label="商品グループ">
+                <button type="button" role="tab" class="ptab" data-tab="all" aria-selected="true" id="ptab-all">すべて</button>
+                {
+                  grouped.map((g) => (
+                    <button type="button" role="tab" class="ptab" data-tab={g.id} aria-selected="false" id={`ptab-${g.id}`}>
+                      {g.label}
+                    </button>
+                  ))
+                }
+              </div>
+              <div class="pgrid" role="group" aria-label="商品を選ぶ" data-pgrid-list>
+                {
+                  PUBLISHED_PRODUCTS.map((p) => (
+                    <button
+                      type="button"
+                      class="pitem"
+                      data-product-btn={p.id}
+                      data-group={p.group}
+                      aria-pressed={p.id === product.id ? "true" : "false"}
+                    >
+                      <span class="pitem-art" set:html={productArt(p.art)} />
+                      <span class="pitem-name">{p.name}</span>
+                      <span class="pitem-check" aria-hidden="true">✓</span>
+                    </button>
+                  ))
+                }
+              </div>
+              <button type="button" class="pmore" data-pmore aria-expanded="false">すべてのアイテムから選ぶ →</button>
+            </div>
+          </div>
+
+          <!-- Q3 納期 -->
+          <fieldset class="q" data-q="deadline">
+            <legend><span class="qn">Q3</span>{qs[1].label}</legend>
+            <div class="opts">
+              {
+                qs[1].options.map((o) => (
+                  <label class="opt">
+                    <input type="radio" name="deadline" value={o.value} />
+                    <span>{o.label}</span>
+                  </label>
+                ))
+              }
+            </div>
+            <div class="date-row" data-date-row hidden>
+              <label for="use-date">使用したい日</label>
+              <input id="use-date" type="date" name="use-date" />
+            </div>
+          </fieldset>
+
+          <!-- Q4 数量 -->
+          <fieldset class="q" data-q="qty">
+            <legend><span class="qn">Q4</span>{qs[2].label}</legend>
+            <div class="opts">
+              {
+                qs[2].options.map((o) => (
+                  <label class="opt">
+                    <input type="radio" name="qty" value={o.value} />
+                    <span>{o.label}</span>
+                  </label>
+                ))
+              }
+            </div>
+          </fieldset>
         </div>
+
         <!-- A8.net 素材ID 1(テキスト広告)をメインCTAとして配置。広告コードは原文のまま(文言も変更しない)。見た目は親要素のCSSのみでボタン化する -->
         <div class="main-ad">
           <p class="main-ad-label"><span class="pr-badge">PR</span>Up-T公式サイトへ(広告リンク)</p>
@@ -71,10 +230,87 @@ const guide = buildGuide(EMPTY_ANSWERS);
           <a class="guide-link" href="#guide" data-guide-link>条件の整理を見る</a>
         </div>
       </form>
+
+      <p class="hero-note">発送日・割引の適用を保証するものではありません。最新の条件はUp-T公式でご確認ください。</p>
     </div>
   </section>
 
   <div class="container">
+    <!-- PC: 作れるアイテムを横並びで探す(選択はフォームと同期) -->
+    <section class="strip pc-only" aria-labelledby="strip-h">
+      <h2 id="strip-h">作れるアイテムを探す <small>Tシャツから雑貨まで、作りたいものを選べます</small></h2>
+      <div class="strip-list" data-strip>
+        {
+          PUBLISHED_PRODUCTS.map((p) => (
+            <button type="button" class="sitem" data-product-btn={p.id} aria-pressed={p.id === product.id ? "true" : "false"}>
+              <span class="sitem-art" set:html={productArt(p.art)} />
+              <span class="sitem-name">{p.name}</span>
+              <span class="pitem-check" aria-hidden="true">✓</span>
+            </button>
+          ))
+        }
+      </div>
+    </section>
+
+    <!-- 選んだ商品に連動する情報(商品名・紹介・デザイン方法・チェックポイント・利用シーン) -->
+    <section class="pick" aria-live="polite" aria-labelledby="pick-h">
+      <div class="pick-art">
+        <div class="pick-art-img" data-pick-art set:html={productArt(product.art)} />
+        <p class="pick-art-cap">商品のイメージ図(実際の商品写真ではありません)</p>
+      </div>
+      <div class="pick-body">
+        <h2 id="pick-h">選んだアイテム: <span data-pick-name>{product.name}</span></h2>
+        <p class="pick-lead" data-pick-lead>{product.lead}</p>
+        <div class="pick-cols">
+          <div>
+            <h3>デザイン方法</h3>
+            <ul data-pick-design>
+              {product.design.map((d) => <li>{d}</li>)}
+            </ul>
+          </div>
+          <div>
+            <h3>注文前のチェックポイント</h3>
+            <ul data-pick-checks>
+              {product.checks.map((d) => <li>{d}</li>)}
+            </ul>
+          </div>
+        </div>
+        <p class="pick-note" data-pick-note>商品名・取り扱い・仕様は、Up-T公式の商品ページでご確認ください。</p>
+      </div>
+    </section>
+
+    <section class="scenes-wrap" aria-labelledby="scenes-h">
+      <h2 id="scenes-h">こんなシーンで選ばれています</h2>
+      <div class="scenes" data-scenes>
+        {
+          product.uses.map((u) => (
+            <div class="scene">
+              <div class="scene-img" set:html={productArt(product.art)} />
+              <p class="scene-title">{u.title}</p>
+              <p class="scene-sub">{u.sub}</p>
+            </div>
+          ))
+        }
+      </div>
+    </section>
+
+    <section class="reasons" aria-labelledby="reasons-h">
+      <h2 id="reasons-h">選ばれる<strong>3つ</strong>の理由</h2>
+      <ul class="reason-list">
+        {
+          reasons.map((r) => (
+            <li class="reason">
+              <span class="reason-icon" set:html={r.icon} />
+              <div>
+                <p class="reason-title">{r.title}</p>
+                <p class="reason-text">{r.text}</p>
+              </div>
+            </li>
+          ))
+        }
+      </ul>
+    </section>
+
     <section class="guide card" id="guide" aria-live="polite">
       <h2>選んだ条件の整理</h2>
       <div class="guide-grid">
@@ -124,42 +360,32 @@ const guide = buildGuide(EMPTY_ANSWERS);
 </Layout>
 
 <style>
+  /* ===== 表示切替(PC=900px以上) ===== */
+  .pc-only {
+    display: none;
+  }
+  @media (min-width: 900px) {
+    .pc-only {
+      display: block;
+    }
+    .sp-only {
+      display: none;
+    }
+  }
+
+  /* ===== ファーストビュー ===== */
   .uphero {
     position: relative;
     overflow: hidden;
     background: linear-gradient(110deg, #ffffff 0%, var(--color-bg-soft-2) 100%);
     border-bottom: 1px solid var(--color-border);
   }
-  /* 背景画像はPC(900px以上)のみ。up-t-hero.webp(ユーザー提供)を使用。左の選択ボックスは白カード、右のコピーは半透明の白地で可読性を確保する */
-  .uphero-bg {
-    display: none;
-  }
-  @media (min-width: 900px) {
-    .uphero-bg {
-      display: block;
-      position: absolute;
-      inset: 0;
-    }
-    /* 画像は右寄せ・高さいっぱいで表示し、左端は背景色へなじませる(選択ボックスと人物が重なりにくくする) */
-    .uphero-bg::before {
-      content: "";
-      position: absolute;
-      top: 0;
-      bottom: 0;
-      right: 0;
-      aspect-ratio: 1672 / 941;
-      background: url("/images/up-t-hero.webp") center / cover no-repeat;
-      -webkit-mask-image: linear-gradient(90deg, transparent 0%, #000 22%);
-      mask-image: linear-gradient(90deg, transparent 0%, #000 22%);
-    }
-  }
   .uphero-grid {
-    position: relative;
     display: grid;
-    gap: 1rem;
-    padding-top: 1rem;
-    padding-bottom: 1.5rem;
-    grid-template-areas: "pr" "hero" "note" "form";
+    gap: 0.9rem;
+    padding-top: 0.9rem;
+    padding-bottom: 1.25rem;
+    grid-template-areas: "pr" "copy" "pic" "form" "note";
   }
   .pr-line {
     grid-area: pr;
@@ -168,7 +394,7 @@ const guide = buildGuide(EMPTY_ANSWERS);
     align-items: center;
     gap: 0.5rem;
     margin: 0;
-    font-size: 0.8rem;
+    font-size: 0.78rem;
     color: var(--color-text-muted);
   }
   .pr-badge {
@@ -182,82 +408,115 @@ const guide = buildGuide(EMPTY_ANSWERS);
     font-weight: 700;
     letter-spacing: 0.04em;
   }
-  /* スマホ用の画像(PCでは非表示。display:noneの要素の背景画像は読み込まれない) */
-  .uphero-photo {
-    grid-area: hero;
-    aspect-ratio: 5 / 4;
-    border-radius: var(--radius-lg);
-    border: 1px solid var(--color-border);
-    background: url("/images/up-t-hero.webp") 70% bottom / cover no-repeat;
-  }
-  /* スマホ: コピーを画像の左上に重ねる(同じグリッドセルに配置)。白のグラデーションで可読性を確保 */
   .copy {
-    grid-area: hero;
-    align-self: start;
-    z-index: 1;
-    padding: 0.75rem 0.75rem 1.25rem;
-    border-radius: var(--radius-lg) var(--radius-lg) 0 0;
-    background: linear-gradient(180deg, rgba(255, 255, 255, 0.92) 0%, rgba(255, 255, 255, 0.8) 70%, rgba(255, 255, 255, 0) 100%);
+    grid-area: copy;
   }
   .copy h1 {
-    font-size: clamp(1.1rem, 5vw, 1.35rem);
-    line-height: 1.4;
-    margin: 0 0 0.3rem;
+    margin: 0 0 0.5rem;
+    font-size: clamp(1.7rem, 7.4vw, 2.2rem);
+    line-height: 1.3;
+    letter-spacing: 0.01em;
+  }
+  .copy h1 em {
+    font-style: normal;
+    color: var(--color-accent-dark);
+    display: inline-block;
   }
   .copy-sub {
-    color: var(--color-accent-dark);
-    font-weight: 600;
-    font-size: 0.8rem;
-    line-height: 1.5;
     margin: 0;
+    font-size: 0.95rem;
+    line-height: 1.7;
+    color: var(--color-text);
   }
-  .copy .copy-note {
-    display: none;
+  .hero-pic {
+    grid-area: pic;
+    display: block;
+  }
+  .hero-pic img {
+    display: block;
+    width: 100%;
+    height: auto;
+    aspect-ratio: 1672 / 941;
+    object-fit: cover;
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--color-border);
   }
   .hero-note {
     grid-area: note;
     margin: 0;
-    font-size: 0.8rem;
-    color: var(--color-text-muted);
-  }
-  .copy-note {
-    margin: 0;
-    font-size: 0.8rem;
+    font-size: 0.78rem;
     color: var(--color-text-muted);
   }
   .selector {
     grid-area: form;
     padding: 1rem;
   }
+
+  /* ===== 選択フォーム ===== */
   .q-grid {
     display: grid;
-    gap: 0.75rem;
+    gap: 1rem;
     margin-bottom: 1rem;
   }
-  .q label {
-    display: block;
+  .q {
+    border: 0;
+    padding: 0;
+    margin: 0;
+    min-width: 0;
+  }
+  .q legend,
+  .q-title {
     font-weight: 700;
-    font-size: 0.9rem;
-    margin-bottom: 0.3rem;
+    font-size: 0.95rem;
+    margin: 0 0 0.4rem;
+    padding: 0;
   }
   .qn {
     display: inline-block;
     margin-right: 0.4rem;
     color: var(--color-accent-dark);
   }
-  .q select {
+  .opts {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+  }
+  .opt {
+    position: relative;
+    cursor: pointer;
+  }
+  .opt input {
+    position: absolute;
+    opacity: 0;
+    inset: 0;
     width: 100%;
+    height: 100%;
+    margin: 0;
+    cursor: pointer;
+  }
+  .opt span {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
     min-height: 44px;
-    padding: 0 2rem 0 0.7rem;
+    padding: 0 0.5rem;
     border: 1px solid var(--color-border);
     border-radius: var(--radius-md);
     background: #fff;
-    color: var(--color-text);
-    font: inherit;
-    font-size: 0.95rem;
+    font-size: 0.8rem;
   }
-  .q select:focus-visible {
-    outline: 2px solid var(--color-accent-dark);
+  .opt input:checked + span {
+    border-color: var(--color-accent-dark);
+    background: var(--color-accent-dark);
+    color: #fff;
+    font-weight: 700;
+  }
+  .opt input:checked + span::before {
+    content: "✓";
+    font-weight: 700;
+  }
+  .opt input:focus-visible + span {
+    outline: 2px solid var(--color-text);
     outline-offset: 2px;
   }
   .date-row {
@@ -277,6 +536,227 @@ const guide = buildGuide(EMPTY_ANSWERS);
     border-radius: var(--radius-md);
     font: inherit;
   }
+
+  /* --- PC: 商品プルダウン(階層+検索) --- */
+  .combo {
+    position: relative;
+  }
+  .combo-btn {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    width: 100%;
+    min-height: 48px;
+    padding: 0 0.7rem;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    background: #fff;
+    color: var(--color-text);
+    font: inherit;
+    font-size: 0.95rem;
+    text-align: left;
+    cursor: pointer;
+  }
+  .combo-btn:focus-visible,
+  .combo-search:focus-visible {
+    outline: 2px solid var(--color-text);
+    outline-offset: 2px;
+  }
+  .combo-label {
+    flex: 1;
+    font-weight: 600;
+  }
+  .combo-caret {
+    width: 8px;
+    height: 8px;
+    border-right: 2px solid var(--color-text-muted);
+    border-bottom: 2px solid var(--color-text-muted);
+    transform: rotate(45deg);
+    margin-right: 4px;
+  }
+  .combo-art {
+    display: inline-flex;
+    width: 32px;
+    height: 32px;
+    flex: none;
+  }
+  .combo-art :global(svg),
+  .pitem-art :global(svg),
+  .sitem-art :global(svg) {
+    width: 100%;
+    height: 100%;
+  }
+  .combo-pop {
+    position: absolute;
+    z-index: 30;
+    left: 0;
+    right: 0;
+    top: calc(100% + 4px);
+    padding: 0.5rem;
+    background: #fff;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    box-shadow: 0 8px 24px rgba(16, 36, 62, 0.14);
+  }
+  .combo-pop[hidden] {
+    display: none;
+  }
+  .combo-search {
+    width: 100%;
+    min-height: 44px;
+    padding: 0 0.7rem;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-sm);
+    font: inherit;
+  }
+  .combo-list {
+    list-style: none;
+    margin: 0.4rem 0 0;
+    padding: 0;
+    max-height: 280px;
+    overflow-y: auto;
+  }
+  .combo-group {
+    padding: 0.5rem 0.5rem 0.2rem;
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: var(--color-text-muted);
+  }
+  .combo-opt {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    min-height: 44px;
+    padding: 0 0.5rem;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+  }
+  .combo-opt[aria-selected="true"] {
+    background: var(--color-accent-soft);
+    font-weight: 700;
+  }
+  .combo-opt.is-active {
+    outline: 2px solid var(--color-accent-dark);
+    outline-offset: -2px;
+  }
+  .combo-opt[hidden],
+  .combo-group[hidden] {
+    display: none;
+  }
+  .combo-empty {
+    margin: 0.5rem;
+    color: var(--color-text-muted);
+    font-size: 0.9rem;
+  }
+
+  /* --- スマホ: 画像付き商品ボタン(タブ+2〜3列) --- */
+  .ptabs {
+    display: flex;
+    gap: 0.4rem;
+    overflow-x: auto;
+    padding-bottom: 0.4rem;
+    margin-bottom: 0.4rem;
+  }
+  .ptab {
+    flex: none;
+    min-height: 44px;
+    padding: 0 0.9rem;
+    border: 1px solid var(--color-border);
+    border-radius: 999px;
+    background: #fff;
+    color: var(--color-text);
+    font: inherit;
+    font-size: 0.88rem;
+    cursor: pointer;
+  }
+  .ptab[aria-selected="true"] {
+    background: var(--color-accent-soft);
+    border-color: var(--color-accent-dark);
+    color: var(--color-accent-dark);
+    font-weight: 700;
+  }
+  .pgrid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0.5rem;
+  }
+  .pitem,
+  .sitem {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 0.3rem;
+    min-height: 92px;
+    padding: 0.5rem 0.25rem;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    background: #fff;
+    color: var(--color-text);
+    font: inherit;
+    cursor: pointer;
+  }
+  .pitem[hidden] {
+    display: none;
+  }
+  .pitem-art {
+    display: inline-flex;
+    width: 44px;
+    height: 44px;
+  }
+  .pitem-name,
+  .sitem-name {
+    font-size: 0.72rem;
+    line-height: 1.3;
+    text-align: center;
+  }
+  .pitem-check {
+    display: none;
+    position: absolute;
+    top: 4px;
+    right: 4px;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: var(--color-accent-dark);
+    color: #fff;
+    font-size: 0.75rem;
+    line-height: 20px;
+    text-align: center;
+  }
+  .pitem[aria-pressed="true"],
+  .sitem[aria-pressed="true"] {
+    border: 2px solid var(--color-accent-dark);
+    background: var(--color-accent-soft);
+    font-weight: 700;
+  }
+  .pitem[aria-pressed="true"] .pitem-check,
+  .sitem[aria-pressed="true"] .pitem-check {
+    display: block;
+  }
+  .pitem:focus-visible,
+  .sitem:focus-visible,
+  .ptab:focus-visible,
+  .pmore:focus-visible {
+    outline: 2px solid var(--color-text);
+    outline-offset: 2px;
+  }
+  .pmore {
+    display: block;
+    width: 100%;
+    min-height: 44px;
+    margin-top: 0.4rem;
+    border: 0;
+    background: none;
+    color: var(--color-accent-dark);
+    font: inherit;
+    font-size: 0.9rem;
+    text-decoration: underline;
+    cursor: pointer;
+  }
+
+  /* --- メインCTA(A8素材ID 1) --- */
   .main-ad-label {
     display: flex;
     align-items: center;
@@ -287,18 +767,26 @@ const guide = buildGuide(EMPTY_ANSWERS);
   }
   /* 広告コードは変更せず、親要素のCSSのみでボタンに見せる(リンク文言はA8の素材のまま) */
   .ad-button :global(a) {
+    position: relative;
     display: flex;
     align-items: center;
     justify-content: center;
     width: 100%;
-    min-height: 48px;
-    padding: 0 1rem;
+    min-height: 52px;
+    padding: 0 2.5rem;
     border-radius: var(--radius-md);
     background: var(--color-accent-dark);
     color: #fff;
     font-weight: 700;
     font-size: 1.05rem;
     text-decoration: none;
+  }
+  .ad-button :global(a)::after {
+    content: "›";
+    position: absolute;
+    right: 1rem;
+    font-size: 1.5rem;
+    line-height: 1;
   }
   .ad-button :global(a:hover) {
     filter: brightness(0.92);
@@ -315,6 +803,193 @@ const guide = buildGuide(EMPTY_ANSWERS);
     text-decoration: underline;
   }
 
+  /* ===== 中段 ===== */
+  .strip {
+    margin: 1.5rem 0 1rem;
+  }
+  .strip h2 {
+    font-size: 1.15rem;
+    margin: 0 0 0.6rem;
+  }
+  .strip h2 small {
+    margin-left: 0.6rem;
+    font-size: 0.8rem;
+    font-weight: 400;
+    color: var(--color-text-muted);
+  }
+  .strip-list {
+    display: grid;
+    grid-auto-flow: column;
+    grid-auto-columns: minmax(104px, 1fr);
+    gap: 0.5rem;
+    overflow-x: auto;
+    padding-bottom: 0.4rem;
+  }
+  .sitem {
+    min-height: 120px;
+    padding: 0.6rem 0.4rem;
+  }
+  .sitem-art {
+    display: inline-flex;
+    width: 64px;
+    height: 64px;
+  }
+  .sitem-name {
+    font-size: 0.78rem;
+  }
+  .pick {
+    display: grid;
+    gap: 1.25rem;
+    margin: 1.5rem 0;
+    padding: 1.25rem;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-lg);
+    background: #fff;
+    min-height: 360px;
+  }
+  .pick-art {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 1rem;
+    border-radius: var(--radius-md);
+    background: #fff;
+    border: 1px solid var(--color-border);
+  }
+  .pick-art-img {
+    width: min(220px, 60%);
+    aspect-ratio: 1;
+  }
+  .pick-art-img :global(svg) {
+    width: 100%;
+    height: 100%;
+  }
+  .pick-art-cap {
+    margin: 0;
+    font-size: 0.72rem;
+    color: var(--color-text-muted);
+    text-align: center;
+  }
+  .pick h2 {
+    font-size: 1.2rem;
+    margin: 0 0 0.5rem;
+  }
+  .pick h3 {
+    font-size: 0.92rem;
+    margin: 0 0 0.3rem;
+    color: var(--color-accent-dark);
+  }
+  .pick-lead {
+    margin: 0 0 1rem;
+  }
+  .pick-cols {
+    display: grid;
+    gap: 1rem;
+  }
+  .pick ul {
+    margin: 0;
+    padding-left: 1.2rem;
+  }
+  .pick-note {
+    margin: 1rem 0 0;
+    font-size: 0.8rem;
+    color: var(--color-text-muted);
+  }
+  .scenes-wrap h2,
+  .reasons h2 {
+    font-size: 1.15rem;
+    margin: 1.5rem 0 0.75rem;
+  }
+  .scenes {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.75rem;
+  }
+  .scene {
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-lg);
+    background: #fff;
+    overflow: hidden;
+  }
+  .scene-img {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    aspect-ratio: 16 / 10;
+    background: linear-gradient(135deg, #e8f5fb, #e3f7ec);
+  }
+  .scene:nth-child(2) .scene-img {
+    background: linear-gradient(135deg, #fdf3e1, #e8f5fb);
+  }
+  .scene:nth-child(3) .scene-img {
+    background: linear-gradient(135deg, #e3f7ec, #f3eefc);
+  }
+  .scene:nth-child(4) .scene-img {
+    background: linear-gradient(135deg, #fde8ec, #fdf3e1);
+  }
+  .scene-img :global(svg) {
+    width: 42%;
+    height: auto;
+    max-height: 80%;
+  }
+  .scene-img :global(img) {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+  .scene-title {
+    margin: 0.5rem 0.6rem 0;
+    font-weight: 700;
+    font-size: 0.92rem;
+  }
+  .scene-sub {
+    margin: 0.1rem 0.6rem 0.6rem;
+    font-size: 0.8rem;
+    color: var(--color-text-muted);
+  }
+  .reasons h2 strong {
+    color: var(--color-accent-dark);
+    font-size: 1.4rem;
+  }
+  .reason-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    gap: 0.75rem;
+  }
+  .reason {
+    display: flex;
+    align-items: center;
+    gap: 0.9rem;
+    padding: 0.9rem 1rem;
+    border-radius: var(--radius-lg);
+    background: var(--color-bg-soft-2);
+    border: 1px solid var(--color-border);
+  }
+  .reason-icon {
+    flex: none;
+    width: 44px;
+    height: 44px;
+    color: var(--color-accent-dark);
+  }
+  .reason-icon :global(svg) {
+    width: 100%;
+    height: 100%;
+  }
+  .reason-title {
+    margin: 0;
+    font-weight: 700;
+  }
+  .reason-text {
+    margin: 0.1rem 0 0;
+    font-size: 0.85rem;
+    color: var(--color-text-muted);
+  }
+
+  /* ===== 案内パネル ===== */
   .guide {
     margin: 1.5rem 0;
     padding: 1.25rem;
@@ -346,15 +1021,7 @@ const guide = buildGuide(EMPTY_ANSWERS);
   }
   .cta-lead {
     font-weight: 600;
-    margin-bottom: 0.5rem;
-  }
-  .cta-label {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    font-size: 0.85rem;
-    color: var(--color-text-muted);
-    margin-bottom: 0.4rem;
+    margin-bottom: 0.75rem;
   }
   .ad-banner-slot {
     overflow-x: auto;
@@ -379,44 +1046,76 @@ const guide = buildGuide(EMPTY_ANSWERS);
     margin: 0.4rem 0;
   }
 
+  /* ===== PC(900px以上) ===== */
   @media (min-width: 900px) {
-    .uphero-photo,
-    .hero-note {
-      display: none;
+    /* 画像は右寄せ・高さいっぱい。左端は背景色へなじませる */
+    .hero-pic {
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      right: -9vw;
+      aspect-ratio: 1672 / 941;
+      z-index: 0;
+      -webkit-mask-image: linear-gradient(90deg, transparent 0%, #000 24%);
+      mask-image: linear-gradient(90deg, transparent 0%, #000 24%);
     }
-    .copy .copy-note {
-      display: block;
+    .hero-pic img {
+      height: 100%;
+      border: 0;
+      border-radius: 0;
     }
     .uphero-grid {
-      grid-template-columns: minmax(0, 540px) minmax(0, 1fr);
-      grid-template-areas: "pr ." "copy ." "form .";
+      grid-template-columns: minmax(0, 630px) minmax(0, 1fr);
+      grid-template-areas: "pr ." "copy ." "form ." "note .";
       align-items: start;
-      padding-top: 1.5rem;
-      padding-bottom: 2.5rem;
+      padding-top: 1.25rem;
+      padding-bottom: 2rem;
       column-gap: 2rem;
     }
-    .copy {
-      grid-area: copy;
-      padding: 1.5rem;
-      justify-self: start;
-      width: 100%;
-      background: rgba(255, 255, 255, 0.86);
-      border-radius: var(--radius-lg);
+    .uphero-grid > :not(.hero-pic) {
+      position: relative;
+      z-index: 1;
     }
     .copy h1 {
-      font-size: clamp(1.35rem, 2.2vw, 2.1rem);
-      margin: 0 0 0.5rem;
+      font-size: clamp(2.4rem, 4vw, 3.4rem);
+      line-height: 1.25;
+      margin-top: 0.5rem;
     }
     .copy-sub {
-      font-size: 1rem;
-      margin: 0 0 0.5rem;
+      font-size: 1.05rem;
+    }
+    .selector {
+      padding: 1.1rem 1.25rem;
+    }
+    .opts {
+      gap: 0.35rem;
+    }
+    .opt span {
+      padding: 0 0.55rem;
+      font-size: 0.8rem;
+    }
+    .q-grid {
+      grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
+      column-gap: 1rem;
+    }
+    .hero-note {
+      background: rgba(255, 255, 255, 0.8);
+      justify-self: start;
+    }
+    .pick {
+      grid-template-columns: 300px minmax(0, 1fr);
+    }
+    .pick-cols {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+    .scenes {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+    .reason-list {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
     }
     .guide-grid {
       grid-template-columns: repeat(3, 1fr);
-    }
-    .q-grid {
-      grid-template-columns: repeat(2, 1fr);
-      column-gap: 1rem;
     }
   }
 </style>
@@ -425,23 +1124,24 @@ const guide = buildGuide(EMPTY_ANSWERS);
   import {
     EMPTY_ANSWERS,
     HEADLINE_BY_ANSWER,
-    DEFAULT_HEADLINE,
     DEFAULT_SUB,
     LP_SLUG,
     buildGuide,
     type Answers,
     type QuestionKey,
   } from "../../data/lp/original-print";
+  import { DEFAULT_PRODUCT_ID, detectProduct, getProduct } from "../../data/lp/original-print-products";
+  import { productArt } from "../../data/lp/product-art";
 
   type Tracker = (name: string, params: Record<string, unknown>) => void;
-  type AttributionGetter = () => Record<string, unknown>;
   const w = window as unknown as {
     sokunobankTrackEvent?: Tracker;
-    sokunobankGetAttribution?: AttributionGetter;
+    sokunobankGetAttribution?: () => Record<string, unknown>;
+    sokunobankDebounceClick?: (el: HTMLElement, fn: () => void) => void;
   };
 
-  // 既存の計測関数(Layout.astro)を使う。Yahoo!広告の離脱CVを発火する sokunobankTrackOutboundClick は
-  // 今回の指示により使わない。値はすべて固定IDのみ(個人情報・自由入力・日付そのものは送らない)。
+  // 既存の計測関数(Layout.astro)を使う。Yahoo!広告の離脱CVを発火する sokunobankTrackOutboundClick は使わない。
+  // 値はすべて固定ID(個人情報・自由入力・日付そのものは送らない)。
   function track(name: string, params: Record<string, unknown>) {
     try {
       const attribution = typeof w.sokunobankGetAttribution === "function" ? w.sokunobankGetAttribution() : {};
@@ -451,12 +1151,11 @@ const guide = buildGuide(EMPTY_ANSWERS);
     }
   }
 
-  const answers: Answers = { ...EMPTY_ANSWERS };
-  const form = document.querySelector<HTMLFormElement>("[data-lp-form]");
-  const headline = document.querySelector<HTMLElement>("[data-lp-headline]");
-  const sub = document.querySelector<HTMLElement>("[data-lp-sub]");
-  const dateRow = document.querySelector<HTMLElement>("[data-date-row]");
-  const dateInput = document.querySelector<HTMLInputElement>("#use-date");
+  const $ = <T extends HTMLElement = HTMLElement>(sel: string) => document.querySelector<T>(sel);
+  const $$ = <T extends HTMLElement = HTMLElement>(sel: string) => Array.from(document.querySelectorAll<T>(sel));
+
+  const answers: Answers = { ...EMPTY_ANSWERS, product: DEFAULT_PRODUCT_ID };
+  let lastKey: QuestionKey | null = null;
 
   function daysBucket(n: number | null): string | undefined {
     if (n === null || n < 0) return undefined;
@@ -465,30 +1164,240 @@ const guide = buildGuide(EMPTY_ANSWERS);
     return "15_plus";
   }
 
-  function render(lastKey: QuestionKey | null) {
-    const last = lastKey ? answers[lastKey] : null;
-    const copy = lastKey && last ? HEADLINE_BY_ANSWER[`${lastKey}:${last}`] : null;
-    if (headline) headline.textContent = copy ? copy.headline : DEFAULT_HEADLINE;
-    if (sub) sub.textContent = copy ? copy.sub : DEFAULT_SUB;
+  function setText(sel: string, text: string) {
+    const el = $(sel);
+    if (el) el.textContent = text;
+  }
+  function setList(sel: string, items: string[]) {
+    const ul = $(sel);
+    if (!ul) return;
+    ul.textContent = "";
+    items.forEach((t) => {
+      const li = document.createElement("li");
+      li.textContent = t;
+      ul.appendChild(li);
+    });
+  }
 
-    const g = buildGuide(answers);
-    const set = (sel: string, text: string) => {
-      const el = document.querySelector<HTMLElement>(sel);
-      if (el) el.textContent = text;
-    };
-    set("[data-guide-method]", g.method);
-    set("[data-guide-deadline]", g.deadline);
-    set("[data-guide-cta]", g.ctaLead);
-    const ul = document.querySelector<HTMLElement>("[data-guide-prepare]");
-    if (ul) {
-      ul.textContent = "";
-      g.prepare.forEach((p) => {
-        const li = document.createElement("li");
-        li.textContent = p;
-        ul.appendChild(li);
+  /** 商品と関連情報だけを更新する(フォームの他の回答はリセットしない) */
+  function renderProduct() {
+    const p = getProduct(answers.product) ?? getProduct(DEFAULT_PRODUCT_ID)!;
+    setText("[data-lp-product]", p.shortName);
+    setText("[data-combo-label]", p.name);
+    const comboArt = $("[data-combo-art]");
+    if (comboArt) comboArt.innerHTML = productArt(p.art);
+    $$("[data-option]").forEach((el) => el.setAttribute("aria-selected", String(el.dataset.option === p.id)));
+    $$("[data-product-btn]").forEach((el) => el.setAttribute("aria-pressed", String(el.dataset.productBtn === p.id)));
+
+    setText("[data-pick-name]", p.name);
+    setText("[data-pick-lead]", p.lead);
+    const art = $("[data-pick-art]");
+    if (art) art.innerHTML = productArt(p.art);
+    setList("[data-pick-design]", p.design);
+    setList("[data-pick-checks]", p.checks);
+
+    const scenes = $("[data-scenes]");
+    if (scenes) {
+      scenes.textContent = "";
+      p.uses.forEach((u) => {
+        const card = document.createElement("div");
+        card.className = "scene";
+        const img = document.createElement("div");
+        img.className = "scene-img";
+        if (u.image) {
+          const im = document.createElement("img");
+          im.src = u.image.src;
+          if (u.image.srcset) im.srcset = u.image.srcset;
+          im.width = u.image.width;
+          im.height = u.image.height;
+          im.alt = u.image.alt;
+          im.loading = "lazy";
+          img.appendChild(im);
+        } else {
+          img.innerHTML = productArt(p.art);
+        }
+        const t = document.createElement("p");
+        t.className = "scene-title";
+        t.textContent = u.title;
+        const s = document.createElement("p");
+        s.className = "scene-sub";
+        s.textContent = u.sub;
+        card.append(img, t, s);
+        scenes.appendChild(card);
       });
     }
+    renderGuide();
   }
+
+  function renderGuide() {
+    const g = buildGuide(answers);
+    setText("[data-guide-method]", g.method);
+    setText("[data-guide-deadline]", g.deadline);
+    setText("[data-guide-cta]", g.ctaLead);
+    setList("[data-guide-prepare]", g.prepare);
+  }
+
+  /** 右側のサブコピー: 直近に選んだ回答(デザイン・納期・数量)に連動する。商品は見出しに反映 */
+  function renderCopy() {
+    const v = lastKey ? answers[lastKey] : null;
+    const copy = lastKey && v ? HEADLINE_BY_ANSWER[`${lastKey}:${v}`] : null;
+    setText("[data-lp-sub]", copy ? copy.headline : DEFAULT_SUB);
+  }
+
+  // --- 商品の選択(PCプルダウン・PCストリップ・スマホグリッド共通) ---
+  let userSelected = false;
+  function selectProduct(id: string, source: string) {
+    const p = getProduct(id);
+    if (!p) return;
+    if (source !== "intent") userSelected = true;
+    const changed = answers.product !== p.id;
+    answers.product = p.id;
+    renderProduct();
+    if (changed || source === "intent") {
+      track("product_selected", { product: p.id, product_group: p.group, source });
+    }
+  }
+
+  document.addEventListener("click", (e) => {
+    const btn = (e.target as Element).closest<HTMLElement>("[data-product-btn]");
+    if (btn?.dataset.productBtn) {
+      selectProduct(btn.dataset.productBtn, btn.closest("[data-pgrid]") ? "grid" : "strip");
+    }
+  });
+
+  // --- PC: 階層+検索つきプルダウン ---
+  const combo = $("[data-combo]");
+  const comboBtn = $<HTMLButtonElement>(".combo-btn");
+  const pop = $("[data-combo-pop]");
+  const search = $<HTMLInputElement>("[data-combo-search]");
+  const empty = $("[data-combo-empty]");
+  let activeIdx = -1;
+
+  const visibleOptions = () => $$("[data-option]").filter((o) => !o.hidden);
+  function setActive(idx: number) {
+    const opts = visibleOptions();
+    $$("[data-option]").forEach((o) => o.classList.remove("is-active"));
+    activeIdx = Math.max(-1, Math.min(idx, opts.length - 1));
+    const el = opts[activeIdx];
+    if (el) {
+      el.classList.add("is-active");
+      el.scrollIntoView({ block: "nearest" });
+      search?.setAttribute("aria-activedescendant", el.id);
+    } else {
+      search?.removeAttribute("aria-activedescendant");
+    }
+  }
+  function filterOptions(q: string) {
+    const needle = q.trim().toLowerCase();
+    $$("[data-option]").forEach((o) => {
+      o.hidden = needle !== "" && !(o.dataset.name ?? "").includes(needle);
+    });
+    $$("[data-group-head]").forEach((h) => {
+      const g = h.dataset.groupHead;
+      h.hidden = !$$("[data-option]").some((o) => o.dataset.group === g && !o.hidden);
+    });
+    if (empty) empty.hidden = visibleOptions().length > 0;
+    setActive(visibleOptions().length > 0 ? 0 : -1);
+  }
+  function openCombo() {
+    if (!pop || !comboBtn) return;
+    pop.hidden = false;
+    comboBtn.setAttribute("aria-expanded", "true");
+    if (search) {
+      search.value = "";
+      filterOptions("");
+      search.focus();
+    }
+    setActive(visibleOptions().findIndex((o) => o.dataset.option === answers.product));
+  }
+  function closeCombo(focusBtn = false) {
+    if (!pop || !comboBtn || pop.hidden) return;
+    pop.hidden = true;
+    comboBtn.setAttribute("aria-expanded", "false");
+    if (focusBtn) comboBtn.focus();
+  }
+  comboBtn?.addEventListener("click", () => (pop?.hidden ? openCombo() : closeCombo()));
+  comboBtn?.addEventListener("keydown", (e) => {
+    if (e.key === "ArrowDown" || e.key === "ArrowUp") {
+      e.preventDefault();
+      openCombo();
+    }
+  });
+  search?.addEventListener("input", () => filterOptions(search.value));
+  search?.addEventListener("keydown", (e) => {
+    const opts = visibleOptions();
+    if (e.key === "ArrowDown") {
+      e.preventDefault();
+      setActive(Math.min(activeIdx + 1, opts.length - 1));
+    } else if (e.key === "ArrowUp") {
+      e.preventDefault();
+      setActive(Math.max(activeIdx - 1, 0));
+    } else if (e.key === "Enter") {
+      e.preventDefault();
+      const el = opts[activeIdx];
+      if (el?.dataset.option) {
+        selectProduct(el.dataset.option, "dropdown");
+        closeCombo(true);
+      }
+    } else if (e.key === "Escape" || e.key === "Tab") {
+      closeCombo(e.key === "Escape");
+    }
+  });
+  $("[data-combo-list]")?.addEventListener("click", (e) => {
+    const el = (e.target as Element).closest<HTMLElement>("[data-option]");
+    if (el?.dataset.option) {
+      selectProduct(el.dataset.option, "dropdown");
+      closeCombo(true);
+    }
+  });
+  document.addEventListener("click", (e) => {
+    if (combo && !combo.contains(e.target as Node)) closeCombo();
+  });
+
+  // --- スマホ: グループタブ+「すべてのアイテムから選ぶ」 ---
+  const COLLAPSED_COUNT = 6;
+  let activeTab = "all";
+  let expanded = false;
+  const moreBtn = $<HTMLButtonElement>("[data-pmore]");
+  function applyGrid() {
+    const items = $$("[data-pgrid-list] [data-product-btn]");
+    const inTab = items.filter((i) => activeTab === "all" || i.dataset.group === activeTab);
+    items.forEach((i) => {
+      const idx = inTab.indexOf(i);
+      i.hidden = idx < 0 || (!expanded && idx >= COLLAPSED_COUNT);
+    });
+    if (moreBtn) {
+      moreBtn.hidden = inTab.length <= COLLAPSED_COUNT;
+      moreBtn.setAttribute("aria-expanded", String(expanded));
+      moreBtn.textContent = expanded ? "閉じる" : "すべてのアイテムから選ぶ →";
+    }
+  }
+  const tabs = $$<HTMLButtonElement>(".ptab");
+  tabs.forEach((t, i) => {
+    t.addEventListener("click", () => {
+      activeTab = t.dataset.tab ?? "all";
+      expanded = false;
+      tabs.forEach((x) => x.setAttribute("aria-selected", String(x === t)));
+      applyGrid();
+    });
+    t.addEventListener("keydown", (e) => {
+      if (e.key !== "ArrowRight" && e.key !== "ArrowLeft") return;
+      e.preventDefault();
+      const next = tabs[(i + (e.key === "ArrowRight" ? 1 : -1) + tabs.length) % tabs.length];
+      next.focus();
+      next.click();
+    });
+  });
+  moreBtn?.addEventListener("click", () => {
+    expanded = !expanded;
+    applyGrid();
+  });
+  applyGrid();
+
+  // --- Q1/Q3/Q4(デザイン・納期・数量) ---
+  const form = $<HTMLFormElement>("[data-lp-form]");
+  const dateRow = $("[data-date-row]");
+  const dateInput = $<HTMLInputElement>("#use-date");
 
   function updateDays() {
     const v = dateInput?.value;
@@ -507,34 +1416,44 @@ const guide = buildGuide(EMPTY_ANSWERS);
     const t = e.target as HTMLInputElement;
     if (t.name === "use-date") {
       updateDays();
-      render("deadline");
+      renderGuide();
       track("lp_select", { question: "deadline", answer: "date_value_set", days_bucket: daysBucket(answers.daysLeft) });
       return;
     }
+    if (t.name !== "design" && t.name !== "deadline" && t.name !== "qty") return;
     const key = t.name as QuestionKey;
-    if (!(key in answers)) return;
-    const value = t.value || null;
-    (answers as unknown as Record<string, string | null>)[key] = value;
+    (answers as unknown as Record<string, string | null>)[key] = t.value;
     if (key === "deadline") {
-      if (dateRow) dateRow.hidden = value !== "date";
-      if (value !== "date") answers.daysLeft = null;
+      if (dateRow) dateRow.hidden = t.value !== "date";
+      if (t.value !== "date") answers.daysLeft = null;
       else updateDays();
     }
-    render(value ? key : null);
-    if (value) track("lp_select", { question: key, answer: value });
+    lastKey = key;
+    renderCopy();
+    renderGuide();
+    track("lp_select", { question: key, answer: t.value });
   });
 
-  document.querySelector("[data-guide-link]")?.addEventListener("click", () => {
+  $("[data-guide-link]")?.addEventListener("click", () => {
     track("lp_guide_open", {
       design: answers.design ?? undefined,
-      category: answers.category ?? undefined,
+      product: answers.product ?? undefined,
       deadline: answers.deadline ?? undefined,
       qty: answers.qty ?? undefined,
     });
   });
 
-  // 広告バナー: PC用(素材ID 74)/スマホ用(素材ID 15)のうち、該当する方だけを<script type="text/plain">の原文から挿入する
-  const bannerBox = document.querySelector<HTMLElement>("[data-upt-banner]");
+  // --- キーワード流入からの初期選択(ユーザー自身の選択を優先) ---
+  try {
+    const qs = new URLSearchParams(window.location.search);
+    const found = detectProduct(["item", "product", "intent", "utm_term", "utm_content", "q"].map((k) => qs.get(k) ?? ""));
+    if (found && !userSelected) selectProduct(found.id, "intent");
+  } catch {
+    // no-op
+  }
+
+  // --- 広告バナー: PC用(素材ID 74)/スマホ用(素材ID 15)のうち、該当する方だけを挿入する ---
+  const bannerBox = $("[data-upt-banner]");
   if (bannerBox) {
     const slot = bannerBox.querySelector<HTMLElement>("[data-banner-slot]");
     const isMobile = window.matchMedia("(max-width: 720px)").matches;
@@ -547,8 +1466,7 @@ const guide = buildGuide(EMPTY_ANSWERS);
     }
   }
 
-  // 広告クリックの計測。リスナーを追加するだけで、遷移・リンク・広告コードには一切干渉しない
-  // (preventDefault・自動クリック・リダイレクトなし)。
+  // --- 広告クリックの計測(リスナー追加のみ。遷移・広告コードには干渉しない) ---
   document.addEventListener(
     "click",
     (e) => {
@@ -559,16 +1477,16 @@ const guide = buildGuide(EMPTY_ANSWERS);
           ad_id: el.dataset.uptAd,
           ad_type: el.dataset.adType,
           design: answers.design ?? undefined,
-          category: answers.category ?? undefined,
+          product: answers.product ?? undefined,
           deadline: answers.deadline ?? undefined,
           qty: answers.qty ?? undefined,
           days_bucket: daysBucket(answers.daysLeft),
         });
-      const debounce = (window as unknown as { sokunobankDebounceClick?: (el: HTMLElement, fn: () => void) => void })
-        .sokunobankDebounceClick;
-      if (typeof debounce === "function") debounce(el, run);
+      if (typeof w.sokunobankDebounceClick === "function") w.sokunobankDebounceClick(el, run);
       else run();
     },
     true,
   );
+
+  renderProduct();
 </script>

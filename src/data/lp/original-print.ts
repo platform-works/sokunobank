@@ -2,25 +2,27 @@
 // 方針: 納期の計算・保証をしない。Up-T公式で確認できていない事実(最短日数・対象商品・
 // 取扱カテゴリ・割引等)は一切書かない。広告コードは upt-ads.ts(原文のまま)。
 
+import { getProduct } from "./original-print-products";
+
 export const LP_SLUG = "original-print";
 
 export type DesignAnswer = "data" | "rough" | "none";
-export type CategoryAnswer = "tshirt" | "bag" | "mug" | "phonecase" | "other";
 export type DeadlineAnswer = "fastest" | "date";
 export type QtyAnswer = "small" | "mid" | "large";
 
 export interface Answers {
   design: DesignAnswer | null;
-  category: CategoryAnswer | null;
+  /** 商品ID(original-print-products.ts の PRODUCTS[].id) */
+  product: string | null;
   deadline: DeadlineAnswer | null;
   qty: QtyAnswer | null;
   /** deadline === "date" のときの、使用日までの暦日数(本日から数えた日数。納期の計算ではない) */
   daysLeft: number | null;
 }
 
-export const EMPTY_ANSWERS: Answers = { design: null, category: null, deadline: null, qty: null, daysLeft: null };
+export const EMPTY_ANSWERS: Answers = { design: null, product: null, deadline: null, qty: null, daysLeft: null };
 
-export type QuestionKey = "design" | "category" | "deadline" | "qty";
+export type QuestionKey = "design" | "deadline" | "qty";
 
 export const QUESTIONS: {
   key: QuestionKey;
@@ -37,22 +39,11 @@ export const QUESTIONS: {
     ],
   },
   {
-    key: "category",
-    label: "何を作りますか?",
-    options: [
-      { value: "tshirt", label: "Tシャツ・ウェア" },
-      { value: "bag", label: "バッグ・タオル" },
-      { value: "mug", label: "マグカップ・雑貨" },
-      { value: "phonecase", label: "スマホケース" },
-      { value: "other", label: "その他" },
-    ],
-  },
-  {
     key: "deadline",
     label: "いつまでに必要ですか?",
     options: [
-      { value: "fastest", label: "最短希望" },
-      { value: "date", label: "希望使用日を指定" },
+      { value: "fastest", label: "できるだけ早く" },
+      { value: "date", label: "使用日を指定" },
     ],
   },
   {
@@ -66,8 +57,7 @@ export const QUESTIONS: {
   },
 ];
 
-export const DEFAULT_HEADLINE = "オリジナルグッズの発注、条件を整理してから。";
-export const DEFAULT_SUB = "4つの質問に答えると、発注方法・事前に準備するもの・納期の確認ポイントを整理して表示します。";
+export const DEFAULT_SUB = "デザインデータがあっても、なくても。必要な枚数と使用日から発注方法をチェック。";
 
 /** 右側の訴求コピー。直近に選択した質問の回答に対応するコピーを表示する(実際の発送日・割引を保証する表現は使わない) */
 export const HEADLINE_BY_ANSWER: Record<string, { headline: string; sub: string }> = {
@@ -82,26 +72,6 @@ export const HEADLINE_BY_ANSWER: Record<string, { headline: string; sub: string 
   "design:none": {
     headline: "デザインがなくても、オリジナルグッズを。",
     sub: "デザイン方法の選択肢は、Up-T公式で確認できます。",
-  },
-  "category:tshirt": {
-    headline: "チームやイベントのTシャツ作りを、整理して始める。",
-    sub: "サイズの内訳と使用日を決めておくと、注文がスムーズです。",
-  },
-  "category:bag": {
-    headline: "バッグ・タオルのオリジナル制作を、条件から整理。",
-    sub: "印刷位置とサイズを決めておくと、確認がスムーズです。",
-  },
-  "category:mug": {
-    headline: "マグカップ・雑貨のオリジナル制作を、条件から整理。",
-    sub: "印刷範囲や仕様は商品ごとに異なります。公式で確認できます。",
-  },
-  "category:phonecase": {
-    headline: "スマホケースのオリジナル制作を、条件から整理。",
-    sub: "対応機種を事前に確認しておくと安心です。",
-  },
-  "category:other": {
-    headline: "作りたいものに合わせて、発注方法を確認。",
-    sub: "取り扱い商品は、Up-T公式で確認できます。",
   },
   "deadline:fastest": {
     headline: "イベントに間に合わせたい。急ぎの発注方法をチェック。",
@@ -144,14 +114,6 @@ const PREPARE_DESIGN: Record<DesignAnswer, string[]> = {
   none: ["用途のイメージ(誰が・いつ・どこで使うか)", "入れたい文言や使いたい色", "著作権を侵害する画像・ロゴは使用できません"],
 };
 
-const PREPARE_CATEGORY: Record<CategoryAnswer, string> = {
-  tshirt: "サイズ別・色別の枚数(全員分のサイズを集計)",
-  bag: "印刷する位置とサイズ(商品ごとに印刷範囲が異なります)",
-  mug: "印刷したい範囲と色(商品ごとに仕様が異なります)",
-  phonecase: "対応する機種名・型番",
-  other: "作りたいものの種類と用途",
-};
-
 const PREPARE_QTY: Record<QtyAnswer, string> = {
   small: "少数での注文可否と1点あたりの条件(商品ごとに公式で確認)",
   mid: "サイズ・色ごとの内訳と、予備の要否",
@@ -172,10 +134,11 @@ export function buildGuide(a: Answers): Guide {
 
   const prepare: string[] = [];
   if (a.design) prepare.push(...PREPARE_DESIGN[a.design]);
-  if (a.category) prepare.push(PREPARE_CATEGORY[a.category]);
+  const product = getProduct(a.product);
+  if (product) prepare.push(...product.checks.slice(0, 2));
   if (a.qty) prepare.push(PREPARE_QTY[a.qty]);
-  if (a.category && a.category !== "other") {
-    prepare.push("選んだ種類がUp-Tで取り扱われているか、商品ページで確認");
+  if (product && product.id !== "other") {
+    prepare.push("選んだ商品の取り扱い・仕様は、Up-T公式の商品ページで確認");
   }
   if (prepare.length === 0) prepare.push("質問に答えると、事前に準備するものを表示します。");
 
