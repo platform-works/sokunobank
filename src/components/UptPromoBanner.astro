@@ -7,7 +7,7 @@ const base = "/images/lp/original-print/up-t-hero";
 
 <section class="upt-promo" aria-labelledby="upt-promo-h">
   <div class="container">
-    <a class="upt-promo-link" href="/lp/original-print/" data-promo="upt-original-print">
+    <a class="upt-promo-link" href="/lp/original-print/" data-promo="upt-original-print" data-placement="home_top">
       <picture class="upt-promo-pic">
         <source type="image/avif" srcset={`${base}-960.avif 960w, ${base}-1672.avif 1672w`} sizes="(min-width: 1200px) 1200px, 100vw" />
         <source type="image/webp" srcset={`${base}-960.webp 960w, ${base}-1672.webp 1672w`} sizes="(min-width: 1200px) 1200px, 100vw" />
@@ -133,17 +133,3 @@ const base = "/images/lp/original-print/up-t-hero";
     }
   }
 </style>
-
-<script>
-  // クリック計測: 既存の計測関数(Layout.astro)を使う。値は固定ID。遷移には干渉しない
-  document.querySelectorAll<HTMLElement>("[data-promo]").forEach((el) => {
-    el.addEventListener("click", () => {
-      const w = window as unknown as { sokunobankTrackEvent?: (n: string, p: Record<string, unknown>) => void };
-      try {
-        w.sokunobankTrackEvent?.("promo_click", { promo: el.dataset.promo, placement: "home_top" });
-      } catch {
-        // no-op
-      }
-    });
-  });
-</script>
