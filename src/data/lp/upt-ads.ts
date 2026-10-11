@@ -1,0 +1,6 @@
+// Up-T(A8.net)の広告コード。docs/upt_ads_1_15_74.csv から機械的に転記した原文(素材ID 1・15・74)。
+// A8.netの規約上、広告コード(URL・パラメーター・計測用1x1画像を含む)は改変禁止。
+// 一切書き換えず、描画側は set:html でそのまま出力すること。
+export const UPT_AD_TEXT_1 = "<a href=\"https://px.a8.net/svt/ejp?a8mat=4BEE12+5ZJ2EA+34VM+BWVTE\" rel=\"nofollow\">ご自由にお造り下さい。</a>\n<img border=\"0\" width=\"1\" height=\"1\" src=\"https://www12.a8.net/0.gif?a8mat=4BEE12+5ZJ2EA+34VM+BWVTE\" alt=\"\">";
+export const UPT_AD_BANNER_74_PC = "<a href=\"https://px.a8.net/svt/ejp?a8mat=4BEE12+5ZJ2EA+34VM+CCJ35\" rel=\"nofollow\">\n<img border=\"0\" width=\"728\" height=\"90\" alt=\"\" src=\"https://www20.a8.net/svt/bgt?aid=261011846362&wid=007&eno=01&mid=s00000014629002074000&mc=1\"></a>\n<img border=\"0\" width=\"1\" height=\"1\" src=\"https://www17.a8.net/0.gif?a8mat=4BEE12+5ZJ2EA+34VM+CCJ35\" alt=\"\">";
+export const UPT_AD_BANNER_15_MOBILE = "<a href=\"https://px.a8.net/svt/ejp?a8mat=4BEE12+5ZJ2EA+34VM+BZVU9\" rel=\"nofollow\">\n<img border=\"0\" width=\"300\" height=\"250\" alt=\"\" src=\"https://www24.a8.net/svt/bgt?aid=261011846362&wid=007&eno=01&mid=s00000014629002015000&mc=1\"></a>\n<img border=\"0\" width=\"1\" height=\"1\" src=\"https://www11.a8.net/0.gif?a8mat=4BEE12+5ZJ2EA+34VM+BZVU9\" alt=\"\">";

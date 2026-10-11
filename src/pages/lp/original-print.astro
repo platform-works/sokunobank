@@ -1,0 +1,517 @@
+---
+// Up-T(オリジナルプリント)送客LP。広告LP(noindex)。
+// 既存の /lp/[slug]/ とは別の静的ルートとして追加(カテゴリーデータ・既存LPには影響しない)。
+// 広告コード(A8.net)は upt-ads.ts の原文を set:html でそのまま出力する(改変禁止)。
+import Layout from "../../layouts/Layout.astro";
+import FaqSection from "../../components/FaqSection.astro";
+import {
+  QUESTIONS,
+  DEFAULT_HEADLINE,
+  DEFAULT_SUB,
+  EMPTY_ANSWERS,
+  FAQ_ITEMS,
+  buildGuide,
+} from "../../data/lp/original-print";
+import { UPT_AD_TEXT_1, UPT_AD_BANNER_74_PC, UPT_AD_BANNER_15_MOBILE } from "../../data/lp/upt-ads";
+
+const guide = buildGuide(EMPTY_ANSWERS);
+---
+
+<Layout
+  title="オリジナルプリントの発注方法と納期確認のポイント"
+  description="オリジナルグッズの発注前に、デザインの有無・種類・納期・数量から、発注方法と事前準備を整理します。(PR)"
+  noindex
+>
+  <section class="uphero" aria-labelledby="lp-h1">
+    <div class="uphero-bg" aria-hidden="true"></div>
+    <div class="container uphero-grid">
+      <p class="pr-line">
+        <span class="pr-badge">PR</span>
+        <span>広告を含みます。制作・発送はUp-T(広告主)が行います。</span>
+      </p>
+
+      <div class="copy" id="copy">
+        <h1 id="lp-h1" data-lp-headline>{DEFAULT_HEADLINE}</h1>
+        <p class="copy-sub" data-lp-sub>{DEFAULT_SUB}</p>
+        <p class="copy-note">発送日・割引の適用を保証するものではありません。最新の条件はUp-T公式でご確認ください。</p>
+      </div>
+
+      <form class="selector card" data-lp-form onsubmit="return false" aria-label="発注条件の選択">
+        {
+          QUESTIONS.map((q, i) => (
+            <fieldset class="q" data-q={q.key}>
+              <legend>
+                <span class="qn">Q{i + 1}</span>
+                {q.label}
+              </legend>
+              <div class="opts">
+                {q.options.map((o) => (
+                  <label class="opt">
+                    <input type="radio" name={q.key} value={o.value} />
+                    <span>{o.label}</span>
+                  </label>
+                ))}
+              </div>
+              {q.key === "deadline" && (
+                <div class="date-row" data-date-row hidden>
+                  <label for="use-date">使用したい日</label>
+                  <input id="use-date" type="date" name="use-date" />
+                </div>
+              )}
+            </fieldset>
+          ))
+        }
+        <a class="btn btn-primary btn-lg main-cta" href="#guide" data-main-cta>納期の目安と発注方法を確認</a>
+      </form>
+    </div>
+  </section>
+
+  <div class="container">
+    <section class="guide card" id="guide" aria-live="polite">
+      <h2>選んだ条件の整理</h2>
+      <div class="guide-grid">
+        <div>
+          <h3>おすすめの発注方法</h3>
+          <p data-guide-method>{guide.method}</p>
+        </div>
+        <div>
+          <h3>事前に準備するもの</h3>
+          <ul data-guide-prepare>
+            {guide.prepare.map((p) => <li>{p}</li>)}
+          </ul>
+        </div>
+        <div>
+          <h3>納期の確認について</h3>
+          <p data-guide-deadline>{guide.deadline}</p>
+        </div>
+      </div>
+
+      <div class="cta-box">
+        <p class="cta-lead" data-guide-cta>{guide.ctaLead}</p>
+        <p class="cta-label"><span class="pr-badge">PR</span> Up-T公式サイトへ(広告リンク)</p>
+        <!-- A8.net 素材ID 1(テキスト広告)。広告コードは原文のまま。親要素のスタイルのみで装飾する -->
+        <div class="ad-text" data-upt-ad="1" data-ad-type="text" set:html={UPT_AD_TEXT_1} />
+        <!-- A8.net 素材ID 74(PC・728×90)/ 15(スマホ・300×250)。表示する方だけをDOMに挿入する(二重描画しない)。type="text/plain"の<script>は解析・描画されず、画像も読み込まれない -->
+        <div class="ad-banner" data-upt-banner>
+          <div class="ad-banner-slot" data-banner-slot></div>
+          <script type="text/plain" data-variant="pc" set:html={UPT_AD_BANNER_74_PC} />
+          <script type="text/plain" data-variant="mobile" set:html={UPT_AD_BANNER_15_MOBILE} />
+        </div>
+        <p class="note">
+          リンク先はUp-T公式サイトです。表示内容・納期・料金は変更されることがあります。購入・申込前にUp-T公式の最新情報をご確認ください。
+        </p>
+      </div>
+    </section>
+
+    <section class="steps">
+      <h2>発注前チェックリスト</h2>
+      <ul class="checks">
+        <li>いつ使うか(使用日・イベント日)を決めている</li>
+        <li>何個必要か(サイズ・色ごとの内訳)を決めている</li>
+        <li>デザインのデータ・ラフ案の有無を確認した</li>
+        <li>印刷位置・範囲を決めている</li>
+        <li>発送日と到着日は別であることを理解し、余裕を持った日程にしている</li>
+      </ul>
+    </section>
+
+    <FaqSection items={FAQ_ITEMS} />
+  </div>
+</Layout>
+
+<style>
+  .uphero {
+    position: relative;
+    overflow: hidden;
+    background: linear-gradient(110deg, #ffffff 0%, var(--color-bg-soft-2) 100%);
+    border-bottom: 1px solid var(--color-border);
+  }
+  /* 背景画像はPC(900px以上)のみ。既存のhero-banner.webpを再利用し、テキスト側は白グラデーションで可読性を確保する */
+  .uphero-bg {
+    display: none;
+  }
+  @media (min-width: 900px) {
+    .uphero-bg {
+      display: block;
+      position: absolute;
+      inset: 0;
+      background:
+        linear-gradient(90deg, rgba(255, 255, 255, 0.96) 0%, rgba(255, 255, 255, 0.85) 38%, rgba(255, 255, 255, 0.3) 62%, rgba(255, 255, 255, 0) 80%),
+        url("/images/hero-banner.webp") right center / cover no-repeat;
+    }
+  }
+  .uphero-grid {
+    position: relative;
+    display: grid;
+    gap: 1rem;
+    padding-top: 1rem;
+    padding-bottom: 1.5rem;
+    grid-template-areas: "pr" "copy" "form";
+  }
+  .pr-line {
+    grid-area: pr;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.5rem;
+    margin: 0;
+    font-size: 0.8rem;
+    color: var(--color-text-muted);
+  }
+  .pr-badge {
+    display: inline-block;
+    padding: 0.05rem 0.45rem;
+    border: 1px solid var(--color-text-muted);
+    border-radius: var(--radius-sm);
+    background: #fff;
+    color: var(--color-text);
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+  }
+  .copy {
+    grid-area: copy;
+    align-self: center;
+  }
+  .copy h1 {
+    font-size: clamp(1.35rem, 5.4vw, 2.1rem);
+    line-height: 1.4;
+    margin: 0 0 0.5rem;
+  }
+  .copy-sub {
+    color: var(--color-accent-dark);
+    font-weight: 600;
+    margin: 0 0 0.5rem;
+  }
+  .copy-note {
+    margin: 0;
+    font-size: 0.8rem;
+    color: var(--color-text-muted);
+  }
+  .selector {
+    grid-area: form;
+    padding: 1rem;
+  }
+  .q {
+    border: 0;
+    padding: 0;
+    margin: 0 0 1rem;
+  }
+  .q legend {
+    font-weight: 700;
+    margin-bottom: 0.4rem;
+    padding: 0;
+  }
+  .qn {
+    display: inline-block;
+    margin-right: 0.4rem;
+    color: var(--color-accent-dark);
+  }
+  .opts {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+  .opt {
+    position: relative;
+    cursor: pointer;
+  }
+  .opt input {
+    position: absolute;
+    opacity: 0;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    cursor: pointer;
+  }
+  .opt span {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+    padding: 0 0.9rem;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    background: #fff;
+    font-size: 0.92rem;
+  }
+  .opt input:checked + span {
+    border-color: var(--color-accent-dark);
+    background: var(--color-accent-soft);
+    font-weight: 700;
+  }
+  .opt input:focus-visible + span {
+    outline: 2px solid var(--color-accent-dark);
+    outline-offset: 2px;
+  }
+  .date-row {
+    margin-top: 0.6rem;
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    flex-wrap: wrap;
+  }
+  .date-row[hidden] {
+    display: none;
+  }
+  .date-row input {
+    min-height: 44px;
+    padding: 0 0.6rem;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    font: inherit;
+  }
+  .main-cta {
+    display: flex;
+    width: 100%;
+    justify-content: center;
+    text-align: center;
+  }
+
+  .guide {
+    margin: 1.5rem 0;
+    padding: 1.25rem;
+    scroll-margin-top: 80px;
+  }
+  .guide h2 {
+    margin-top: 0;
+  }
+  .guide h3 {
+    font-size: 0.95rem;
+    margin: 0 0 0.4rem;
+    color: var(--color-accent-dark);
+  }
+  .guide-grid {
+    display: grid;
+    gap: 1.25rem;
+  }
+  .guide p,
+  .guide ul {
+    margin: 0;
+  }
+  .guide ul {
+    padding-left: 1.2rem;
+  }
+  .cta-box {
+    margin-top: 1.5rem;
+    padding-top: 1.25rem;
+    border-top: 1px solid var(--color-border);
+  }
+  .cta-lead {
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+  }
+  .cta-label {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.85rem;
+    color: var(--color-text-muted);
+    margin-bottom: 0.4rem;
+  }
+  /* 広告コード自体は変更しない。親要素のスタイルのみで、タップしやすい大きさにする */
+  .ad-text {
+    margin-bottom: 1rem;
+    font-size: 1.1rem;
+    font-weight: 700;
+  }
+  .ad-text :global(a) {
+    display: inline-block;
+    padding: 0.7rem 0;
+    color: var(--color-accent-dark);
+    text-decoration: underline;
+  }
+  .ad-banner-slot {
+    overflow-x: auto;
+    max-width: 100%;
+  }
+  .ad-banner-slot :global(img) {
+    max-width: 100%;
+    height: auto;
+  }
+  .note {
+    margin-top: 0.75rem;
+    font-size: 0.8rem;
+    color: var(--color-text-muted);
+  }
+  .steps {
+    margin: 2rem 0;
+  }
+  .checks {
+    padding-left: 1.2rem;
+  }
+  .checks li {
+    margin: 0.4rem 0;
+  }
+
+  @media (min-width: 900px) {
+    .uphero-grid {
+      grid-template-columns: 480px minmax(0, 1fr);
+      grid-template-areas: "pr copy" "form copy";
+      align-items: start;
+      padding-top: 1.5rem;
+      padding-bottom: 2.5rem;
+      column-gap: 2rem;
+    }
+    .copy {
+      padding: 1.5rem;
+      justify-self: end;
+      max-width: 520px;
+      background: rgba(255, 255, 255, 0.82);
+      border-radius: var(--radius-lg);
+    }
+    .guide-grid {
+      grid-template-columns: repeat(3, 1fr);
+    }
+  }
+</style>
+
+<script>
+  import {
+    EMPTY_ANSWERS,
+    HEADLINE_BY_ANSWER,
+    DEFAULT_HEADLINE,
+    DEFAULT_SUB,
+    LP_SLUG,
+    buildGuide,
+    type Answers,
+    type QuestionKey,
+  } from "../../data/lp/original-print";
+
+  type Tracker = (name: string, params: Record<string, unknown>) => void;
+  type AttributionGetter = () => Record<string, unknown>;
+  const w = window as unknown as {
+    sokunobankTrackEvent?: Tracker;
+    sokunobankGetAttribution?: AttributionGetter;
+  };
+
+  // 既存の計測関数(Layout.astro)を使う。Yahoo!広告の離脱CVを発火する sokunobankTrackOutboundClick は
+  // 今回の指示により使わない。値はすべて固定IDのみ(個人情報・自由入力・日付そのものは送らない)。
+  function track(name: string, params: Record<string, unknown>) {
+    try {
+      const attribution = typeof w.sokunobankGetAttribution === "function" ? w.sokunobankGetAttribution() : {};
+      w.sokunobankTrackEvent?.(name, { lp: LP_SLUG, ...attribution, ...params });
+    } catch {
+      // 計測の失敗でページ機能を止めない
+    }
+  }
+
+  const answers: Answers = { ...EMPTY_ANSWERS };
+  const form = document.querySelector<HTMLFormElement>("[data-lp-form]");
+  const headline = document.querySelector<HTMLElement>("[data-lp-headline]");
+  const sub = document.querySelector<HTMLElement>("[data-lp-sub]");
+  const dateRow = document.querySelector<HTMLElement>("[data-date-row]");
+  const dateInput = document.querySelector<HTMLInputElement>("#use-date");
+
+  function daysBucket(n: number | null): string | undefined {
+    if (n === null || n < 0) return undefined;
+    if (n <= 7) return "within_7";
+    if (n <= 14) return "8_to_14";
+    return "15_plus";
+  }
+
+  function render(lastKey: QuestionKey | null) {
+    const last = lastKey ? answers[lastKey] : null;
+    const copy = lastKey && last ? HEADLINE_BY_ANSWER[`${lastKey}:${last}`] : null;
+    if (headline) headline.textContent = copy ? copy.headline : DEFAULT_HEADLINE;
+    if (sub) sub.textContent = copy ? copy.sub : DEFAULT_SUB;
+
+    const g = buildGuide(answers);
+    const set = (sel: string, text: string) => {
+      const el = document.querySelector<HTMLElement>(sel);
+      if (el) el.textContent = text;
+    };
+    set("[data-guide-method]", g.method);
+    set("[data-guide-deadline]", g.deadline);
+    set("[data-guide-cta]", g.ctaLead);
+    const ul = document.querySelector<HTMLElement>("[data-guide-prepare]");
+    if (ul) {
+      ul.textContent = "";
+      g.prepare.forEach((p) => {
+        const li = document.createElement("li");
+        li.textContent = p;
+        ul.appendChild(li);
+      });
+    }
+  }
+
+  function updateDays() {
+    const v = dateInput?.value;
+    if (!v) {
+      answers.daysLeft = null;
+      return;
+    }
+    const [y, m, d] = v.split("-").map(Number);
+    const target = new Date(y, m - 1, d).getTime();
+    const now = new Date();
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
+    answers.daysLeft = Math.round((target - today) / 86400000);
+  }
+
+  form?.addEventListener("change", (e) => {
+    const t = e.target as HTMLInputElement;
+    if (t.name === "use-date") {
+      updateDays();
+      render("deadline");
+      track("lp_select", { question: "deadline", answer: "date_value_set", days_bucket: daysBucket(answers.daysLeft) });
+      return;
+    }
+    const key = t.name as QuestionKey;
+    if (!(key in answers)) return;
+    (answers as unknown as Record<string, string | null>)[key] = t.value;
+    if (key === "deadline") {
+      if (dateRow) dateRow.hidden = t.value !== "date";
+      if (t.value !== "date") answers.daysLeft = null;
+      else updateDays();
+    }
+    render(key);
+    track("lp_select", { question: key, answer: t.value });
+  });
+
+  document.querySelector("[data-main-cta]")?.addEventListener("click", () => {
+    track("lp_guide_open", {
+      design: answers.design ?? undefined,
+      category: answers.category ?? undefined,
+      deadline: answers.deadline ?? undefined,
+      qty: answers.qty ?? undefined,
+    });
+  });
+
+  // 広告バナー: PC用(素材ID 74)/スマホ用(素材ID 15)のうち、該当する方だけを<script type="text/plain">の原文から挿入する
+  const bannerBox = document.querySelector<HTMLElement>("[data-upt-banner]");
+  if (bannerBox) {
+    const slot = bannerBox.querySelector<HTMLElement>("[data-banner-slot]");
+    const isMobile = window.matchMedia("(max-width: 720px)").matches;
+    const src = bannerBox.querySelector<HTMLScriptElement>(`script[data-variant="${isMobile ? "mobile" : "pc"}"]`);
+    if (slot && src?.textContent) {
+      // 広告コードの原文をそのままHTMLとして挿入する(加工しない)
+      slot.innerHTML = src.textContent;
+      slot.dataset.uptAd = isMobile ? "15" : "74";
+      slot.dataset.adType = "banner";
+    }
+  }
+
+  // 広告クリックの計測。リスナーを追加するだけで、遷移・リンク・広告コードには一切干渉しない
+  // (preventDefault・自動クリック・リダイレクトなし)。
+  document.addEventListener(
+    "click",
+    (e) => {
+      const el = (e.target as Element | null)?.closest<HTMLElement>("[data-upt-ad]");
+      if (!el || !(e.target as Element).closest("a")) return;
+      const run = () =>
+        track("upt_ad_click", {
+          ad_id: el.dataset.uptAd,
+          ad_type: el.dataset.adType,
+          design: answers.design ?? undefined,
+          category: answers.category ?? undefined,
+          deadline: answers.deadline ?? undefined,
+          qty: answers.qty ?? undefined,
+          days_bucket: daysBucket(answers.daysLeft),
+        });
+      const debounce = (window as unknown as { sokunobankDebounceClick?: (el: HTMLElement, fn: () => void) => void })
+        .sokunobankDebounceClick;
+      if (typeof debounce === "function") debounce(el, run);
+      else run();
+    },
+    true,
+  );
+</script>
