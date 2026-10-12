@@ -29,11 +29,12 @@ description: SOKUNOBANK の「ASP(A8.net等)アフィリエイト広告LP」を�
 
 ## 2. 広告コードの扱い(最重要・規約違反で提携解除のリスク)
 
-- コード(URL・`a8mat`・1x1計測画像を含む)は**一切改変しない**。文言も変えない(テキスト広告のリンク文言は素材のまま)
+- コード(URL・`a8mat`・rel・1x1計測画像を含む)は**一切改変しない**。ただし**自由入力タイプのテキスト広告(Up-Tの素材ID 1「ご自由にお造り下さい。」)は、リンク文言だけ書き換えてよい**(プレースホルダー。2026-10-12にユーザーが確認・指示)。差し替えは `uptTextAd(label)`(`upt-ads.ts`)か、DOM上の `<a>` の `textContent` のみで行う。バナー素材の画像は変えない
 - 描画は `set:html={RAW}` のみ。Astroテンプレート構文で書き直さない(`data-astro-cid-*`が付く)
 - **Astroでは `<template set:html>` を使わない**。内容が文書末尾へ出力され、条件式つきだとビルドが停止した。バナーは `<script type="text/plain" data-variant="pc|mobile" set:html=…>` に入れ、画面幅で**該当する方だけ**を `innerHTML = textContent` で挿入する(二重描画・二重インプレッション防止)
 - PC用(例: 728×90)とスマホ用(例: 300×250)は別素材。720px以下でスマホ用
-- テキスト広告をボタン風にするのは親要素のCSSのみ(`.ad-button :global(a) {…}`)。**文言は変えられない**ことをユーザーに伝える
+- テキスト広告をボタン風にするのは親要素のCSSのみ(`.ad-button :global(a) {…}`)。サイト内の各所に置くときは `UptAdButton.astro`(label / placement)を使う。文言は「行動+便益」で、納期・価格・割引を保証しない表現にする(例:「Up-Tで商品と納期を確認する」)
+- 設置後は `node scripts/check-upt-text-ad.cjs`(ビルド後)で、全ページの素材ID 1 が href/rel 原文一致・計測画像とリンクの数が一致することを確認する
 - 広告主の公式URL(`https://…/`)は**直リンクにしない**(A8の計測を通らず成果が付かない)。ドメインは文字表記のみ
 - 検証時にタグ内URLをcurlで叩かない。確認は built HTML を `includes(原文)` で照合する
 - 同じ素材を複数箇所に置く場合も、GA4の `ad_position`(hero/guide/footer)で区別する

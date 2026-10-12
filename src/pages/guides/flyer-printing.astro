@@ -2,6 +2,8 @@
 import Layout from "../../layouts/Layout.astro";
 import Breadcrumbs from "../../components/Breadcrumbs.astro";
 import FaqSection from "../../components/FaqSection.astro";
+import UptTextLink from "../../components/UptTextLink.astro";
+import UptAdButton from "../../components/UptAdButton.astro";
 
 // Amazonアソシエイト用の検索リンクを組み立てるヘルパー。
 // PA-APIは使わず検索結果ページへのリンクのみとし、在庫・価格・配達日はAmazon側の表示に委ねる。
@@ -113,6 +115,13 @@ const faqItems = [
         チラシ用インクジェット用紙をAmazonで探す →
       </a>
     </p>
+
+    <h2>イベント・販促で、Tシャツやグッズも用意する場合</h2>
+    <p>
+      スタッフ用のTシャツやオリジナルグッズも同時に手配する場合は、デザインの有無・数量・使用日から、発注方法と納期確認のポイントを整理したページがあります(広告を含みます)。
+    </p>
+    <p><UptTextLink placement="guide_flyer" /></p>
+    <UptAdButton label="Up-Tでイベント用Tシャツ・グッズを確認する" placement="guide_flyer_button" />
 
     <FaqSection items={faqItems} />
 

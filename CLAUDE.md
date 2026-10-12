@@ -328,4 +328,5 @@ FAQは必要に応じて追加する。
 - 商品イメージは自作の簡易SVG(`product-art.ts`)で、画面に「イメージ図(実際の商品写真ではありません)」と明記する。写真を使う場合は `uses[].image` に設定する(実在のUp-T商品写真・制作実績と誤認させない)
 - 画像: マスターは `assets/lp-master/original-print/`(元の解像度・ファイル名のまま、Webには公開されない)。`node scripts/build-lp-images.mjs` で `public/images/lp/original-print/` にWebP/AVIFを複数幅で生成し、管理者向け一覧 `assets/lp-master/original-print/index.html`(原寸ダウンロード・出典・ライセンス表示)を作る。台帳は同フォルダの `manifest.json`
 - 計測: `product_selected`(product / product_group / source=dropdown|strip|grid|intent)、`lp_select`(design / deadline / qty)、`upt_ad_click`、`lp_guide_open`
+- **素材ID 1(自由入力のテキスト広告)は、リンク文言だけ変更してよい**(2026-10-12、ユーザー指示)。href・rel・a8mat・計測画像は原文のまま。差し替えは `uptTextAd()`(`src/data/lp/upt-ads.ts`)、設置は `UptAdButton.astro`。設置後は `node scripts/check-upt-text-ad.cjs` で原文一致を確認する
 - **ASP広告LP(Up-T型)の新規作成・拡張は `.claude/skills/add-affiliate-lp` に従う**(2026-10-11、ユーザー指示でスキル化)。広告コード原文保持・画像運用・計測・公開前検証の手順と落とし穴をまとめている

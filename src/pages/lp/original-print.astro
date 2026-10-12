@@ -13,9 +13,15 @@ import {
   getProduct,
 } from "../../data/lp/original-print-products";
 import { productArt } from "../../data/lp/product-art";
-import { UPT_AD_TEXT_1, UPT_AD_BANNER_74_PC, UPT_AD_BANNER_15_MOBILE } from "../../data/lp/upt-ads";
+import { UPT_AD_BANNER_74_PC, UPT_AD_BANNER_15_MOBILE, uptTextAd } from "../../data/lp/upt-ads";
+import UptAdButton from "../../components/UptAdButton.astro";
 
 const product = getProduct(DEFAULT_PRODUCT_ID)!;
+// メインCTAのリンク文言(素材ID 1は自由入力のテキスト広告)。商品名に連動し、次のページへ進みたくなる行動文にする。
+// 納期・価格などを保証する表現は使わない。
+function heroCtaLabel(shortName: string): string {
+  return `Up-Tで${shortName}を選んで納期を確認`;
+}
 const guide = buildGuide({ ...EMPTY_ANSWERS, product: product.id });
 const qs = QUESTIONS;
 const grouped = PRODUCT_GROUPS.map((g) => ({ ...g, items: PUBLISHED_PRODUCTS.filter((p) => p.group === g.id) })).filter(
@@ -226,7 +232,7 @@ const reasons = [
         <!-- A8.net 素材ID 1(テキスト広告)をメインCTAとして配置。広告コードは原文のまま(文言も変更しない)。見た目は親要素のCSSのみでボタン化する -->
         <div class="main-ad">
           <p class="main-ad-label"><span class="pr-badge">PR</span>Up-T公式サイトへ(広告リンク)</p>
-          <div class="ad-button" data-upt-ad="1" data-ad-type="text" data-ad-position="hero" set:html={UPT_AD_TEXT_1} />
+          <div class="ad-button" data-upt-ad="1" data-ad-type="text" data-ad-position="hero" set:html={uptTextAd(heroCtaLabel(product.shortName))} />
           <a class="guide-link" href="#guide" data-guide-link>条件の整理を見る</a>
         </div>
       </form>
@@ -379,6 +385,7 @@ const reasons = [
           <dd>商品・数量・配送先・注文確定時刻によって、発送可能日が変わります。注文前に公式サイトの表示をご確認ください。</dd>
         </div>
       </dl>
+      <UptAdButton label="Up-T公式サイトで商品と納期を確認する" placement="footer_button" caption="最後に、Up-T公式サイトで確認" />
       <div class="ad-banner closing-banner" data-upt-banner data-position="footer">
         <div class="ad-banner-slot" data-banner-slot></div>
         <script type="text/plain" data-variant="pc" set:html={UPT_AD_BANNER_74_PC} />
@@ -1232,6 +1239,9 @@ const reasons = [
   const $ = <T extends HTMLElement = HTMLElement>(sel: string) => document.querySelector<T>(sel);
   const $$ = <T extends HTMLElement = HTMLElement>(sel: string) => Array.from(document.querySelectorAll<T>(sel));
 
+  // LP専用のクリック計測(回答つき)を使うため、共通ハンドラー(Header.astro)の upt_ad_click を無効にする
+  document.documentElement.dataset.uptLp = "1";
+
   const answers: Answers = { ...EMPTY_ANSWERS, product: DEFAULT_PRODUCT_ID };
   let lastKey: QuestionKey | null = null;
 
@@ -1261,6 +1271,9 @@ const reasons = [
   function renderProduct() {
     const p = getProduct(answers.product) ?? getProduct(DEFAULT_PRODUCT_ID)!;
     setText("[data-lp-product]", p.shortName);
+    // メインCTA(素材ID 1)のリンク文言だけを商品に合わせて更新する(href・計測画像は変更しない)
+    const heroLink = $('[data-ad-position="hero"] a');
+    if (heroLink) heroLink.textContent = `Up-Tで${p.shortName}を選んで納期を確認`;
     setText("[data-lp-catch]", p.catchcopy);
     setText("[data-combo-label]", p.name);
     const comboArt = $("[data-combo-art]");
