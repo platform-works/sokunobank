@@ -163,6 +163,24 @@ const organizationJsonLd = {
           });
         }
       };
+
+      // Up-T(オリジナルプリント)送客LPの「Up-Tへ進むボタン」クリックを、LINEヤフー広告の
+      // 離脱クリックCVとして計測する。Yahoo!ショッピング用(上のラベル)とは別のコンバージョンで、
+      // 数値が混ざらないようにしている。ラベルは管理画面で「SOKUNOBANK_up-t送客クリック」を
+      // 作成した後に発行される値を UPT_YAHOO_CONVERSION_LABEL に設定する。空の間は発火しない。
+      // 呼び出し側(LPのクリックリスナー)は広告リンクの遷移・コードに干渉しない。
+      var UPT_YAHOO_CONVERSION_LABEL = "6m-cCOaTipwdEPD7tehE";
+      window.sokunobankTrackUptConversion = function () {
+        if (!UPT_YAHOO_CONVERSION_LABEL || typeof ytag !== "function") return;
+        ytag({
+          type: "yss_conversion",
+          config: {
+            yahoo_conversion_id: "1001413776",
+            yahoo_conversion_label: UPT_YAHOO_CONVERSION_LABEL,
+            yahoo_conversion_value: "0",
+          },
+        });
+      };
     </script>
 
     <!--
