@@ -18,9 +18,9 @@ function escapeHtml(s: string): string {
  * テキストリンク(ボタン)の遷移先。
  * - "top"    : 素材ID 1 の原文のまま(Up-Tのトップ)
  * - "results": A8「商品リンク」(mat=...HUSFL)が発行する遷移先 up-t.jp/page.php?p=results
- * 2026-10-15、ユーザー指示で "results" に設定。戻す場合はここを "top" にするだけでよい。
+ * 2026-10-15: いったん "results" にしたが、同日のユーザー指示で "top"(素材ID 1 の原文。リンク文言のみ変更)に戻した。
  */
-export const UPT_TEXT_LINK_DESTINATION: "top" | "results" = "results";
+export const UPT_TEXT_LINK_DESTINATION: "top" | "results" = "top";
 
 // 商品リンク(UPT_PRODUCT_LINK)をA8のスクリプトが描画した際に、実際に出力されたクリックURLと計測画像(2026-10-15に画面で確認)。
 // href のパラメーター(a8mat・a8ejpredirect)は A8 が発行した値のまま。手で組み立てていない。
@@ -51,6 +51,11 @@ export const UPT_PRODUCT_LINK = "<span class=\"a8ad 4AUb6FI-g7-vy5hzms\"></span>
  * - cap    : キャップ商品のテキストリンク(mat=...HUKPU)。キャップ選択時のLPのCTAだけで使う(2026-10-15、ユーザー指示)
  */
 export const UPT_LINKS = {
+  /** 素材ID 1(テキスト広告)の原文のクリックURLと計測画像。キャップ以外のボタンで使う */
+  top: {
+    href: "https://px.a8.net/svt/ejp?a8mat=4BEE12+5ZJ2EA+34VM+BWVTE",
+    pixel: "https://www12.a8.net/0.gif?a8mat=4BEE12+5ZJ2EA+34VM+BWVTE",
+  },
   results: {
     href: "https://px.a8.net/svt/ejp?a8mat=4BEE12+5ZJ2EA+34VM+HUSFL&a8ejpredirect=https%3A%2F%2Fup-t.jp%2Fpage.php%3Fp%3Dresults",
     pixel: "https://www17.a8.net/0.gif?a8mat=4BEE12+5ZJ2EA+34VM+HUSFL",

@@ -1376,8 +1376,8 @@ const reasons = [
     // メインCTA(素材ID 1)のリンク文言だけを商品に合わせて更新する(href・計測画像は変更しない)
     const heroLink = $('[data-ad-position="hero"] a');
     if (heroLink) heroLink.textContent = `Up-Tで${p.shortName}を選んで納期を確認`;
-    // キャップ選択時は、キャップ商品のテキストリンク(A8発行)に遷移先を切り替える。それ以外は一覧ページ(results)
-    const linkKey = p.id === "cap" ? "cap" : "results";
+    // キャップ選択時は、キャップ商品のテキストリンク(A8発行)に遷移先を切り替える。それ以外は素材ID 1(Up-Tのトップ)
+    const linkKey = p.id === "cap" ? "cap" : "top";
     ["hero", "pick_button"].forEach((pos) => {
       const a = $(`[data-ad-position="${pos}"] a`) as HTMLAnchorElement | null;
       if (!a) return;
