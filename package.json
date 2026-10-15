@@ -9,8 +9,11 @@
     "preview": "astro preview",
     "astro": "astro",
     "cf:preview": "npm run build && wrangler dev",
-    "cf:deploy": "npm run build && wrangler deploy",
+    "cf:deploy": "npm run build && npm run check:dist && wrangler deploy",
     "test": "vitest run",
+    "check:syntax": "node scripts/ci/check-inline-js-syntax.mjs",
+    "check:ad-tags": "node scripts/ci/check-ad-tags.mjs",
+    "check:dist": "npm run check:syntax && npm run check:ad-tags",
     "ads:tshirt:build": "esbuild scripts/yahoo-ads/build-original-tshirt.ts --bundle --platform=node --format=esm --outfile=node_modules/.cache/build-original-tshirt.mjs --log-level=warning && node node_modules/.cache/build-original-tshirt.mjs",
     "ads:goods:build": "esbuild scripts/yahoo-ads/build-original-goods.ts --bundle --platform=node --format=esm --outfile=node_modules/.cache/build-original-goods.mjs --log-level=warning && node node_modules/.cache/build-original-goods.mjs"
   },
