@@ -1,7 +1,7 @@
 /**
  * 即納バンク: オリジナルTシャツ（Up-T 送客LP）向け Yahoo!検索広告のインポート用ファイルを生成・検証する。
  * 実行: npm run ads:tshirt:build（esbuild でバンドルして node で実行）。
- * 生成先: docs/ads/original-tshirt/generated/ 。広告管理ツールへのアップロード・配信開始は行わない（全行オフ）。
+ * 生成先: docs/ads/<dir>/generated/ 。広告管理ツールへのアップロード・配信開始は行わない（全行オフ）。
  */
 import { createHash } from "node:crypto";
 import { mkdirSync, rmSync, writeFileSync } from "node:fs";
@@ -26,6 +26,30 @@ import { validateYahooImport } from "./engine/validate-import";
 import { weight } from "./engine/width";
 import { ACCOUNT_ID, CAMPAIGN_NAME, ORIGINAL_TSHIRT, SETTINGS } from "./original-tshirt/master";
 
+/** 生成の文脈。既定は オリジナルTシャツ(既存キャンペーン)。別キャンペーンは、設定・名称・出力先を渡して生成する */
+export interface BuildContext {
+  settings: typeof SETTINGS;
+  campaignName: string;
+  accountId: string;
+  /** レポートの見出し用の名称(例: オリジナルTシャツ) */
+  title: string;
+  /** docs/ads/<dir>/generated に出力する */
+  dir: string;
+  /** マスターのファイルパス(手順書の表記用) */
+  masterPath: string;
+  /** 新規キャンペーンを取り込む旨の補足(手順書用) */
+  itemNote: string;
+}
+export const TSHIRT_CONTEXT: BuildContext = {
+  settings: SETTINGS,
+  campaignName: CAMPAIGN_NAME,
+  accountId: ACCOUNT_ID,
+  title: "オリジナルTシャツ",
+  dir: "original-tshirt",
+  masterPath: "scripts/yahoo-ads/original-tshirt/master.ts",
+  itemNote: "/lp/original-print/?item=tshirt&utm_source=yahoo…（全グループ item=tshirt。utm_content は広告グループ名）",
+};
+
 export interface Generated {
   name: string;
   content: string | Uint8Array;
@@ -40,20 +64,25 @@ function candidateOnly(cfg: ListingSiteConfig<string>): ListingSiteConfig<string
   return { ...cfg, adGroups: groups, keywords: cfg.keywords.filter((k) => names.has(k.adGroupName) && k.decision === "initial") };
 }
 
-export function buildAll(cfg: ListingSiteConfig<string> = ORIGINAL_TSHIRT): { files: Generated[]; issues: Issue[]; model: YahooImportModel } {
-  const model = buildYahooImportModel(cfg, SETTINGS);
+export function buildAll(
+  cfg: ListingSiteConfig<string> = ORIGINAL_TSHIRT,
+  ctx: BuildContext = TSHIRT_CONTEXT,
+): { files: Generated[]; issues: Issue[]; model: YahooImportModel } {
+  const { settings: SETTINGS_, campaignName: CAMPAIGN, accountId: ACCOUNT } = ctx;
+  const model = buildYahooImportModel(cfg, SETTINGS_);
   const rows = allRows(model);
   const main = serializeShiftJis(model.header, rows);
   const full = expandToExportColumns(model.header, rows);
   const cand = candidateOnly(cfg);
-  const candModel = buildYahooImportModel(cand, SETTINGS);
+  // 初期候補が0件のキャンペーン(全グループ保留)では、初期候補だけのファイルは作らない
+  const candModel = cand.adGroups.length > 0 ? buildYahooImportModel(cand, SETTINGS_) : null;
   const sha = createHash("sha256").update(main.bytes).digest("hex");
 
   // 検証: 広告マスター（文字数・禁止語・広告とLPの整合）＋ 生成ファイルの読み戻し（実機の形式）
   const issues: Issue[] = [
     ...validateListing(cfg),
-    ...validateYahooImport(main.bytes, cfg, SETTINGS.campaignName),
-    ...validateYahooImport(serializeShiftJis(full.header, full.rows).bytes, cfg, SETTINGS.campaignName),
+    ...validateYahooImport(main.bytes, cfg, SETTINGS_.campaignName, { allowOn: SETTINGS_.deliveryOn }),
+    ...validateYahooImport(serializeShiftJis(full.header, full.rows).bytes, cfg, SETTINGS_.campaignName, { allowOn: SETTINGS_.deliveryOn }),
   ];
   if (main.unmappable.length) issues.push({ level: "error", code: "encoding", where: "yahoo-search-import.csv", message: `Shift_JIS に変換できない文字: ${main.unmappable.join(" ")}` });
   // 初期候補: 広告グループは最大2つ。意図の強さが low でなく、キーワードに商標を含まない
@@ -75,7 +104,7 @@ export function buildAll(cfg: ListingSiteConfig<string> = ORIGINAL_TSHIRT): { fi
   add("yahoo-search-import.csv", main.bytes);
   add("yahoo-search-import.utf8.csv", toCsv(model.header, rows));
   add("yahoo-search-import.full-columns.csv", serializeShiftJis(full.header, full.rows).bytes);
-  add("yahoo-search-import.initial-candidates.csv", serializeShiftJis(candModel.header, allRows(candModel)).bytes);
+  if (candModel) add("yahoo-search-import.initial-candidates.csv", serializeShiftJis(candModel.header, allRows(candModel)).bytes);
 
   add(
     "keyword-classification.csv",
@@ -122,15 +151,17 @@ export function buildAll(cfg: ListingSiteConfig<string> = ORIGINAL_TSHIRT): { fi
   add(
     "import-validation-report.md",
     [
-      "# Yahoo!検索広告（オリジナルTシャツ）インポート検証レポート（自動生成・手で編集しない）",
+      `# Yahoo!検索広告（${ctx.title}）インポート検証レポート（自動生成・手で編集しない）`,
       "",
-      `- 対象: キャンペーンエディターの「インポート」用ファイル（Shift_JIS・CRLF）。広告アカウント ${ACCOUNT_ID}（即納バンク）に、**新規キャンペーン**として追加する。既存のキャンペーンは、変更しない`,
+      `- 対象: キャンペーンエディターの「インポート」用ファイル（Shift_JIS・CRLF）。広告アカウント ${ACCOUNT}（即納バンク）に、**新規キャンペーン**として追加する。既存のキャンペーンは、変更しない`,
       `- 送客先: 即納バンクの広告LP ${cfg.baseUrl}（noindex）。送客先の広告主: Up-T（A8.net。リスティング一部OK）`,
       `- 形式: 公式ヘルプ（${YAHOO_SPEC_CHECKED_AT} 確認）＋実機のキャンペーンエディターのエクスポート形式（列名 ${EXPORT_COLUMNS.length}列。値・ID は流用しない）。必要な列 ${model.header.length}列／予備: 全列`,
       `- 構成: キャンペーン 1／広告グループ ${model.adGroups.length}／広告（RSA。見出し8・説明文4）${model.ads.length}／キーワード ${model.keywords.length}／対象外キーワード ${model.negatives.length}`,
       `- キーワードの採用判断: 初期候補 ${counts("initial")}／保留 ${counts("hold")}／除外 ${counts("exclude")}（初期候補は ${cand.adGroups.length} 広告グループ・完全一致）`,
       `- 対象外キーワード: 禁止語・表記揺れ ${nb.brandUnique}語＋他社商標・無駄クリック抑制 ${nb.wasteTotal}語 = ${nb.total}語`,
-      "- 配信設定: すべて「オフ」。アップロード・配信開始・有効化は行わない",
+      SETTINGS_.deliveryOn
+        ? "- 配信設定: **すべて「オン」**（運営者の指示 2026-10-15）。ファイルは生成のみ。アップロード・有効化は、人が予算・開始日を確認して行う"
+        : "- 配信設定: すべて「オフ」。アップロード・配信開始・有効化は行わない",
       `- 静的検証: エラー ${errors.length}／警告 ${issues.length - errors.length}`,
       "- **実機検証（キャンペーンエディターへのインポート）: 未実施。「インポート検証成功」とは断定しない**",
       "",
@@ -141,7 +172,7 @@ export function buildAll(cfg: ListingSiteConfig<string> = ORIGINAL_TSHIRT): { fi
       "",
       "## 仮値（正式な設定ではない）",
       ...(model.placeholders.length ? model.placeholders.map((p) => `- ${p}`) : ["- なし"]),
-      "- 運営者が承認した予算・入札価格・開始日を `scripts/yahoo-ads/original-tshirt/master.ts` の SETTINGS に入力して、再生成する",
+      `- 運営者が承認した予算・入札価格・開始日を \`${ctx.masterPath}\` の SETTINGS に入力して、再生成する`,
       "",
       "## 未確認の事項",
       ...UNVERIFIED.map((u) => `- ${u}`),
@@ -158,23 +189,25 @@ export function buildAll(cfg: ListingSiteConfig<string> = ORIGINAL_TSHIRT): { fi
   add(
     "import-rehearsal-checklist.md",
     [
-      "# キャンペーンエディター 実機インポート検証の手順（即納バンク・オリジナルTシャツ・自動生成）",
+      `# キャンペーンエディター 実機インポート検証の手順（即納バンク・${ctx.title}・自動生成）`,
       "",
       "- 実機検証の状況: **未実施**",
-      `- 対象の広告アカウント: **即納バンク（${ACCOUNT_ID}）**。新規キャンペーン「${CAMPAIGN_NAME}」を追加する形で取り込む。既存のキャンペーン（プロジェクター・発電機・オフィスチェア・PCモニター等）は、変更しない`,
+      `- 対象の広告アカウント: **即納バンク（${ACCOUNT}）**。新規キャンペーン「${CAMPAIGN}」を追加する形で取り込む。既存のキャンペーン（プロジェクター・発電機・オフィスチェア・PCモニター等）は、変更しない`,
       "- **広告費が発生するのは、広告配信が始まったときだけ。ローカルへのインポート・プレビューでは、発生しない。「アップロード」は押さない。**",
       "",
       "## 対象ファイル（`docs/ads/original-tshirt/generated/`）",
       `- 第一候補: \`yahoo-search-import.csv\`（Shift_JIS・CRLF・${rows.length + 1}行［ヘッダー含む］・${model.header.length}列・${main.bytes.length}バイト）`,
       `- SHA-256: \`${sha}\`（取り込むファイルが、この値と一致することを確認する。PowerShell: \`Get-FileHash <ファイル> -Algorithm SHA256\`）`,
       "- 予備（列の対応・必須項目のエラーが残る場合）: `yahoo-search-import.full-columns.csv`（実機のエクスポートと同じ全列。ID・状況の列は空）",
-      `- 初期候補だけ: \`yahoo-search-import.initial-candidates.csv\`（${cand.adGroups.length}広告グループ・${candModel.keywords.length}キーワード）`,
-      `- 配信設定は、すべて「オフ」。予算（${SETTINGS.dailyBudgetYen ?? PLACEHOLDER.dailyBudgetYen}円）・入札価格（${SETTINGS.adGroupBidYen ?? PLACEHOLDER.bidYen}円）・開始日（${SETTINGS.startDate}）は、**検証用の仮値**（承認済みの設定ではない）`,
+      candModel
+        ? `- 初期候補だけ: \`yahoo-search-import.initial-candidates.csv\`（${cand.adGroups.length}広告グループ・${candModel.keywords.length}キーワード）`
+        : "- 初期候補: なし(全広告グループ・キーワードが保留。初期配信の候補を決めてから、別ファイルで取り込む)",
+      `- 配信設定は、すべて「${SETTINGS_.deliveryOn ? "オン" : "オフ"}」。予算（${SETTINGS_.dailyBudgetYen ?? PLACEHOLDER.dailyBudgetYen}円）・入札価格（${SETTINGS_.adGroupBidYen ?? PLACEHOLDER.bidYen}円）・開始日（${SETTINGS_.startDate}）は、**検証用の仮値**（承認済みの設定ではない）`,
       "",
       "## 事前の確認",
-      `- [ ] アカウント **${ACCOUNT_ID}** を選択している`,
+      `- [ ] アカウント **${ACCOUNT}** を選択している`,
       "- [ ] SHA-256 が一致している",
-      `- [ ] アカウント内に、同名のキャンペーン「${CAMPAIGN_NAME}」がない`,
+      `- [ ] アカウント内に、同名のキャンペーン「${CAMPAIGN}」がない`,
       "",
       "## 手順（人が実施。ローカルのインポートまで）",
       "1. キャンペーンエディターで、即納バンクのアカウントを開き、**最新のデータをダウンロード**しておく（既存のキャンペーンを上書きしないため）。",
@@ -182,17 +215,21 @@ export function buildAll(cfg: ListingSiteConfig<string> = ORIGINAL_TSHIRT): { fi
       "3. 項目名の対応を確認する（対応していない列は、「…」から正しい項目を選び、選んだ内容を記録する）。",
       "4. 問題がなければ「データのインポート」→ 内容を確認 →「実行」。",
       "5. 新規キャンペーンの、キャンペーン・広告グループ・広告・キーワード・対象外キーワードを開き、**赤いセル・入力値エラー**がないかを確認する。",
-      "6. すべての配信状況が「オフ」であることを確認する。",
-      "7. **「アップロード」は押さない。** 確認が終わったら、そのまま終了する（取り込んだ新規キャンペーンを破棄する場合は、エディター上で削除する。ローカルのデータ）。",
+      SETTINGS_.deliveryOn
+        ? "6. 配信設定が「オン」になっている。**アップロードすると、開始日から配信が始まり、広告費が発生する。** 予算・開始日・入札価格を、必ず確認する。"
+        : "6. すべての配信状況が「オフ」であることを確認する。",
+      SETTINGS_.deliveryOn
+        ? "7. 確認が終わったら、予算・開始日・入札価格を承認した値にしてから「アップロード」する。確認だけの場合は、アップロードせずに終了する（取り込んだデータは、エディター上で削除できる）。"
+        : "7. **「アップロード」は押さない。** 確認が終わったら、そのまま終了する（取り込んだ新規キャンペーンを破棄する場合は、エディター上で削除する。ローカルのデータ）。",
       "",
       "## 確認する期待値",
       "| 場所 | 項目 | 期待する値 |",
       "|---|---|---|",
       "| キャンペーン | 検索クエリーマッチング | 利用しない |",
-      `| キャンペーン | 開始日・1日の予算・配信設定 | ${SETTINGS.startDate}（仮値）・${SETTINGS.dailyBudgetYen ?? PLACEHOLDER.dailyBudgetYen}円（仮値）・オフ |`,
+      `| キャンペーン | 開始日・1日の予算・配信設定 | ${SETTINGS_.startDate}（仮値）・${SETTINGS_.dailyBudgetYen ?? PLACEHOLDER.dailyBudgetYen}円（仮値）・オフ |`,
       "| 広告グループ | 入札価格・入札戦略タイプ | 仮値・個別クリック単価 |",
       "| 広告 | 見出し1〜13（初期2グループ。他は1〜8）・説明文1〜4・表示位置 | 文字数エラーなし・固定しない |",
-      "| 広告 | 最終リンク先URL | /lp/original-print/?item=tshirt&utm_source=yahoo…（全グループ item=tshirt。utm_content は広告グループ名） |",
+      `| 広告 | 最終リンク先URL | ${ctx.itemNote} |`,
       "| 対象外キーワード | 広告グループ名・マッチタイプ | キャンペーンレベル・部分一致 |",
       "",
       "## 赤いエラーが出た場合",
@@ -206,7 +243,7 @@ export function buildAll(cfg: ListingSiteConfig<string> = ORIGINAL_TSHIRT): { fi
 }
 
 function main() {
-  const out = join(process.cwd(), "docs", "ads", "original-tshirt", "generated");
+  const out = join(process.cwd(), "docs", "ads", TSHIRT_CONTEXT.dir, "generated");
   const { files, issues } = buildAll();
   rmSync(out, { recursive: true, force: true });
   mkdirSync(out, { recursive: true });

@@ -39,6 +39,8 @@ export interface KeywordEntry<I extends string = string> {
 export interface AdGroupEntry<I extends string = string> {
   campaignName: string;
   adGroupName: string;
+  /** 広告グループの入札価格(円)。省略時はキャンペーン設定(adGroupBidYen)の値 */
+  bidYen?: number;
   intent: I;
   /** 見出し（3〜15件。RSA）。Google は各30（全角=2）、Yahoo は全角15 */
   headlines: string[];

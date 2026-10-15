@@ -30,8 +30,13 @@ export interface YahooCampaignSettings {
    */
   startDate: string;
   startDateProvisional: boolean;
-  /** 運営者の、配信開始の承認。明示的な承認があるまで false（CSV は承認の有無にかかわらず、全行オフ） */
+  /** 運営者の、配信開始の承認。明示的な承認があるまで false */
   operatorApproved?: boolean;
+  /**
+   * 配信設定を「オン」で生成するか。運営者が明示的に承認した場合だけ true にする(既定は false = 全行オフ)。
+   * true のときも、広告管理ツールへのアップロード・有効化は行わない(人が、予算・開始日を確認して行う)。
+   */
+  deliveryOn?: boolean;
 }
 
 /** 未確定の予算・入札の代わりに入れる値。ヘルプに記載の「最小値」で、配信設定はオフ。正式な設定として扱わない */
@@ -105,16 +110,22 @@ export function buildYahooImportModel(yahooCfg: ListingSiteConfig, settings: Yah
   const nDescs = Math.max(...groups.map((g) => g.descriptions.length));
   const header = importHeader(nTitles, nDescs);
   const { blank, set } = rowTools(header);
+  const STATE = settings.deliveryOn ? STATUS.on : STATUS.off;
 
   const placeholders: string[] = [];
   const budget = settings.dailyBudgetYen ?? (placeholders.push(`1日の予算: 仮値 ${PLACEHOLDER.dailyBudgetYen}円（未確定）`), PLACEHOLDER.dailyBudgetYen);
   const bid = settings.adGroupBidYen ?? (placeholders.push(`広告グループの入札価格: 仮値 ${PLACEHOLDER.bidYen}円（未確定）`), PLACEHOLDER.bidYen);
-  if (settings.startDateProvisional) placeholders.push(`開始日: 仮値 ${settings.startDate}（検証用。承認済みの配信開始日ではない。配信設定はオフ）`);
+  if (settings.startDateProvisional)
+    placeholders.push(
+      settings.deliveryOn
+        ? `開始日: 仮値 ${settings.startDate}（未承認。配信設定は「オン」のため、この日付から配信が始まる。承認後に置き換える）`
+        : `開始日: 仮値 ${settings.startDate}（検証用。承認済みの配信開始日ではない。配信設定はオフ）`,
+    );
 
   const c = blank();
   set(c, COL.campaign, settings.campaignName);
   set(c, COL.component, COMPONENT.campaign);
-  set(c, COL.status, STATUS.off);
+  set(c, COL.status, STATE);
   set(c, COL.dailyBudget, budget);
   set(c, COL.queryMatching, EXPORT_VALUES.queryMatching);
   set(c, COL.startDate, settings.startDate);
@@ -135,8 +146,8 @@ export function buildYahooImportModel(yahooCfg: ListingSiteConfig, settings: Yah
     set(ag, COL.campaign, settings.campaignName);
     set(ag, COL.adGroup, g.adGroupName);
     set(ag, COL.component, COMPONENT.adGroup);
-    set(ag, COL.status, STATUS.off);
-    set(ag, COL.bid, bid);
+    set(ag, COL.status, STATE);
+    set(ag, COL.bid, g.bidYen ?? bid);
     set(ag, COL.queryMatching, EXPORT_VALUES.queryMatching);
     set(ag, COL.bidStrategy, EXPORT_VALUES.bidStrategy);
     set(ag, COL.campaignType, CAMPAIGN_TYPE_STANDARD);
@@ -148,7 +159,7 @@ export function buildYahooImportModel(yahooCfg: ListingSiteConfig, settings: Yah
     set(ad, COL.campaign, settings.campaignName);
     set(ad, COL.adGroup, g.adGroupName);
     set(ad, COL.component, COMPONENT.ad);
-    set(ad, COL.status, STATUS.off);
+    set(ad, COL.status, STATE);
     set(ad, COL.adName, `${g.adGroupName}_rsa_v1`);
     g.headlines.forEach((h, i) => {
       set(ad, COL.title(i + 1), h);
@@ -167,7 +178,7 @@ export function buildYahooImportModel(yahooCfg: ListingSiteConfig, settings: Yah
       set(kw, COL.campaign, settings.campaignName);
       set(kw, COL.adGroup, g.adGroupName);
       set(kw, COL.component, COMPONENT.keyword);
-      set(kw, COL.status, STATUS.off);
+      set(kw, COL.status, STATE);
       set(kw, COL.matchType, MATCH_LABEL[k.matchType]);
       set(kw, COL.keyword, k.keyword);
       set(kw, COL.bid, "一括入札"); // 広告グループの入札価格を適用（ヘルプ記載の値。実機で未確認）

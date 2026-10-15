@@ -35,7 +35,13 @@ const RENAMED: Record<string, string> = { "入札戦略": "入札戦略タイプ
  * 過去に、公式ヘルプだけを基準にして、実機で入力値エラー（検索クエリーマッチング・開始日・入札戦略タイプなどの未入力）になった。
  * 実機（キャンペーンエディター）でのインポートの代わりにはならない。
  */
-export function validateYahooImport(bytes: Uint8Array, yahooCfg: ListingSiteConfig, campaignName: string): Issue[] {
+export function validateYahooImport(
+  bytes: Uint8Array,
+  yahooCfg: ListingSiteConfig,
+  campaignName: string,
+  /** allowOn: 運営者が配信設定「オン」を明示的に承認した場合だけ true(既定は全行オフを要求) */
+  opts: { allowOn?: boolean } = {},
+): Issue[] {
   const out: Issue[] = [];
   const text = decodeShiftJis(bytes);
 
@@ -104,6 +110,8 @@ export function validateYahooImport(bytes: Uint8Array, yahooCfg: ListingSiteConf
     // 配信設定: すべてオフ（対象外キーワードは空欄）
     if (comp === COMPONENT.negativeCampaign || comp === COMPONENT.negativeAdGroup) {
       if (status !== "") out.push(err("status", w, "対象外キーワードの配信設定は空欄にする（ヘルプ）"));
+    } else if (opts.allowOn) {
+      if (status !== STATUS.on) out.push(err("status", w, `配信設定が「オン」ではない: 「${status}」（運営者の承認で、すべてオンの想定）`));
     } else if (status === STATUS.on) out.push(err("status_on", w, "配信設定が「オン」。入稿時に配信が始まる状態にしない"));
     else if (status !== STATUS.off) out.push(err("status", w, `配信設定が「オフ」ではない: 「${status}」`));
 
