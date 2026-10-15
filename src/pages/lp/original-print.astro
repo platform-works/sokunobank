@@ -1465,6 +1465,15 @@ const reasons = [
     if (changed || source === "intent") {
       track("product_selected", { product: p.id, product_group: p.group, source });
     }
+    // LINEヤフー広告のサイトリターゲティング(カスタムパラメーター)。利用者が選んだ商品を、固定のIDだけで送る。
+    // 流入時の商品(?item=)は、タグが取得するURLで分類できるため、intent での初期選択では送らない
+    if (changed && source !== "intent") {
+      try {
+        (window as unknown as { sokunobankYahooRetargetingItem?: (i: string, g: string) => void }).sokunobankYahooRetargetingItem?.(p.id, p.group);
+      } catch {
+        // no-op
+      }
+    }
   }
 
   document.addEventListener("click", (e) => {
