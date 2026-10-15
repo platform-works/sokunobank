@@ -221,9 +221,9 @@ const organizationJsonLd = {
       // 完全一致するときだけ、その商品IDを設定する。任意のURLパラメーターはそのまま送らない。
       var sokunobankRtgLabel = "";
       try {
-        var rtgPath = location.pathname.replace(//+$/, "");
+        var rtgPath = location.pathname;
         var rtgItem = new URLSearchParams(location.search).get("item");
-        if (rtgPath === "/lp/original-print" && rtgItem && (window.sokunobankLpItemIds || []).indexOf(rtgItem) !== -1) {
+        if ((rtgPath === "/lp/original-print" || rtgPath === "/lp/original-print/") && rtgItem && (window.sokunobankLpItemIds || []).indexOf(rtgItem) !== -1) {
           sokunobankRtgLabel = rtgItem;
         }
       } catch (e) {}
