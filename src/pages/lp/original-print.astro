@@ -251,14 +251,26 @@ const reasons = [
     <!-- PC: 作れるアイテムを横並びで探す(選択はフォームと同期) -->
     <section class="strip pc-only" aria-labelledby="strip-h">
       <h2 id="strip-h">作れるアイテムを探す <small>Tシャツから雑貨まで、作りたいものを選べます</small></h2>
-      <div class="strip-list" data-strip>
+      <div class="strip-groups" data-strip>
         {
-          PUBLISHED_PRODUCTS.map((p) => (
-            <button type="button" class="sitem" data-product-btn={p.id} aria-pressed={p.id === product.id ? "true" : "false"}>
-              <span class="sitem-art" set:html={productArt(p.art)} />
-              <span class="sitem-name">{p.name}</span>
-              <span class="pitem-check" aria-hidden="true">✓</span>
-            </button>
+          grouped.map((g) => (
+            <div class="strip-group">
+              <h3 class="strip-group-title">{g.label}</h3>
+              <div class="strip-grid">
+                {g.items.map((p) => (
+                  <button
+                    type="button"
+                    class="sitem"
+                    data-product-btn={p.id}
+                    aria-pressed={p.id === product.id ? "true" : "false"}
+                  >
+                    <span class="sitem-art" set:html={productArt(p.art)} />
+                    <span class="sitem-name">{p.name}</span>
+                    <span class="pitem-check" aria-hidden="true">✓</span>
+                  </button>
+                ))}
+              </div>
+            </div>
           ))
         }
       </div>
@@ -266,10 +278,6 @@ const reasons = [
 
     <!-- 選んだ商品に連動する情報(商品名・紹介・デザイン方法・チェックポイント・利用シーン) -->
     <section class="pick" aria-live="polite" aria-labelledby="pick-h">
-      <div class="pick-art">
-        <div class="pick-art-img" data-pick-art set:html={productArt(product.art)} />
-        <p class="pick-art-cap">商品のイメージ図(実際の商品写真ではありません)</p>
-      </div>
       <div class="pick-body">
         <h2 id="pick-h">選んだアイテム: <span data-pick-name>{product.name}</span></h2>
         <p class="pick-lead" data-pick-lead>{product.lead}</p>
@@ -875,13 +883,19 @@ const reasons = [
     font-weight: 400;
     color: var(--color-text-muted);
   }
-  .strip-list {
+  .strip-groups {
     display: grid;
-    grid-auto-flow: column;
-    grid-auto-columns: minmax(104px, 1fr);
+    gap: 1rem;
+  }
+  .strip-group-title {
+    margin: 0 0 0.4rem;
+    font-size: 0.9rem;
+    color: var(--color-accent-dark);
+  }
+  .strip-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(112px, 1fr));
     gap: 0.5rem;
-    overflow-x: auto;
-    padding-bottom: 0.4rem;
   }
   .sitem {
     min-height: 120px;
@@ -903,32 +917,6 @@ const reasons = [
     border: 1px solid var(--color-border);
     border-radius: var(--radius-lg);
     background: #fff;
-    min-height: 360px;
-  }
-  .pick-art {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: 0.5rem;
-    padding: 1rem;
-    border-radius: var(--radius-md);
-    background: #fff;
-    border: 1px solid var(--color-border);
-  }
-  .pick-art-img {
-    width: min(220px, 60%);
-    aspect-ratio: 1;
-  }
-  .pick-art-img :global(svg) {
-    width: 100%;
-    height: 100%;
-  }
-  .pick-art-cap {
-    margin: 0;
-    font-size: 0.72rem;
-    color: var(--color-text-muted);
-    text-align: center;
   }
   .pick h2 {
     font-size: 1.2rem;
@@ -1250,9 +1238,6 @@ const reasons = [
       background: rgba(255, 255, 255, 0.8);
       justify-self: start;
     }
-    .pick {
-      grid-template-columns: 300px minmax(0, 1fr);
-    }
     .pick-cols {
       grid-template-columns: repeat(2, minmax(0, 1fr));
     }
@@ -1413,8 +1398,6 @@ const reasons = [
     const pickLink = $('[data-ad-position="pick_button"] a');
     if (pickLink) pickLink.textContent = `Up-Tで${p.name}の商品と納期を確認する`;
     setText("[data-pick-lead]", p.lead);
-    const art = $("[data-pick-art]");
-    if (art) art.innerHTML = productArt(p.art);
     setList("[data-pick-design]", p.design);
     setList("[data-pick-checks]", p.checks);
 
@@ -1450,6 +1433,7 @@ const reasons = [
     }
     renderGuide();
     renderCopy();
+    ensureGridVisible(p.id, p.group);
   }
 
   function renderGuide() {
@@ -1617,6 +1601,20 @@ const reasons = [
     applyGrid();
   });
   applyGrid();
+
+  /** 選択した商品がグリッド上で隠れている場合は、その商品のグループタブへ切り替え、必要なら展開して見える状態にする */
+  function ensureGridVisible(id: string, group: string) {
+    const item = $(`[data-pgrid-list] [data-product-btn="${id}"]`);
+    if (!item || !item.hidden) return;
+    activeTab = group;
+    expanded = false;
+    tabs.forEach((x) => x.setAttribute("aria-selected", String(x.dataset.tab === group)));
+    applyGrid();
+    if (item.hidden) {
+      expanded = true;
+      applyGrid();
+    }
+  }
 
   // --- Q1/Q3/Q4(デザイン・納期・数量) ---
   const form = $<HTMLFormElement>("[data-lp-form]");
