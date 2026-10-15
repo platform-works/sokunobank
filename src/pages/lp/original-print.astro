@@ -13,12 +13,17 @@ import {
   getProduct,
 } from "../../data/lp/original-print-products";
 import { productArt } from "../../data/lp/product-art";
-import { UPT_AD_BANNER_74_PC, UPT_AD_BANNER_15_MOBILE, uptTextAd } from "../../data/lp/upt-ads";
+import { UPT_AD_BANNER_74_PC, UPT_AD_BANNER_15_MOBILE, UPT_PRODUCT_LINK, uptTextAd } from "../../data/lp/upt-ads";
 import UptAdButton from "../../components/UptAdButton.astro";
 
 const product = getProduct(DEFAULT_PRODUCT_ID)!;
 // メインCTAのリンク文言(素材ID 1は自由入力のテキスト広告)。商品名に連動し、次のページへ進みたくなる行動文にする。
 // 納期・価格などを保証する表現は使わない。
+// 商品リンクのコード(原文)をJSON文字列にする。"<" を \u003c にして、</script> による誤終了を防ぐ(JSON.parse で原文に戻る)
+const productLinkJson = JSON.stringify(UPT_PRODUCT_LINK).replace(/</g, "\\u003c");
+function pickCtaLabel(name: string): string {
+  return `Up-Tで${name}の商品と納期を確認する`;
+}
 function heroCtaLabel(shortName: string): string {
   return `Up-Tで${shortName}を選んで納期を確認`;
 }
@@ -282,6 +287,16 @@ const reasons = [
           </div>
         </div>
         <p class="pick-note" data-pick-note>商品名・取り扱い・仕様は、Up-T公式の商品ページでご確認ください。</p>
+        <!-- A8.net 素材ID 1(自由入力のテキスト広告)。リンク文言のみ商品名に連動して書き換える(href・計測画像は原文のまま) -->
+        <UptAdButton label={pickCtaLabel(product.name)} placement="pick_button" caption="Up-T公式サイトへ(広告リンク)" />
+
+        <!-- A8.net 商品リンク(キャップの商品)。キャップ選択時だけ読み込んで表示する(他の商品では読み込まない)。
+             コードは原文のまま JSON で保持(</ は \u003c にエスケープ。JSON.parse で原文に戻る)。クリックは [data-upt-ad] で計測する -->
+        <div class="pick-product-link" data-upt-ad="product_link" data-ad-type="product" data-ad-position="pick_product" data-pick-product hidden>
+          <p class="pick-product-caption"><span class="pr-badge">PR</span>Up-Tのキャップ商品の一例(広告リンク)</p>
+          <div class="pick-product-slot" data-pick-product-slot></div>
+        </div>
+        <script type="application/json" data-product-link-json set:html={productLinkJson} />
       </div>
     </section>
 
@@ -929,6 +944,25 @@ const reasons = [
     margin: 0;
     padding-left: 1.2rem;
   }
+  .pick-product-link {
+    margin-top: 1rem;
+    max-width: 520px;
+  }
+  .pick-product-caption {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin: 0 0 0.4rem;
+    font-size: 0.8rem;
+    color: var(--color-text-muted);
+  }
+  .pick-product-slot {
+    min-height: 120px;
+  }
+  .pick-product-slot :global(img) {
+    max-width: 100%;
+    height: auto;
+  }
   .pick-note {
     margin: 1rem 0 0;
     font-size: 0.8rem;
@@ -1217,6 +1251,7 @@ const reasons = [
   } from "../../data/lp/original-print";
   import { DEFAULT_PRODUCT_ID, detectProduct, getProduct } from "../../data/lp/original-print-products";
   import { productArt } from "../../data/lp/product-art";
+  import { UPT_LINKS } from "../../data/lp/upt-ads";
 
   type Tracker = (name: string, params: Record<string, unknown>) => void;
   const w = window as unknown as {
@@ -1268,6 +1303,50 @@ const reasons = [
     });
   }
 
+  /**
+   * A8商品リンク(キャップの商品)は、キャップ選択時だけ読み込む。最初にキャップが選ばれたときに、原文のコードを
+   * そのまま(span → 外部スクリプト → インラインスクリプトの順に)実行する。以後は表示/非表示の切り替えのみ。
+   */
+  let productLinkLoaded = false;
+  function toggleProductLink(show: boolean) {
+    const box = $("[data-pick-product]");
+    const slot = $("[data-pick-product-slot]");
+    const json = $("[data-product-link-json]");
+    if (!box || !slot || !json) return;
+    if (show && !productLinkLoaded) {
+      productLinkLoaded = true;
+      try {
+        const code: string = JSON.parse(json.textContent ?? '""');
+        const tmp = document.createElement("div");
+        tmp.innerHTML = code; // scriptは挿入されても実行されない(原文の構造をそのまま取り出す)
+        const scripts = Array.from(tmp.querySelectorAll("script"));
+        tmp.querySelectorAll("script").forEach((n) => n.remove());
+        while (tmp.firstChild) slot.appendChild(tmp.firstChild);
+        const run = (i: number) => {
+          if (i >= scripts.length) return;
+          const orig = scripts[i];
+          const el = document.createElement("script");
+          el.type = orig.type || "text/javascript";
+          const src = orig.getAttribute("src");
+          if (src) {
+            el.src = src;
+            el.onload = () => run(i + 1);
+            el.onerror = () => run(i + 1);
+            slot.appendChild(el);
+          } else {
+            el.text = orig.textContent ?? "";
+            slot.appendChild(el);
+            run(i + 1);
+          }
+        };
+        run(0);
+      } catch {
+        // 広告の読み込み失敗でページの機能を止めない
+      }
+    }
+    box.hidden = !show;
+  }
+
   /** 商品と関連情報だけを更新する(フォームの他の回答はリセットしない) */
   function renderProduct() {
     const p = getProduct(answers.product) ?? getProduct(DEFAULT_PRODUCT_ID)!;
@@ -1275,6 +1354,16 @@ const reasons = [
     // メインCTA(素材ID 1)のリンク文言だけを商品に合わせて更新する(href・計測画像は変更しない)
     const heroLink = $('[data-ad-position="hero"] a');
     if (heroLink) heroLink.textContent = `Up-Tで${p.shortName}を選んで納期を確認`;
+    // キャップ選択時は、キャップ商品のテキストリンク(A8発行)に遷移先を切り替える。それ以外は一覧ページ(results)
+    const linkKey = p.id === "cap" ? "cap" : "results";
+    ["hero", "pick_button"].forEach((pos) => {
+      const a = $(`[data-ad-position="${pos}"] a`) as HTMLAnchorElement | null;
+      if (!a) return;
+      const target = UPT_LINKS[linkKey];
+      if (a.getAttribute("href") !== target.href) a.setAttribute("href", target.href);
+      const px = a.parentElement?.querySelector<HTMLImageElement>('img[width="1"]');
+      if (px && px.getAttribute("src") !== target.pixel) px.setAttribute("src", target.pixel);
+    });
     setText("[data-lp-catch]", p.catchcopy);
     setText("[data-combo-label]", p.name);
     const comboArt = $("[data-combo-art]");
@@ -1283,6 +1372,9 @@ const reasons = [
     $$("[data-product-btn]").forEach((el) => el.setAttribute("aria-pressed", String(el.dataset.productBtn === p.id)));
 
     setText("[data-pick-name]", p.name);
+    toggleProductLink(p.id === "cap");
+    const pickLink = $('[data-ad-position="pick_button"] a');
+    if (pickLink) pickLink.textContent = `Up-Tで${p.name}の商品と納期を確認する`;
     setText("[data-pick-lead]", p.lead);
     const art = $("[data-pick-art]");
     if (art) art.innerHTML = productArt(p.art);

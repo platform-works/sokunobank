@@ -18,20 +18,30 @@ function walk(dir, out = []) {
   return out;
 }
 
+const RESULTS_HREF =
+  "https://px.a8.net/svt/ejp?a8mat=4BEE12+5ZJ2EA+34VM+HUSFL&amp;a8ejpredirect=https%3A%2F%2Fup-t.jp%2Fpage.php%3Fp%3Dresults";
+const RESULTS_PIXEL_MAT = "a8mat=4BEE12+5ZJ2EA+34VM+HUSFL";
+
 let problems = 0;
 for (const file of walk("dist")) {
   const html = fs.readFileSync(file, "utf8").replace(/<script type="text\/plain"[\s\S]*?<\/script>/g, "");
-  const links = html.match(/<a href="https:\/\/px\.a8\.net\/svt\/ejp\?a8mat=4BEE12\+5ZJ2EA\+34VM\+BWVTE"[^>]*>[^<]*<\/a>/g) || [];
+  const linkRe = /<a href="https:\/\/px\.a8\.net\/svt\/ejp\?a8mat=4BEE12\+5ZJ2EA\+34VM\+(BWVTE|HUSFL)[^"]*"[^>]*>[^<]*<\/a>/g;
+  const links = html.match(linkRe) || [];
   if (links.length === 0) continue;
+  let pixels = 0;
   for (const l of links) {
-    const ok = l.includes(`href="${HREF}"`) && l.includes('rel="nofollow"');
+    const isResults = l.includes("HUSFL");
+    const ok = isResults
+      ? l.includes(`href="${RESULTS_HREF}"`) && l.includes('rel="nofollow"')
+      : l.includes(`href="${HREF}"`) && l.includes('rel="nofollow"');
     if (!ok) problems++;
     const text = l.replace(/<[^>]+>/g, "");
-    console.log(`${ok ? "OK " : "NG "} ${file.replace(/\\/g, "/")}: 「${text}」`);
+    console.log(`${ok ? "OK " : "NG "} ${file.replace(/\\/g, "/")}: [${isResults ? "遷移先=results" : "遷移先=top"}] 「${text}」`);
   }
-  const pixels = html.split(PIXEL).length - 1;
+  pixels += html.split(PIXEL).length - 1;
+  pixels += (html.match(/0\.gif\?a8mat=4BEE12\+5ZJ2EA\+34VM\+HUSFL/g) || []).length;
   console.log(`   計測画像(1x1)の数: ${pixels} / リンク数: ${links.length}`);
-  if (pixels !== links.length) problems++;
+  if (pixels < links.length) problems++;
 }
 console.log(problems === 0 ? "問題なし" : `問題あり: ${problems}`);
 process.exit(problems === 0 ? 0 : 1);
