@@ -60,3 +60,7 @@ export const UPT_LINKS = {
     pixel: "https://www17.a8.net/0.gif?a8mat=4BEE12+5ZJ2EA+34VM+HUKPU",
   },
 } as const;
+
+// A8.netのテキストリンク(キャップ商品の詳細へ。mat=4BEE12+5ZJ2EA+34VM+HUKPU)。2026-10-15、ユーザーから受領した原文。
+// リンク文言・href・計測画像を一切改変しない。キャップ選択時だけ、商品リンクの横に表示する。
+export const UPT_CAP_TEXT_LINK = "<a href=\"https://px.a8.net/svt/ejp?a8mat=4BEE12+5ZJ2EA+34VM+HUKPU&a8ejpredirect=https%3A%2F%2Fup-t.jp%2Fitem-detail%2F%25E3%2583%258F%25E3%2583%2583%25E3%2583%2594%25E3%2583%25BB%25E3%2583%2596%25E3%2583%25AB%25E3%2582%25BE%25E3%2583%25B3%2F%25E3%2583%258F%25E3%2583%2583%25E3%2583%2594%25E3%2583%25BB%25E3%2581%259D%25E3%2581%25AE%25E4%25BB%2596%2FIT340\" rel=\"nofollow\">豊富なカラー展開がうれしい36色展開 通気性抜群のメッシュ素材を使用し、夏場でも快適なイベントメッシュキャップ。単色はもちろんのこと、ホワイトとのツートンカラーを合わせた全36色の豊富なカラー展開も魅力のひとつ。ウェアとのコーディネートをお楽しみください。</a>\n<img border=\"0\" width=\"1\" height=\"1\" src=\"https://www17.a8.net/0.gif?a8mat=4BEE12+5ZJ2EA+34VM+HUKPU\" alt=\"\">";

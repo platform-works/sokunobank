@@ -13,7 +13,7 @@ import {
   getProduct,
 } from "../../data/lp/original-print-products";
 import { productArt } from "../../data/lp/product-art";
-import { UPT_AD_BANNER_74_PC, UPT_AD_BANNER_15_MOBILE, UPT_PRODUCT_LINK, uptTextAd } from "../../data/lp/upt-ads";
+import { UPT_AD_BANNER_74_PC, UPT_AD_BANNER_15_MOBILE, UPT_PRODUCT_LINK, UPT_CAP_TEXT_LINK, uptTextAd } from "../../data/lp/upt-ads";
 import UptAdButton from "../../components/UptAdButton.astro";
 
 const product = getProduct(DEFAULT_PRODUCT_ID)!;
@@ -21,6 +21,7 @@ const product = getProduct(DEFAULT_PRODUCT_ID)!;
 // 納期・価格などを保証する表現は使わない。
 // 商品リンクのコード(原文)をJSON文字列にする。"<" を \u003c にして、</script> による誤終了を防ぐ(JSON.parse で原文に戻る)
 const productLinkJson = JSON.stringify(UPT_PRODUCT_LINK).replace(/</g, "\\u003c");
+const capTextLinkJson = JSON.stringify(UPT_CAP_TEXT_LINK).replace(/</g, "\\u003c");
 function pickCtaLabel(name: string): string {
   return `Up-Tで${name}の商品と納期を確認する`;
 }
@@ -294,9 +295,14 @@ const reasons = [
              コードは原文のまま JSON で保持(</ は \u003c にエスケープ。JSON.parse で原文に戻る)。クリックは [data-upt-ad] で計測する -->
         <div class="pick-product-link" data-upt-ad="product_link" data-ad-type="product" data-ad-position="pick_product" data-pick-product hidden>
           <p class="pick-product-caption"><span class="pr-badge">PR</span>Up-Tのキャップ商品の一例(広告リンク)</p>
-          <div class="pick-product-slot" data-pick-product-slot></div>
+          <div class="pick-product-row">
+            <div class="pick-product-slot" data-pick-product-slot></div>
+            <!-- A8テキストリンク(HUKPU・商品詳細へ)。原文のまま、キャップ選択時だけ注入する。クリックは cap_text_link として計測 -->
+            <div class="pick-product-text" data-upt-ad="cap_text_link" data-ad-type="text" data-ad-position="pick_product_text" data-pick-product-text></div>
+          </div>
         </div>
         <script type="application/json" data-product-link-json set:html={productLinkJson} />
+        <script type="application/json" data-cap-text-json set:html={capTextLinkJson} />
       </div>
     </section>
 
@@ -946,7 +952,7 @@ const reasons = [
   }
   .pick-product-link {
     margin-top: 1rem;
-    max-width: 520px;
+    max-width: 760px;
   }
   .pick-product-caption {
     display: flex;
@@ -956,8 +962,31 @@ const reasons = [
     font-size: 0.8rem;
     color: var(--color-text-muted);
   }
+  .pick-product-row {
+    display: grid;
+    gap: 0.75rem;
+    align-items: center;
+  }
   .pick-product-slot {
     min-height: 120px;
+  }
+  .pick-product-text {
+    min-width: 0;
+  }
+  .pick-product-text :global(a) {
+    display: block;
+    padding: 0.85rem 1rem;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    background: var(--color-bg-soft);
+    color: var(--color-accent-dark);
+    font-size: 0.9rem;
+    line-height: 1.7;
+    text-decoration: underline;
+    overflow-wrap: anywhere;
+  }
+  .pick-product-text :global(a:hover) {
+    background: var(--color-accent-soft);
   }
   .pick-product-slot :global(img) {
     max-width: 100%;
@@ -1227,6 +1256,10 @@ const reasons = [
     .pick-cols {
       grid-template-columns: repeat(2, minmax(0, 1fr));
     }
+    .pick-product-row {
+      grid-template-columns: 300px minmax(0, 1fr);
+      gap: 1.25rem;
+    }
     .scenes {
       grid-template-columns: repeat(4, minmax(0, 1fr));
     }
@@ -1316,6 +1349,10 @@ const reasons = [
     if (show && !productLinkLoaded) {
       productLinkLoaded = true;
       try {
+        // 商品の横のテキストリンク(A8発行の原文。スクリプトを含まないHTML)
+        const textJson = $("[data-cap-text-json]");
+        const textBox = $("[data-pick-product-text]");
+        if (textJson && textBox) textBox.innerHTML = JSON.parse(textJson.textContent ?? '""');
         const code: string = JSON.parse(json.textContent ?? '""');
         const tmp = document.createElement("div");
         tmp.innerHTML = code; // scriptは挿入されても実行されない(原文の構造をそのまま取り出す)
