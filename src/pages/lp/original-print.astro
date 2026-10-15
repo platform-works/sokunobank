@@ -248,33 +248,6 @@ const reasons = [
   </section>
 
   <div class="container">
-    <!-- PC: 作れるアイテムを横並びで探す(選択はフォームと同期) -->
-    <section class="strip pc-only" aria-labelledby="strip-h">
-      <h2 id="strip-h">作れるアイテムを探す <small>Tシャツから雑貨まで、作りたいものを選べます</small></h2>
-      <div class="strip-groups" data-strip>
-        {
-          grouped.map((g) => (
-            <div class="strip-group">
-              <h3 class="strip-group-title">{g.label}</h3>
-              <div class="strip-grid">
-                {g.items.map((p) => (
-                  <button
-                    type="button"
-                    class="sitem"
-                    data-product-btn={p.id}
-                    aria-pressed={p.id === product.id ? "true" : "false"}
-                  >
-                    <span class="sitem-art" set:html={productArt(p.art)} />
-                    <span class="sitem-name">{p.name}</span>
-                    <span class="pitem-check" aria-hidden="true">✓</span>
-                  </button>
-                ))}
-              </div>
-            </div>
-          ))
-        }
-      </div>
-    </section>
 
     <!-- 選んだ商品に連動する情報(商品名・紹介・デザイン方法・チェックポイント・利用シーン) -->
     <section class="pick" aria-live="polite" aria-labelledby="pick-h">
@@ -376,6 +349,34 @@ const reasons = [
         <p class="note">
           リンク先はUp-T公式サイトです。表示内容・納期・料金は変更されることがあります。購入・申込前にUp-T公式の最新情報をご確認ください。
         </p>
+      </div>
+    </section>
+
+    <!-- PC: 作れるアイテムを探す(選択はフォームと同期)。2026-10-15: 選んだアイテム・用途・理由・条件の整理の後ろへ移動 -->
+    <section class="strip pc-only" aria-labelledby="strip-h">
+      <h2 id="strip-h">作れるアイテムを探す <small>Tシャツから雑貨まで、作りたいものを選べます</small></h2>
+      <div class="strip-groups" data-strip>
+        {
+          grouped.map((g) => (
+            <div class="strip-group">
+              <h3 class="strip-group-title">{g.label}</h3>
+              <div class="strip-grid">
+                {g.items.map((p) => (
+                  <button
+                    type="button"
+                    class="sitem"
+                    data-product-btn={p.id}
+                    aria-pressed={p.id === product.id ? "true" : "false"}
+                  >
+                    <span class="sitem-art" set:html={productArt(p.art)} />
+                    <span class="sitem-name">{p.name}</span>
+                    <span class="pitem-check" aria-hidden="true">✓</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+          ))
+        }
       </div>
     </section>
 
