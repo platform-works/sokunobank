@@ -24,6 +24,9 @@ const guidePaths = [
   "/guides/dm-same-day-shipping/",
   "/guides/dm-1000-fastest/",
   "/guides/dm-address-list/",
+  "/guides/nisa-basics/",
+  "/guides/cosmetic-medicine-checklist/",
+  "/guides/short-stature-style/",
 ];
 
 export const GET: APIRoute = ({ site }) => {

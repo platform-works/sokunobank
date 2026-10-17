@@ -178,6 +178,45 @@ const allGuides = categories.flatMap((c) => c.guides ?? []);
     )
   }
 
+  <section class="section" id="general-guides">
+    <div class="container">
+      <div class="section-head">
+        <span class="eyebrow">GENERAL GUIDES</span>
+        <h2>制度やサービスの一般情報ガイド</h2>
+        <p>特定の企業・サービスの紹介や送客をしない、公的機関の公式情報に基づく解説です。広告ではありません。</p>
+      </div>
+      <div class="department-grid">
+        <div class="card department-card guide-card">
+          <h3>お金・制度</h3>
+          <ul>
+            <li>
+              <a href="/guides/nisa-basics/">新しいNISAの仕組み</a>
+              <span class="guide-desc">2つの投資枠・年間上限・非課税保有限度額(金融庁の公式情報)</span>
+            </li>
+          </ul>
+        </div>
+        <div class="card department-card guide-card">
+          <h3>美容医療</h3>
+          <ul>
+            <li>
+              <a href="/guides/cosmetic-medicine-checklist/">美容医療のクリニック選びで見ておきたい情報</a>
+              <span class="guide-desc">費用・リスクの表示、禁止される広告、クーリング・オフ(厚生労働省・消費者庁)</span>
+            </li>
+          </ul>
+        </div>
+        <div class="card department-card guide-card">
+          <h3>服選び</h3>
+          <ul>
+            <li>
+              <a href="/guides/short-stature-style/">身長が低めの方の服選び</a>
+              <span class="guide-desc">寸法の測り方・サイズ表の読み方・お直し・試着</span>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
   {
     featuredCategory && (
       <section class="section">
