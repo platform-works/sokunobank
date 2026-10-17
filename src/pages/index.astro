@@ -13,6 +13,7 @@ import {
   commerceCategories,
   upcomingCategories,
   urgentGuides,
+  serviceGuideGenres,
 } from "../data/site-nav";
 
 const categories = getPublishedCategories();
@@ -135,6 +136,36 @@ const allGuides = categories.flatMap((c) => c.guides ?? []);
       <p class="see-all">
         <a href="/categories/">すべてのカテゴリーを見る →</a>
       </p>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="container">
+      <div class="section-head">
+        <span class="eyebrow">SERVICE GUIDES</span>
+        <h2>サービス選びの確認ガイド(準備中)</h2>
+        <p>申込み・契約の前に確認したい費用や条件を整理するガイドを、次のジャンルで準備しています。公開までお待ちください。</p>
+      </div>
+      <ul class="purpose-grid">
+        {
+          serviceGuideGenres.map((g) => (
+            <li>
+              {g.href ? (
+                <a class="purpose-item" href={g.href}>
+                  <span class="dot" aria-hidden="true" />
+                  {g.label}
+                </a>
+              ) : (
+                <span class="purpose-item is-disabled">
+                  <span class="dot" aria-hidden="true" />
+                  {g.label}
+                  <span class="badge-soon">準備中</span>
+                </span>
+              )}
+            </li>
+          ))
+        }
+      </ul>
     </div>
   </section>
 

@@ -203,3 +203,21 @@ export const urgentGuides: UrgentGuideLink[] = [
     href: "/guides/urgent-office-chair/",
   },
 ];
+
+/**
+ * 今後追加予定の「サービス選びの確認ガイド」ジャンル(2026-10-17)。
+ * 準備中のため、リンクは張らない(存在しないページへのリンクは作らない)。
+ * ガイド本体は別リポジトリ affiliate-lp-factory で準備中。公開時にここへ href を設定する。
+ */
+export const serviceGuideGenres: { label: string; href?: string }[] = [
+  { label: "証券会社(NISA・IPO)" },
+  { label: "レンタルサーバー" },
+  { label: "ウォーターサーバー" },
+  { label: "美容クリニック" },
+  { label: "脱毛サロン" },
+  { label: "AGA治療" },
+  { label: "結婚相談所" },
+  { label: "占い" },
+  { label: "ダイエット" },
+  { label: "低身長" },
+];
