@@ -41,6 +41,7 @@ const genreSynonyms: Record<string, string> = {
   "water-server": "ウォーターサーバー 水 飲料水 家族 暮らし 生活 家庭",
   "hair-removal": "脱毛 脱毛サロン 医療脱毛 ひげ ムダ毛 美容 サロン",
   marriage: "結婚 婚活 結婚相談所 お見合い 出会い 恋愛 人間関係",
+  career: "転職 キャリア 仕事 悩み 年収 営業 エンジニア セキュリティ 管理職 ハイクラス 職場 人間関係 評価 辞めたい",
   fortune: "占い 電話占い オンライン占い 恋愛 相性 人間関係 悩み",
   diet: "ダイエット 痩せる 減量 食事 運動 健康 美容",
 };
@@ -141,6 +142,14 @@ function speedKey(category: (typeof categories)[number]) {
         }
       </ul>
 
+      {
+        guideGenres.some((g) => g.slug === "career") && (
+          <p class="fv-concern-sub">
+            仕事・ビジネスの悩み:<a href="/#career-guides">転職・キャリアの確認ガイド(営業・ハイクラス・IT・セキュリティ・仕事の悩み)→</a>
+          </p>
+        )
+      }
+
       <ul class="fv-features">
         <li>
           <svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true"><path d="M24 8v32M14 40h20M10 14h28M10 14l-6 14a6 6 0 0012 0zM38 14l-6 14a6 6 0 0012 0z" stroke-linecap="round" stroke-linejoin="round" /></svg>
@@ -172,8 +181,8 @@ function speedKey(category: (typeof categories)[number]) {
           </div>
           <div class="service-guides-grid">
             {guideGenres.map((genre) =>
-              genre.lps.map((lp) => (
-                <a href={lp.path} class="service-guide-card card">
+              genre.lps.map((lp, i) => (
+                <a href={lp.path} class="service-guide-card card" id={genre.slug === "career" && i === 0 ? "career-guides" : undefined}>
                   <p class="service-guide-category">{genre.name}</p>
                   <p class="service-guide-title">{lp.title}</p>
                   <p class="service-guide-description">{lp.description}</p>
@@ -354,7 +363,9 @@ function speedKey(category: (typeof categories)[number]) {
   .fv-features span { font-size: 0.82rem; color: var(--color-text-muted); }
 
   /* ヘッダー・フッターの /#search /#guides /#about の着地点 */
-  #search, #guides, #about, #service-guides, #products { scroll-margin-top: 5rem; }
+  #search, #guides, #about, #service-guides, #products, #career-guides { scroll-margin-top: 5rem; }
+  .fv-concern-sub { margin: -0.4rem 0 1rem; font-size: 0.88rem; color: var(--color-text-muted); position: relative; z-index: 3; }
+  .fv-concern-sub a { margin-left: 0.4rem; font-weight: 600; color: var(--color-accent-dark); text-decoration: underline; padding: 0.5rem 0; display: inline-block; }
 
   /* サービス選びの確認ガイド / 困ったときの確認ガイド: 3カラム(PC) / 2カラム(タブレット) / 1カラム(スマホ)。
      カードの角丸・枠線・余白・hover・下部導線は「急ぎの商品・発注先を探す」(CategoryCard)・GuideCard と共通 */
