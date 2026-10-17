@@ -24,6 +24,11 @@ const baseline = opt("--baseline", "8a6b50d");
 const factoryDir = resolve(root, opt("--factory", process.env.LP_FACTORY_DIR ?? "../affiliate-lp-factory"));
 const simPublish = (opt("--sim-publish", "") || "").split(",").filter(Boolean);
 const reportPath = opt("--report", "");
+// 実データでの公開検証用: --expect は公開されているべきLP、--expect-cta はA8タグが1つ出るべきLP、--absent は出てはいけないLP(カンマ区切りのパス)
+const csv = (n) => (opt(n, "") || "").split(",").filter(Boolean);
+const expectPaths = csv("--expect");
+const expectCta = csv("--expect-cta");
+const absentPaths = csv("--absent");
 
 const sh = (cmd, cwd, env = {}) => execSync(cmd, { cwd, stdio: "pipe", encoding: "utf8", env: { ...process.env, ...env }, maxBuffer: 64 * 1024 * 1024 });
 const tmp = mkdtempSync(join(tmpdir(), "sk-verify-"));
@@ -121,7 +126,7 @@ try {
   const robotsHead = sh("git show HEAD:public/robots.txt", root).replace(/\r\n/g, "\n");
   check("robots.txt が本番(baseline)・コミット済みと一致", B.get("robots.txt") === A.get("robots.txt") || readFileSync(join(candDist, "robots.txt"), "utf8").replace(/\r\n/g, "\n") === robotsHead, "");
   // _routes.json は、Cloudflareアダプタが「静的配信するパス」を列挙するファイル。LPが増えると、そのパスが追加されるだけのはず
-  const allowedChange = (k) => k === "index.html" || k === "sitemap.xml" || k === "_routes.json";
+  const allowedChange = (k) => k === "index.html" || k === "sitemap.xml" || k === "_routes.json" || k === "llms.txt";
   const unexpected = changed.filter((k) => !allowedChange(k));
   check("既存コンテンツ(トップ・sitemap以外)が本番とバイト単位で同一", unexpected.length === 0, unexpected.slice(0, 8).join(", "));
   if (changed.includes("_routes.json")) {
@@ -147,13 +152,15 @@ try {
   const top = readFileSync(join(candDist, "index.html"), "utf8");
   const sitemap = readFileSync(join(candDist, "sitemap.xml"), "utf8");
   const lpFiles = [...B.keys()].filter((k) => /^lp\/[^/]+\/[^/]+\/index\.html$/.test(k) && !["original-print", "affiliate"].includes(k.split("/")[1]));
-  if (simPublish.length === 0) {
+  if (simPublish.length === 0 && expectPaths.length === 0) {
     check("公開済みLPが0本のとき、トップにガイド枠が出ない(「準備中」カードも出さない)", !/SERVICE GUIDES/.test(top) && !/サービス選びの確認ガイド/.test(top), "");
     check("公開済みLPが0本のとき、sitemap は本番と同一", A.get("sitemap.xml") === B.get("sitemap.xml"), "");
     check("LPが1本も取り込まれていない", lpFiles.length === 0, lpFiles.join(", "));
   } else {
-    const expected = simPublish.length;
-    check(`取り込まれたLPが模擬公開の ${expected} 本だけ(下書きLPの非混入)`, lpFiles.length === expected, lpFiles.join(", "));
+    const expected = simPublish.length || expectPaths.length;
+    check(`取り込まれたLPが${simPublish.length ? "模擬公開の" : "公開承認済みの"} ${expected} 本だけ(下書き・保留LPの非混入)`, lpFiles.length === expected, lpFiles.join(", "));
+    for (const p of expectPaths) check(`公開されるべきLPが dist にある: ${p}`, B.has(p.replace(/^\//, "") + "index.html"), "");
+    for (const p of absentPaths) check(`公開してはいけないLPが dist にない: ${p}`, !B.has(p.replace(/^\//, "") + "index.html") && !sitemap.includes(p) && !top.includes(`href="${p}"`), "");
     for (const f of lpFiles) {
       const path = "/" + f.replace(/index\.html$/, "");
       const html = readFileSync(join(candDist, f), "utf8");
@@ -166,6 +173,7 @@ try {
       check(`${path}: 下書きバナーがない`, !/data-draft="true"/.test(html), "");
       const a8 = (html.match(/https:\/\/px\.a8\.net\/svt\/ejp\?a8mat=/g) ?? []).length;
       check(`${path}: A8タグのリンクが高々1つ(二重描画なし)`, a8 <= 1, `a8リンク ${a8} 個`);
+      if (expectCta.length) check(`${path}: A8タグ(CTA)が${expectCta.includes(path) ? "ちょうど1つ" : "ない(無効)"}`, a8 === (expectCta.includes(path) ? 1 : 0), `a8リンク ${a8} 個`);
     }
     const draftInSitemap = [...sitemap.matchAll(/<loc>https:\/\/sokunobank\.com(\/lp\/[^<]+)<\/loc>/g)].map((m) => m[1]).filter((p) => !lpFiles.some((f) => "/" + f.replace(/index\.html$/, "") === p) && !/original-print/.test(p));
     check("sitemap に、公開していないLPが混入していない", draftInSitemap.length === 0, draftInSitemap.join(", "));

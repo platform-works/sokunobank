@@ -35,6 +35,7 @@
 - [DMを今日中に発送する方法](https://sokunobank.com/guides/dm-same-day-shipping/): 当日発送を狙うための部数・締切時刻の考え方をまとめた簡易ガイド。
 - [DM1,000通を最短で発送する方法](https://sokunobank.com/guides/dm-1000-fastest/): 1,000通程度の部数で最短納期を狙う際のポイントをまとめた簡易ガイド。
 - [宛名リストがない状態からDMを送るには](https://sokunobank.com/guides/dm-address-list/): 企業リスト購入・リスト作成代行という選択肢と注意点をまとめた簡易ガイド。
+- [家庭向けウォーターサーバーの選び方](https://sokunobank.com/lp/water-server/family/): 水代以外の費用・規定利用期間・解約時の費用・最低注文数を確認するポイントと、コスモウォーターの公式サイトで確認した料金・契約条件(確認日つき)をまとめたサービス選びの確認ガイド。広告(アフィリエイト)を含み、「PR」と表示している。順位付けや優劣の評価はしない。
 - [運営者情報](https://sokunobank.com/about/)
 - [プライバシーポリシー](https://sokunobank.com/privacy/)
 - [広告掲載について](https://sokunobank.com/advertising/)
