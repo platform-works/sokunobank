@@ -143,8 +143,8 @@ const allGuides = categories.flatMap((c) => c.guides ?? []);
     <div class="container">
       <div class="section-head">
         <span class="eyebrow">SERVICE GUIDES</span>
-        <h2>サービス選びの確認ガイド(準備中)</h2>
-        <p>申込み・契約の前に確認したい費用や条件を整理するガイドを、次のジャンルで準備しています。公開までお待ちください。</p>
+        <h2 id="service-guides">サービス選びの確認ガイド{serviceGuideGenres.some((g) => g.href) ? "" : "(準備中)"}</h2>
+        <p>{serviceGuideGenres.some((g) => g.href) ? "申込み・契約の前に確認したい費用や条件を、ジャンル別に整理しています。" : "申込み・契約の前に確認したい費用や条件を整理するガイドを、次のジャンルで準備しています。公開までお待ちください。"}</p>
       </div>
       <ul class="purpose-grid">
         {
