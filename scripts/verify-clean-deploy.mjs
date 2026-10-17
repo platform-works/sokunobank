@@ -120,9 +120,17 @@ try {
   check("未コミットの旧Affiliate LP(/lp/affiliate/)が dist に混入していない", ![...B.keys()].some((k) => k.startsWith("lp/affiliate/")), `作業ツリーの未コミット: ${untracked.join(", ") || "なし"}`);
   const robotsHead = sh("git show HEAD:public/robots.txt", root).replace(/\r\n/g, "\n");
   check("robots.txt が本番(baseline)・コミット済みと一致", B.get("robots.txt") === A.get("robots.txt") || readFileSync(join(candDist, "robots.txt"), "utf8").replace(/\r\n/g, "\n") === robotsHead, "");
-  const allowedChange = (k) => k === "index.html" || k === "sitemap.xml";
+  // _routes.json は、Cloudflareアダプタが「静的配信するパス」を列挙するファイル。LPが増えると、そのパスが追加されるだけのはず
+  const allowedChange = (k) => k === "index.html" || k === "sitemap.xml" || k === "_routes.json";
   const unexpected = changed.filter((k) => !allowedChange(k));
   check("既存コンテンツ(トップ・sitemap以外)が本番とバイト単位で同一", unexpected.length === 0, unexpected.slice(0, 8).join(", "));
+  if (changed.includes("_routes.json")) {
+    const ra = JSON.parse(readFileSync(join(baseDist, "_routes.json"), "utf8"));
+    const rb = JSON.parse(readFileSync(join(candDist, "_routes.json"), "utf8"));
+    const lost = (ra.exclude ?? []).filter((p) => !(rb.exclude ?? []).includes(p));
+    const gained = (rb.exclude ?? []).filter((p) => !(ra.exclude ?? []).includes(p));
+    check("_routes.json: 既存の静的パスが失われず、追加は取り込んだLP・アセットのパスだけ", lost.length === 0 && gained.every((p) => /^\/(lp\/[^/]+\/|_lp-assets\/)/.test(p)) && JSON.stringify(ra.include) === JSON.stringify(rb.include), `追加: ${gained.join(", ") || "なし"} / 失われた: ${lost.join(", ") || "なし"}`);
+  }
   const factoryDirs = existsSync(join(cand, "src/data/generated/lp-sync-state.json")) ? JSON.parse(readFileSync(join(cand, "src/data/generated/lp-sync-state.json"), "utf8")).dirs : [];
   const unexpectedAdded = added.filter((k) => !(factoryDirs.some((d) => k.startsWith(`lp/${d}/`)) || k.startsWith("_lp-assets/")));
   check("追加されたファイルは、取り込んだ公開済みLPとそのアセットだけ", unexpectedAdded.length === 0, unexpectedAdded.slice(0, 8).join(", "));
