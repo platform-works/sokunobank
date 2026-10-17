@@ -1,0 +1,57 @@
+---
+/**
+ * アフィリエイト LP 用汎用 CTA ボタン
+ * A8.net 広告コード対応（改変なし）
+ */
+
+interface Props {
+  label: string;
+  offerLink?: string; // A8.net アフィリエイトリンク（広告コード）
+  htmlContent?: string; // 広告コードを set:html で出力する場合
+  className?: string;
+  sponsored?: boolean;
+}
+
+const { label, offerLink, htmlContent, className = "", sponsored = true } = Astro.props;
+---
+
+{htmlContent ? (
+  <div class={`affiliate-ad-button ${className}`} set:html={htmlContent} />
+) : offerLink ? (
+  <a
+    href={offerLink}
+    class={`btn btn-primary affiliate-cta ${className}`}
+    target="_blank"
+    rel={sponsored ? "sponsored noopener" : "noopener"}
+  >
+    {label}
+    <span class="external-icon" aria-hidden="true">↗</span>
+  </a>
+) : (
+  <button class={`btn btn-primary ${className}`} disabled>
+    {label}
+  </button>
+)}
+
+<style>
+  .affiliate-ad-button {
+    display: inline-block;
+    margin: 1rem 0;
+  }
+
+  .affiliate-cta {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+  }
+
+  .external-icon {
+    font-size: 0.85em;
+    opacity: 0.8;
+  }
+
+  .affiliate-ad-button :global(a) {
+    display: inline-block;
+    margin: 0.5rem 0;
+  }
+</style>

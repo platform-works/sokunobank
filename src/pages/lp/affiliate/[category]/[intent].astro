@@ -1,0 +1,385 @@
+---
+/**
+ * アフィリエイト LP Factory - 動的ルート
+ * /lp/affiliate/[category]/[intent]/
+ *
+ * 例：/lp/affiliate/securities/nisa/
+ *
+ * ジャンル × 検索意図ごとのページ自動生成
+ * 案件・キーワード・広告・計測を一元管理
+ */
+
+import Layout from "../../../../layouts/Layout.astro";
+import FaqSection from "../../../../components/FaqSection.astro";
+import AffiliateAdButton from "../../../../components/AffiliateAdButton.astro";
+import { allSearchIntents, getIntentByPath } from "../../../../data/lp/affiliate-intents";
+import { getOffersByPath } from "../../../../data/lp/affiliate-offers";
+import { getAdGroupByPath } from "../../../../data/lp/affiliate-campaigns";
+
+// ============================================
+// ルート生成
+// ============================================
+
+export function getStaticPaths() {
+  // すべての検索意図から静的パスを生成
+  return allSearchIntents.map((intent) => ({
+    params: {
+      category: intent.category,
+      intent: intent.id,
+    },
+    props: { intent },
+  }));
+}
+
+// ============================================
+// ページロジック
+// ============================================
+
+interface Props {
+  intent: typeof allSearchIntents[0];
+}
+
+const { intent } = Astro.props;
+
+// 案件情報を取得
+const offers = getOffersByPath(intent.category, intent.id);
+const primaryOffer = offers.find((o) => o.id === intent.primaryOfferId);
+
+// 広告グループ情報を取得
+const adGroup = getAdGroupByPath(intent.category, intent.id);
+
+// GA4 計測用 URL パラメータ
+const utmParams = new URLSearchParams({
+  utm_source: "lp-factory",
+  utm_medium: "cpc",
+  utm_campaign: adGroup?.utmCampaign || `${intent.category}-${intent.id}`,
+  utm_content: adGroup?.id || "",
+});
+
+// CTA リンク（未確認案件は無効化）
+const ctaHref = primaryOffer?.verified ? primaryOffer.id : undefined;
+const ctaLabel = intent.ctaLabel || "確認する";
+
+// ページメタデータ
+const pageTitle = intent.lpTitle;
+const pageDescription =
+  intent.lpSubheadline || `${intent.name} の選び方と確認基準`;
+const canonicalUrl = `https://sokunobank.com/lp/affiliate/${intent.category}/${intent.id}/`;
+---
+
+<Layout
+  title={pageTitle}
+  description={pageDescription}
+  noindex
+>
+  <!-- ============================================ -->
+  <!-- ファーストビュー -->
+  <!-- ============================================ -->
+  <section class="lp-hero" aria-labelledby="lp-h1">
+    <div class="container">
+      <div class="hero-content">
+        <p class="pr-line">
+          <span class="pr-badge">PR</span>
+          <span>広告を含みます。</span>
+        </p>
+
+        <h1 id="lp-h1">{intent.lpHeadline}</h1>
+
+        {intent.lpSubheadline && (
+          <p class="hero-sub">{intent.lpSubheadline}</p>
+        )}
+
+        {intent.catchcopy && (
+          <p class="catchcopy">{intent.catchcopy}</p>
+        )}
+
+        {intent.subcopy && (
+          <p class="subcopy">{intent.subcopy}</p>
+        )}
+
+        <AffiliateAdButton
+          label={ctaLabel}
+          offerLink={ctaHref}
+          className="hero-cta"
+          sponsored={true}
+        />
+
+        {!primaryOffer?.verified && (
+          <p class="verification-note">
+            ⚠️ 案件情報は確認待ちです。公式情報を直接確認してからお申し込みください。
+          </p>
+        )}
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================ -->
+  <!-- 主要ポイント -->
+  <!-- ============================================ -->
+  {intent.highlights && intent.highlights.length > 0 && (
+    <section class="highlights-section" aria-labelledby="highlights-heading">
+      <div class="container">
+        <h2 id="highlights-heading" class="sr-only">このサービスを選ぶときの確認基準</h2>
+        <ul class="highlights-grid">
+          {intent.highlights.map((highlight) => (
+            <li class="highlight-item">
+              <p>{highlight}</p>
+            </li>
+          ))}
+        </ul>
+      </div>
+    </section>
+  )}
+
+  <!-- ============================================ -->
+  <!-- 案件情報 -->
+  <!-- ============================================ -->
+  {primaryOffer && (
+    <section class="offer-section" aria-labelledby="offer-heading">
+      <div class="container">
+        <h2 id="offer-heading">確認する内容</h2>
+        <div class="offer-details card">
+          <dl>
+            {primaryOffer.conversionPoint && (
+              <>
+                <dt>成果地点</dt>
+                <dd>{primaryOffer.conversionPoint}</dd>
+              </>
+            )}
+            {primaryOffer.conversionCondition && (
+              <>
+                <dt>成果条件</dt>
+                <dd>{primaryOffer.conversionCondition}</dd>
+              </>
+            )}
+            {primaryOffer.conversionAmount > 0 && (
+              <>
+                <dt>報酬額</dt>
+                <dd>
+                  {primaryOffer.conversionAmount}円
+                  {!primaryOffer.verified && <span class="unverified">（確認待ち）</span>}
+                </dd>
+              </>
+            )}
+            {primaryOffer.denialCondition && (
+              <>
+                <dt>否認条件</dt>
+                <dd>{primaryOffer.denialCondition}</dd>
+              </>
+            )}
+          </dl>
+        </div>
+      </div>
+    </section>
+  )}
+
+  <!-- ============================================ -->
+  <!-- CTA セクション -->
+  <!-- ============================================ -->
+  <section class="cta-section">
+    <div class="container">
+      <div class="cta-box card">
+        <p class="cta-intro">
+          {intent.name} について詳しく確認しましょう。
+        </p>
+        <AffiliateAdButton
+          label={ctaLabel}
+          offerLink={ctaHref}
+          className="cta-button"
+          sponsored={true}
+        />
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================ -->
+  <!-- FAQ -->
+  <!-- ============================================ -->
+  {intent.faqItems && intent.faqItems.length > 0 && (
+    <section class="faq-section">
+      <div class="container">
+        <FaqSection
+          items={intent.faqItems.map((item, idx) => ({
+            id: `faq-${idx}`,
+            question: item.question,
+            answer: item.answer,
+          }))}
+        />
+      </div>
+    </section>
+  )}
+
+  <!-- ============================================ -->
+  <!-- フッター注釈 -->
+  <!-- ============================================ -->
+  <section class="footer-notes" aria-labelledby="notes-heading">
+    <div class="container">
+      <h2 id="notes-heading" class="sr-only">重要な注釈</h2>
+      <ul class="notes-list">
+        <li>掲載内容は確認可能な公式情報に基づいています。詳細は公式サイトで確認してください。</li>
+        {!primaryOffer?.verified && (
+          <li>⚠️ 未確認情報が含まれています。お申し込み前に公式情報を確認してください。</li>
+        )}
+        <li>このページはアフィリエイト広告を含みます。本サイトが報酬を受け取る場合があります。</li>
+        {intent.notes && <li>{intent.notes}</li>}
+      </ul>
+    </div>
+  </section>
+</Layout>
+
+<style>
+  .lp-hero {
+    background: linear-gradient(135deg, var(--color-bg-soft) 0%, var(--color-bg) 100%);
+    padding: 4rem 1rem;
+  }
+
+  .hero-content {
+    max-width: 700px;
+    margin: 0 auto;
+  }
+
+  .pr-line {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+    font-size: 0.875rem;
+    color: var(--color-text-muted);
+  }
+
+  .pr-badge {
+    display: inline-block;
+    background: var(--color-accent);
+    color: white;
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    font-size: 0.75rem;
+    font-weight: 600;
+  }
+
+  .lp-hero h1 {
+    font-size: 2rem;
+    margin: 1.5rem 0 1rem;
+    line-height: 1.2;
+  }
+
+  .hero-sub {
+    font-size: 1.125rem;
+    color: var(--color-text-muted);
+    margin-bottom: 1.5rem;
+  }
+
+  .catchcopy {
+    font-size: 1.25rem;
+    font-weight: 600;
+    margin: 1rem 0;
+  }
+
+  .subcopy {
+    font-size: 0.95rem;
+    color: var(--color-text-muted);
+    margin-bottom: 2rem;
+  }
+
+  .hero-cta {
+    font-size: 1.125rem;
+    padding: 0.75rem 2rem;
+  }
+
+  .verification-note {
+    margin-top: 1.5rem;
+    padding: 1rem;
+    background: #fff3cd;
+    border-left: 4px solid #ffc107;
+    font-size: 0.875rem;
+  }
+
+  .highlights-section {
+    padding: 3rem 1rem;
+  }
+
+  .highlights-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1.5rem;
+    list-style: none;
+    padding: 0;
+  }
+
+  .highlight-item {
+    padding: 1.5rem;
+    background: var(--color-bg-soft);
+    border-radius: 8px;
+    border-left: 4px solid var(--color-accent);
+  }
+
+  .highlight-item p {
+    margin: 0;
+    font-size: 0.95rem;
+  }
+
+  .offer-section {
+    padding: 2rem 1rem;
+  }
+
+  .offer-details dl {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 0.5rem 1rem;
+  }
+
+  .offer-details dt {
+    font-weight: 600;
+    color: var(--color-accent);
+  }
+
+  .offer-details dd {
+    margin: 0;
+  }
+
+  .unverified {
+    color: var(--color-urgent);
+    font-size: 0.875rem;
+  }
+
+  .cta-section {
+    padding: 3rem 1rem;
+  }
+
+  .cta-box {
+    text-align: center;
+  }
+
+  .cta-intro {
+    font-size: 1.125rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .cta-button {
+    font-size: 1.125rem;
+  }
+
+  .faq-section {
+    padding: 2rem 1rem;
+  }
+
+  .footer-notes {
+    padding: 2rem 1rem;
+    background: var(--color-bg-soft);
+    border-top: 1px solid var(--color-border);
+  }
+
+  .notes-list {
+    max-width: 700px;
+    margin: 0 auto;
+    padding: 0;
+    list-style: disc;
+    padding-left: 1.5rem;
+  }
+
+  .notes-list li {
+    margin-bottom: 0.75rem;
+    font-size: 0.875rem;
+    color: var(--color-text-muted);
+  }
+</style>

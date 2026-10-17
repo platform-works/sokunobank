@@ -38,11 +38,30 @@ function speedKey(category: (typeof categories)[number]) {
   <!-- ① ファーストビュー - 新コンセプト -->
   <!-- ============================================ -->
   <section class="hero-new">
-    <div class="container">
+    <div class="hero-container">
       <div class="hero-content">
         <h1 class="hero-title">その悩み、即解決へ。</h1>
-        <p class="hero-subtitle">仕事も、暮らしも、お金のことも。あなたの悩みに合った解決策を、すばやく見つける。</p>
-        <p class="hero-description">商品・サービスの条件や注意点を整理し、納得できる選択をサポートします。</p>
+        <p class="hero-subtitle">仕事も、暮らしも、お金のことも。条件や注意点を整理し、あなたに合う選択肢をすばやく見つける。</p>
+        <div class="hero-ctas">
+          <a href="/#service-guides" class="hero-cta hero-cta-primary">
+            <span class="hero-cta-icon">📋</span>
+            サービス選びの確認ガイドを見る
+          </a>
+          <a href="/#products" class="hero-cta hero-cta-secondary">
+            <span class="hero-cta-icon">⚡</span>
+            急ぎの商品・発注先を探す
+          </a>
+        </div>
+      </div>
+      <div class="hero-visual">
+        <div class="hero-visual-grid">
+          <div class="hero-visual-item hero-visual-1">仕事</div>
+          <div class="hero-visual-item hero-visual-2">お金</div>
+          <div class="hero-visual-item hero-visual-3">暮らし</div>
+          <div class="hero-visual-item hero-visual-4">美容</div>
+          <div class="hero-visual-item hero-visual-5">結婚</div>
+          <div class="hero-visual-item hero-visual-6">購買</div>
+        </div>
       </div>
     </div>
   </section>
@@ -57,19 +76,21 @@ function speedKey(category: (typeof categories)[number]) {
       </div>
       <div class="concern-grid">
         {
-          concernFinder.map((concern) => (
-            <div class="concern-card card">
-              <h3>{concern.label}</h3>
-              <p class="concern-description">{concern.description}</p>
-              {concern.href ? (
-                <a href={concern.href} class="concern-link">
-                  詳しく見る →
-                </a>
-              ) : (
-                <span class="concern-link is-disabled">準備中</span>
-              )}
-            </div>
-          ))
+          concernFinder.map((concern) =>
+            concern.href ? (
+              <a href={concern.href} class="concern-card concern-card-link card">
+                <h3>{concern.label}</h3>
+                <p class="concern-description">{concern.description}</p>
+                <span class="concern-cta">詳しく見る →</span>
+              </a>
+            ) : (
+              <div class="concern-card concern-card-disabled card">
+                <h3>{concern.label}</h3>
+                <p class="concern-description">{concern.description}</p>
+                <span class="concern-cta">準備中</span>
+              </div>
+            )
+          )
         }
       </div>
     </div>
@@ -87,23 +108,16 @@ function speedKey(category: (typeof categories)[number]) {
             <h2>サービス選びの確認ガイド</h2>
             <p>お金・美容・健康・結婚など、悩み別にサービス比較ガイドを提供</p>
           </div>
-          <div class="guide-genres">
-            {guideGenres.map((genre) => (
-              <div class="genre-section">
-                <h3>{genre.name}</h3>
-                <div class="lp-cards">
-                  {genre.lps.map((lp) => (
-                    <div class="lp-card card">
-                      <p class="lp-title">{lp.title}</p>
-                      <p class="lp-description">{lp.description}</p>
-                      <a href={lp.path} class="lp-link">
-                        ガイドを見る →
-                      </a>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            ))}
+          <div class="service-guides-grid">
+            {guideGenres.map((genre) =>
+              genre.lps.map((lp) => (
+                <a href={lp.path} class="service-guide-card card">
+                  <p class="service-guide-category">{genre.name}</p>
+                  <p class="service-guide-title">{lp.title}</p>
+                  <p class="service-guide-description">{lp.description}</p>
+                </a>
+              ))
+            )}
           </div>
         </div>
       </section>
@@ -113,7 +127,7 @@ function speedKey(category: (typeof categories)[number]) {
   <!-- ============================================ -->
   <!-- ④ 急ぎの商品・発注先を探す -->
   <!-- ============================================ -->
-  <section class="section section-soft">
+  <section class="section section-soft" id="products">
     <div class="container">
       <div class="section-head">
         <span class="eyebrow">PRODUCTS & SERVICES</span>
@@ -236,134 +250,250 @@ function speedKey(category: (typeof categories)[number]) {
   /* ファーストビュー - 新コンセプト */
   .hero-new {
     background: linear-gradient(135deg, var(--color-bg-soft) 0%, var(--color-bg) 100%);
-    padding: 4rem 1rem;
-    text-align: center;
+    padding: 3rem 1rem;
   }
 
-  .hero-content {
-    max-width: 700px;
+  .hero-container {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 3rem;
+    align-items: center;
+    max-width: 1200px;
     margin: 0 auto;
   }
 
+  .hero-content {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+  }
+
   .hero-title {
-    font-size: 2.5rem;
+    font-size: 2.8rem;
     font-weight: 700;
-    margin-bottom: 1rem;
-    line-height: 1.2;
+    line-height: 1.15;
     color: var(--color-text);
   }
 
   .hero-subtitle {
-    font-size: 1.25rem;
+    font-size: 1.1rem;
     color: var(--color-text);
-    margin-bottom: 1rem;
     font-weight: 500;
+    line-height: 1.6;
   }
 
-  .hero-description {
+  .hero-ctas {
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+  }
+
+  .hero-cta {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.875rem 1.5rem;
+    border-radius: 8px;
+    text-decoration: none;
+    font-weight: 600;
+    transition: all 0.2s;
+    cursor: pointer;
+    border: none;
     font-size: 0.95rem;
-    color: var(--color-text-muted);
-    margin-bottom: 2rem;
+  }
+
+  .hero-cta-primary {
+    background: var(--color-accent);
+    color: white;
+  }
+
+  .hero-cta-primary:hover {
+    background: var(--color-accent-dark);
+    transform: translateY(-2px);
+  }
+
+  .hero-cta-secondary {
+    background: white;
+    color: var(--color-accent);
+    border: 2px solid var(--color-accent);
+  }
+
+  .hero-cta-secondary:hover {
+    background: var(--color-bg-soft);
+  }
+
+  .hero-cta-icon {
+    font-size: 1.25rem;
+  }
+
+  .hero-visual {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .hero-visual-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 1.5rem;
+    width: 100%;
+  }
+
+  .hero-visual-item {
+    aspect-ratio: 1;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+    color: white;
+    font-size: 1.1rem;
+    transition: transform 0.3s;
+  }
+
+  .hero-visual-item:hover {
+    transform: scale(1.05);
+  }
+
+  .hero-visual-1 {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    grid-row: span 2;
+  }
+
+  .hero-visual-2 {
+    background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+  }
+
+  .hero-visual-3 {
+    background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+  }
+
+  .hero-visual-4 {
+    background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+  }
+
+  .hero-visual-5 {
+    background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+  }
+
+  .hero-visual-6 {
+    background: linear-gradient(135deg, #30cfd0 0%, #330867 100%);
+    grid-row: span 2;
   }
 
   /* 何にお困りですか？ */
   .concern-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
     gap: 1.5rem;
   }
 
   .concern-card {
-    padding: 1.5rem;
+    padding: 1.75rem;
     border: 1px solid var(--color-border);
     border-radius: 10px;
     display: flex;
     flex-direction: column;
+    gap: 0.75rem;
+    transition: all 0.2s;
+  }
+
+  .concern-card-link {
+    text-decoration: none;
+    color: inherit;
+  }
+
+  .concern-card-link:hover {
+    border-color: var(--color-accent);
+    background: var(--color-bg-soft);
+    box-shadow: var(--shadow-sm);
+    transform: translateY(-2px);
+  }
+
+  .concern-card-link:focus {
+    outline: 2px solid var(--color-accent);
+    outline-offset: 2px;
+  }
+
+  .concern-card-disabled {
+    opacity: 0.7;
+    cursor: default;
   }
 
   .concern-card h3 {
-    font-size: 1.25rem;
-    margin-bottom: 0.5rem;
+    font-size: 1.3rem;
+    margin: 0;
+    font-weight: 600;
     color: var(--color-accent);
   }
 
   .concern-description {
     font-size: 0.9rem;
     color: var(--color-text-muted);
+    margin: 0;
     flex-grow: 1;
-    margin-bottom: 1rem;
+    line-height: 1.5;
   }
 
-  .concern-link {
+  .concern-cta {
     font-size: 0.95rem;
     color: var(--color-accent);
-    text-decoration: none;
     font-weight: 600;
-  }
-
-  .concern-link:hover {
-    text-decoration: underline;
-  }
-
-  .concern-link.is-disabled {
-    color: var(--color-text-muted);
-    cursor: default;
+    display: inline-block;
   }
 
   /* サービス選びの確認ガイド */
-  .guide-genres {
-    display: flex;
-    flex-direction: column;
-    gap: 2rem;
-  }
-
-  .genre-section {
-    border-top: 2px solid var(--color-border);
-    padding-top: 1.5rem;
-  }
-
-  .genre-section h3 {
-    font-size: 1.1rem;
-    margin-bottom: 1rem;
-    color: var(--color-text);
-  }
-
-  .lp-cards {
+  .service-guides-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-    gap: 1rem;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1.5rem;
   }
 
-  .lp-card {
-    padding: 1rem;
+  .service-guide-card {
+    padding: 1.5rem;
     background: var(--color-bg-soft);
     border: 1px solid var(--color-border);
-    border-radius: 8px;
+    border-radius: 10px;
+    text-decoration: none;
+    color: inherit;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    transition: all 0.2s;
   }
 
-  .lp-title {
-    font-size: 1rem;
+  .service-guide-card:hover {
+    border-color: var(--color-accent);
+    background: white;
+    box-shadow: var(--shadow-sm);
+    transform: translateY(-2px);
+  }
+
+  .service-guide-card:focus {
+    outline: 2px solid var(--color-accent);
+    outline-offset: 2px;
+  }
+
+  .service-guide-category {
+    font-size: 0.8rem;
+    color: var(--color-accent);
     font-weight: 600;
-    margin-bottom: 0.5rem;
-    color: var(--color-text);
+    text-transform: uppercase;
+    margin: 0;
   }
 
-  .lp-description {
+  .service-guide-title {
+    font-size: 1.05rem;
+    font-weight: 600;
+    color: var(--color-text);
+    margin: 0;
+  }
+
+  .service-guide-description {
     font-size: 0.85rem;
     color: var(--color-text-muted);
-    margin-bottom: 0.75rem;
-  }
-
-  .lp-link {
-    display: inline-block;
-    font-size: 0.9rem;
-    color: var(--color-accent);
-    text-decoration: none;
-    font-weight: 600;
-  }
-
-  .lp-link:hover {
-    text-decoration: underline;
+    margin: 0;
+    line-height: 1.5;
   }
 
   /* サイト紹介 */
@@ -405,16 +535,54 @@ function speedKey(category: (typeof categories)[number]) {
   }
 
   /* レスポンシブ */
+  @media (max-width: 1024px) {
+    .hero-container {
+      grid-template-columns: 1fr;
+      gap: 2rem;
+    }
+
+    .hero-visual-grid {
+      grid-template-columns: 1fr 1fr;
+    }
+
+    .hero-visual-1 {
+      grid-row: unset;
+      grid-column: span 1;
+    }
+
+    .hero-visual-6 {
+      grid-row: unset;
+      grid-column: span 1;
+    }
+  }
+
   @media (max-width: 768px) {
     .hero-title {
-      font-size: 1.75rem;
+      font-size: 2rem;
     }
 
     .hero-subtitle {
-      font-size: 1rem;
+      font-size: 0.95rem;
+    }
+
+    .hero-ctas {
+      flex-direction: column;
+    }
+
+    .hero-cta {
+      justify-content: center;
+      width: 100%;
+    }
+
+    .hero-visual-grid {
+      grid-template-columns: 1fr;
     }
 
     .concern-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .service-guides-grid {
       grid-template-columns: 1fr;
     }
 
