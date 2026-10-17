@@ -56,6 +56,58 @@ export interface DepartmentGroup {
   items: NavLink[];
 }
 
+/**
+ * 2026-10-17: 「その悩み、即解決へ。」コンセプト刷新に伴い、新しい悩み別ナビゲーション
+ * 「何にお困りですか？」を追加。6つの悩みカテゴリから解決策(サービス選びガイド、
+ * カテゴリページ、ガイド記事)へリンク。LP Factory の公開済みLPも自動表示される。
+ */
+export interface ConcernCategory {
+  id: string;
+  label: string;
+  description: string;
+  icon?: string;
+  href?: string; // 分類ページへのリンク(存在しない場合は省略)
+}
+
+export const concernFinder: ConcernCategory[] = [
+  {
+    id: "money-assets",
+    label: "お金・資産形成",
+    description: "新NISA・IPO・口座選び",
+    href: "/lp/affiliate/securities/nisa/",
+  },
+  {
+    id: "work-business",
+    label: "仕事・ビジネス",
+    description: "急ぎの商品・発注先を探す",
+    href: "/categories/",
+  },
+  {
+    id: "life-living",
+    label: "暮らし・生活",
+    description: "生活に必要な情報・サービス",
+    // 今後 LP Factory から公開予定のサービスへ
+  },
+  {
+    id: "beauty-health",
+    label: "美容・健康",
+    description: "美容・脱毛・ダイエット・AGA",
+    // LP Factory から公開済み LP があれば自動表示
+  },
+  {
+    id: "marriage-relationships",
+    label: "結婚・人間関係",
+    description: "結婚相談所・占い・人間関係",
+    // LP Factory から公開済み LP があれば自動表示
+  },
+  {
+    id: "urgent-products",
+    label: "急ぎの商品・発注",
+    description: "今日/明日必要な商品を探す",
+    href: "/categories/",
+  },
+];
+
 export const departmentFinder: DepartmentGroup[] = [
   {
     id: "marketing",

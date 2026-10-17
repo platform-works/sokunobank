@@ -3,16 +3,14 @@ import Layout from "../layouts/Layout.astro";
 import SearchHero from "../components/SearchHero.astro";
 import UptPromoBanner from "../components/UptPromoBanner.astro";
 import CategoryCard from "../components/CategoryCard.astro";
-import ComparisonTable from "../components/ComparisonTable.astro";
 import GuideCard from "../components/GuideCard.astro";
 import { getPublishedCategories } from "../data/loadCategories";
 import {
   popularKeywords,
-  purposeFinder,
   departmentFinder,
   commerceCategories,
   upcomingCategories,
-  urgentGuides,
+  concernFinder,
 } from "../data/site-nav";
 
 // サービス選びの確認ガイド(affiliate-lp-factory で公開済みのLP)。`npm run lp:sync` が生成するデータで、無ければ何も表示しない。
@@ -23,7 +21,6 @@ const guideModules = import.meta.glob("../data/generated/lp-guide.json", { eager
 const guideGenres: GuideGenre[] = Object.values(guideModules)[0]?.default?.genres ?? [];
 
 const categories = getPublishedCategories();
-const featuredCategory = categories[0];
 
 function primaryProvider(category: (typeof categories)[number]) {
   return category.providers.find((p) => p.isPrimary) ?? category.providers[0];
@@ -31,68 +28,46 @@ function primaryProvider(category: (typeof categories)[number]) {
 function speedKey(category: (typeof categories)[number]) {
   return category.comparisonFields[0]?.key;
 }
-
-const allGuides = categories.flatMap((c) => c.guides ?? []);
 ---
 
 <Layout
-  title="急ぎ発注・最短納期の比較サイト"
-  description="「今日中/明日までに欲しい」法人の発注担当者向けに、DM発送・印刷・販促物などの即納サービスを納期・価格・対応条件から比較します。"
+  title="その悩み、即解決へ。｜仕事・暮らし・お金の悩みを素早く解決｜SOKUNOBANK(即納バンク)"
+  description="仕事も、暮らしも、お金のことも。商品・サービスの条件や注意点を整理し、納得できる選択をサポートする情報プラットフォーム「SOKUNOBANK(即納バンク)」"
 >
-  <SearchHero keywords={popularKeywords} />
-  <UptPromoBanner />
-
-  <section class="section section-soft">
+  <!-- ============================================ -->
+  <!-- ① ファーストビュー - 新コンセプト -->
+  <!-- ============================================ -->
+  <section class="hero-new">
     <div class="container">
-      <div class="section-head">
-        <span class="eyebrow">FIND BY PURPOSE</span>
-        <h2>急ぎの目的から探す</h2>
+      <div class="hero-content">
+        <h1 class="hero-title">その悩み、即解決へ。</h1>
+        <p class="hero-subtitle">仕事も、暮らしも、お金のことも。あなたの悩みに合った解決策を、すばやく見つける。</p>
+        <p class="hero-description">商品・サービスの条件や注意点を整理し、納得できる選択をサポートします。</p>
       </div>
-      <ul class="purpose-grid">
-        {
-          purposeFinder.map((item) => (
-            <li>
-              {item.href ? (
-                <a class="purpose-item" href={item.href}>
-                  <span class="dot" aria-hidden="true" />
-                  {item.label}
-                </a>
-              ) : (
-                <span class="purpose-item is-disabled">
-                  <span class="dot" aria-hidden="true" />
-                  {item.label}
-                  <span class="badge-soon">準備中</span>
-                </span>
-              )}
-            </li>
-          ))
-        }
-      </ul>
     </div>
   </section>
 
-  <section class="section">
+  <!-- ============================================ -->
+  <!-- ② 何にお困りですか？ - 悩み別ナビゲーション -->
+  <!-- ============================================ -->
+  <section class="section section-soft">
     <div class="container">
       <div class="section-head">
-        <span class="eyebrow">FIND BY DEPARTMENT</span>
-        <h2>部署から探す</h2>
+        <h2>何にお困りですか？</h2>
       </div>
-      <div class="department-grid">
+      <div class="concern-grid">
         {
-          departmentFinder.map((group) => (
-            <div class="card department-card">
-              <h3>{group.label}</h3>
-              <ul>
-                {group.items.map((item) => (
-                  <li>
-                    {item.href ? (
-                      <a href={item.href}>{item.label}</a>
-                    ) : (
-                      <span class="is-disabled">{item.label}<span class="badge-soon">準備中</span></span>
-                    )}
-                  </li>
-                ))}
-              </ul>
+          concernFinder.map((concern) => (
+            <div class="concern-card card">
+              <h3>{concern.label}</h3>
+              <p class="concern-description">{concern.description}</p>
+              {concern.href ? (
+                <a href={concern.href} class="concern-link">
+                  詳しく見る →
+                </a>
+              ) : (
+                <span class="concern-link is-disabled">準備中</span>
+              )}
             </div>
           ))
         }
@@ -100,12 +75,50 @@ const allGuides = categories.flatMap((c) => c.guides ?? []);
     </div>
   </section>
 
+  <!-- ============================================ -->
+  <!-- ③ サービス選びの確認ガイド -->
+  <!-- ============================================ -->
+  {
+    guideGenres.length > 0 && (
+      <section class="section" id="service-guides">
+        <div class="container">
+          <div class="section-head">
+            <span class="eyebrow">SERVICE GUIDE</span>
+            <h2>サービス選びの確認ガイド</h2>
+            <p>お金・美容・健康・結婚など、悩み別にサービス比較ガイドを提供</p>
+          </div>
+          <div class="guide-genres">
+            {guideGenres.map((genre) => (
+              <div class="genre-section">
+                <h3>{genre.name}</h3>
+                <div class="lp-cards">
+                  {genre.lps.map((lp) => (
+                    <div class="lp-card card">
+                      <p class="lp-title">{lp.title}</p>
+                      <p class="lp-description">{lp.description}</p>
+                      <a href={lp.path} class="lp-link">
+                        ガイドを見る →
+                      </a>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+    )
+  }
+
+  <!-- ============================================ -->
+  <!-- ④ 急ぎの商品・発注先を探す -->
+  <!-- ============================================ -->
   <section class="section section-soft">
     <div class="container">
       <div class="section-head">
-        <span class="eyebrow">CATEGORIES</span>
-        <h2>即納カテゴリーから探す</h2>
-        <p>現在はDM発送代行カテゴリーを公開中です。他カテゴリーも順次追加予定です。</p>
+        <span class="eyebrow">PRODUCTS & SERVICES</span>
+        <h2>急ぎの商品・発注先を探す</h2>
+        <p>DM・印刷・発電機・オフィス用品など、最短納期の商品・サービスを比較</p>
       </div>
       <div class="category-grid">
         {
@@ -145,280 +158,268 @@ const allGuides = categories.flatMap((c) => c.guides ?? []);
     </div>
   </section>
 
-  {
-    guideGenres.length > 0 && (
-      <section class="section" id="service-guides">
-        <div class="container">
-          <div class="section-head">
-            <span class="eyebrow">SERVICE GUIDES</span>
-            <h2>サービス選びの確認ガイド</h2>
-            <p>悩みを、即解決へ。申込み・契約の前に確認したい費用や条件を、ジャンル別に整理しています。結果や効果を保証するものではありません。</p>
-          </div>
-          <div class="department-grid">
-            {guideGenres.map((g) => (
-              <div class="card department-card guide-card" data-genre={g.slug}>
-                <h3>{g.name}</h3>
-                <ul>
-                  {g.lps.map((lp) => (
-                    <li>
-                      <a href={lp.path}>{lp.title}</a>
-                      <span class="guide-desc">{lp.description}</span>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            ))}
-          </div>
-          <p class="guide-note">
-            各ガイドは、広告主の公式サイトで確認した事実(確認日つき)と、選ぶときの確認ポイントを整理したものです。サービスの順位付けや優劣の評価はしません。
-            広告(アフィリエイト)を含む場合は「PR」と表示します。詳しくは<a href="/advertising/">広告掲載について</a>をご覧ください。
-          </p>
-        </div>
-      </section>
-    )
-  }
+  <!-- ============================================ -->
+  <!-- ⑤ オリジナルTシャツ・グッズ（UP-T） -->
+  <!-- ============================================ -->
+  <UptPromoBanner />
 
-  <section class="section" id="general-guides">
+  <!-- ============================================ -->
+  <!-- ⑥ 困ったときの確認ガイド -->
+  <!-- ============================================ -->
+  <section class="section">
     <div class="container">
       <div class="section-head">
-        <span class="eyebrow">GENERAL GUIDES</span>
-        <h2>制度やサービスの一般情報ガイド</h2>
-        <p>特定の企業・サービスの紹介や送客をしない、公的機関の公式情報に基づく解説です。広告ではありません。</p>
+        <span class="eyebrow">QUICK GUIDE</span>
+        <h2>困ったときの確認ガイド</h2>
       </div>
-      <div class="department-grid">
-        <div class="card department-card guide-card">
-          <h3>お金・制度</h3>
-          <ul>
-            <li>
-              <a href="/guides/nisa-basics/">新しいNISAの仕組み</a>
-              <span class="guide-desc">2つの投資枠・年間上限・非課税保有限度額(金融庁の公式情報)</span>
-            </li>
-          </ul>
-        </div>
-        <div class="card department-card guide-card">
-          <h3>美容医療</h3>
-          <ul>
-            <li>
-              <a href="/guides/cosmetic-medicine-checklist/">美容医療のクリニック選びで見ておきたい情報</a>
-              <span class="guide-desc">費用・リスクの表示、禁止される広告、クーリング・オフ(厚生労働省・消費者庁)</span>
-            </li>
-          </ul>
-        </div>
-        <div class="card department-card guide-card">
-          <h3>服選び</h3>
-          <ul>
-            <li>
-              <a href="/guides/short-stature-style/">身長が低めの方の服選び</a>
-              <span class="guide-desc">寸法の測り方・サイズ表の読み方・お直し・試着</span>
-            </li>
-          </ul>
-        </div>
+      <div class="guide-grid">
+        <GuideCard
+          guide={{
+            title: "新しいNISAの仕組み",
+            description: "口座選びのポイント・手数料・取扱商品",
+            href: "/lp/affiliate/securities/nisa/",
+          }}
+        />
+        <GuideCard
+          guide={{
+            title: "今日中に発電機を手配する",
+            description: "最短配送と注意点",
+            href: "/guides/urgent-handle-generator-today/",
+          }}
+        />
+        <GuideCard
+          guide={{
+            title: "会議を明日開く時に必要な機器",
+            description: "プロジェクター・モニター・チェア",
+            href: "/guides/urgent-meeting-equipment/",
+          }}
+        />
+        <GuideCard
+          guide={{
+            title: "ダイレクトメール発送のポイント",
+            description: "スピード優先プランと料金比較",
+            href: "/categories/dm/",
+          }}
+        />
       </div>
     </div>
   </section>
 
-  {
-    featuredCategory && (
-      <section class="section">
-        <div class="container">
-          <div class="section-head">
-            <span class="eyebrow">POPULAR COMPARISON</span>
-            <h2>{featuredCategory.name}</h2>
-          </div>
-          <ComparisonTable
-            id="home-comparison"
-            fields={featuredCategory.comparisonFields}
-            providers={featuredCategory.providers}
-          />
-          <p class="see-all">
-            <a class="btn btn-secondary" href={`/categories/${featuredCategory.slug}/`}>
-              すべての比較条件を見る
-            </a>
-          </p>
+  <!-- ============================================ -->
+  <!-- ⑦ サイト紹介・運営情報 -->
+  <!-- ============================================ -->
+  <section class="section section-soft">
+    <div class="container">
+      <div class="site-intro card">
+        <h2>SOKUNOBANK(即納バンク)について</h2>
+        <p>
+          SOKUNOBANK(即納バンク)は、商品やサービスを選ぶための条件・費用・注意点を整理し、悩みを解決するための判断材料を提供する情報サイトです。
+        </p>
+        <p>
+          「仕事の急な対応」「暮らしの悩み」「お金の選択肢」など、様々な場面で必要な情報を、最短で見つけられるプラットフォームを目指します。
+        </p>
+        <p class="disclaimer">
+          <strong>※重要:</strong>
+          本サイトで提供する情報は、商品・サービス選びの判断材料です。成果や効果を保証するものではありません。ご利用は自己責任でお願いします。
+        </p>
+        <div class="footer-links">
+          <a href="/privacy/">プライバシーポリシー</a> |
+          <a href="/about/">運営者情報</a> |
+          <a href="/advertising/">広告掲載方針</a>
         </div>
-      </section>
-    )
-  }
-
-  <section class="section" id="urgent-guides">
-    <div class="container">
-      <div class="section-head">
-        <span class="eyebrow">URGENT GUIDE</span>
-        <h2>即納が必要な時のガイド</h2>
       </div>
-      <div class="urgent-guide-grid">
-        {
-          urgentGuides.map((guide) => (
-            <a href={guide.href} class="urgent-guide-card">
-              <h3>{guide.title}</h3>
-              <p>{guide.description}</p>
-            </a>
-          ))
-        }
-      </div>
-    </div>
-  </section>
-
-  <section class="section section-soft" id="guides">
-    <div class="container">
-      <div class="section-head">
-        <span class="eyebrow">GUIDE</span>
-        <h2>急ぎの人向けガイド</h2>
-      </div>
-      {
-        allGuides.length > 0 ? (
-          <div class="guide-grid">
-            {allGuides.map((g) => (
-              <GuideCard guide={g} />
-            ))}
-          </div>
-        ) : (
-          <p>準備中です。</p>
-        )
-      }
-    </div>
-  </section>
-
-  <section class="section" id="about">
-    <div class="container prose">
-      <h2>SOKUNOBANKについて</h2>
-      <p>
-        SOKUNOBANKは法人向け即納サービスを、納期・価格・対応条件から比較できる情報サイトです。
-        「今日中/明日までに欲しい」という発注担当者が、あとは「どこで最速で依頼できるか」だけを探している状態を想定して設計しています。
-      </p>
-      <p>
-        <a href="/about/">運営者情報はこちら →</a>
-      </p>
     </div>
   </section>
 </Layout>
 
-<style>
-  .guide-card li { display: block; }
-  .guide-card li > a { font-weight: 700; text-decoration: underline; text-underline-offset: 3px; }
-  .guide-desc { display: block; margin: 2px 0 10px; font-size: 13px; color: var(--color-text-muted); }
-  .guide-note { margin-top: 16px; font-size: 13px; color: var(--color-text-muted); }
-  .purpose-grid {
-    list-style: none;
-    margin: 0;
-    padding: 0;
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-    gap: 0.75rem;
+<style is:global>
+  /* ファーストビュー - 新コンセプト */
+  .hero-new {
+    background: linear-gradient(135deg, var(--color-bg-soft) 0%, var(--color-bg) 100%);
+    padding: 4rem 1rem;
+    text-align: center;
   }
-  .purpose-item {
-    display: flex;
-    align-items: center;
-    gap: 0.6rem;
-    min-height: 48px;
-    padding: 0 1rem;
-    background: var(--color-bg);
-    border: 1px solid var(--color-border);
-    border-radius: var(--radius-md);
-    text-decoration: none;
+
+  .hero-content {
+    max-width: 700px;
+    margin: 0 auto;
+  }
+
+  .hero-title {
+    font-size: 2.5rem;
+    font-weight: 700;
+    margin-bottom: 1rem;
+    line-height: 1.2;
     color: var(--color-text);
+  }
+
+  .hero-subtitle {
+    font-size: 1.25rem;
+    color: var(--color-text);
+    margin-bottom: 1rem;
     font-weight: 500;
-    font-size: 0.92rem;
   }
-  a.purpose-item:hover {
-    border-color: var(--color-accent);
-    color: var(--color-accent-dark);
-  }
-  .purpose-item.is-disabled {
+
+  .hero-description {
+    font-size: 0.95rem;
     color: var(--color-text-muted);
-  }
-  .dot {
-    width: 8px;
-    height: 8px;
-    border-radius: 50%;
-    background: var(--color-accent);
-    flex-shrink: 0;
-  }
-  .purpose-item.is-disabled .dot {
-    background: var(--color-border);
-  }
-  .purpose-item .badge-soon {
-    margin-left: auto;
+    margin-bottom: 2rem;
   }
 
-  .department-grid {
+  /* 何にお困りですか？ */
+  .concern-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-    gap: 1.1rem;
-  }
-  .department-card h3 {
-    margin: 0 0 0.9rem;
-  }
-  .department-card ul {
-    list-style: none;
-    margin: 0;
-    padding: 0;
-    display: grid;
-    gap: 0.6rem;
-  }
-  .department-card a,
-  .department-card .is-disabled {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 0.5rem;
-    min-height: 44px;
-    font-size: 0.92rem;
-    text-decoration: none;
-    color: var(--color-text);
-  }
-  .department-card a:hover {
-    color: var(--color-accent-dark);
-  }
-  .department-card .is-disabled {
-    color: var(--color-text-muted);
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1.5rem;
   }
 
-  .category-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
-    gap: 1.1rem;
-  }
-
-  .urgent-guide-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
-    gap: 1.1rem;
-  }
-  .urgent-guide-card {
-    display: block;
-    padding: 1.25rem;
-    background: var(--color-bg);
+  .concern-card {
+    padding: 1.5rem;
     border: 1px solid var(--color-border);
-    border-radius: var(--radius-md);
-    text-decoration: none;
-    transition: all 0.2s ease;
+    border-radius: 10px;
+    display: flex;
+    flex-direction: column;
   }
-  .urgent-guide-card:hover {
-    border-color: var(--color-accent);
-    box-shadow: var(--shadow-sm);
-    transform: translateY(-2px);
+
+  .concern-card h3 {
+    font-size: 1.25rem;
+    margin-bottom: 0.5rem;
+    color: var(--color-accent);
   }
-  .urgent-guide-card h3 {
-    margin: 0 0 0.5rem;
-    font-size: 1rem;
-    font-weight: 600;
-    color: var(--color-text);
-  }
-  .urgent-guide-card p {
-    margin: 0;
+
+  .concern-description {
     font-size: 0.9rem;
     color: var(--color-text-muted);
-    line-height: 1.5;
+    flex-grow: 1;
+    margin-bottom: 1rem;
   }
 
-  .guide-grid {
+  .concern-link {
+    font-size: 0.95rem;
+    color: var(--color-accent);
+    text-decoration: none;
+    font-weight: 600;
+  }
+
+  .concern-link:hover {
+    text-decoration: underline;
+  }
+
+  .concern-link.is-disabled {
+    color: var(--color-text-muted);
+    cursor: default;
+  }
+
+  /* サービス選びの確認ガイド */
+  .guide-genres {
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+  }
+
+  .genre-section {
+    border-top: 2px solid var(--color-border);
+    padding-top: 1.5rem;
+  }
+
+  .genre-section h3 {
+    font-size: 1.1rem;
+    margin-bottom: 1rem;
+    color: var(--color-text);
+  }
+
+  .lp-cards {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
-    gap: 1.1rem;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1rem;
   }
 
-  .see-all {
-    margin-top: 1.25rem;
+  .lp-card {
+    padding: 1rem;
+    background: var(--color-bg-soft);
+    border: 1px solid var(--color-border);
+    border-radius: 8px;
+  }
+
+  .lp-title {
+    font-size: 1rem;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+    color: var(--color-text);
+  }
+
+  .lp-description {
+    font-size: 0.85rem;
+    color: var(--color-text-muted);
+    margin-bottom: 0.75rem;
+  }
+
+  .lp-link {
+    display: inline-block;
+    font-size: 0.9rem;
+    color: var(--color-accent);
+    text-decoration: none;
+    font-weight: 600;
+  }
+
+  .lp-link:hover {
+    text-decoration: underline;
+  }
+
+  /* サイト紹介 */
+  .site-intro {
+    padding: 2rem;
+    text-align: center;
+  }
+
+  .site-intro h2 {
+    margin-bottom: 1.5rem;
+  }
+
+  .site-intro p {
+    margin-bottom: 1rem;
+    line-height: 1.6;
+    color: var(--color-text-muted);
+  }
+
+  .disclaimer {
+    background: var(--color-bg-soft);
+    padding: 1rem;
+    border-left: 4px solid var(--color-urgent);
+    margin: 1.5rem 0;
+    text-align: left;
+  }
+
+  .footer-links {
+    margin-top: 1.5rem;
+    font-size: 0.9rem;
+  }
+
+  .footer-links a {
+    color: var(--color-accent);
+    text-decoration: none;
+  }
+
+  .footer-links a:hover {
+    text-decoration: underline;
+  }
+
+  /* レスポンシブ */
+  @media (max-width: 768px) {
+    .hero-title {
+      font-size: 1.75rem;
+    }
+
+    .hero-subtitle {
+      font-size: 1rem;
+    }
+
+    .concern-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .guide-grid {
+      grid-template-columns: 1fr;
+    }
   }
 </style>
