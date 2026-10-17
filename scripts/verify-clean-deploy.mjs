@@ -76,9 +76,12 @@ function makeSimFactory(lpIds) {
     let s = readFileSync(p, "utf8");
     for (const id of lpIds) {
       const code = id.replace(/^LP-/, "");
-      const re = new RegExp(`(code: "${code}"[^\\n]*\\n)(\\s*)(searchIntent[^\\n]*\\n)(\\s*holdReasons: \\[[^\\n]*\\],\\n)?`);
-      if (re.test(s)) {
-        s = s.replace(re, (_m, a, sp, c) => `${a}${sp}${REVIEW}\n${sp}${c}`);
+      // 模擬: 該当LPの `content: {` の直前に、公開済み・確認記録あり・保留なしの指定を足す(後に書いた同名のキーが優先される)
+      const codeIdx = s.indexOf(`code: "${code}"`);
+      if (codeIdx >= 0) {
+        const contentIdx = s.indexOf("\n    content: {", codeIdx);
+        if (contentIdx < 0) throw new Error(`content が見つかりません: ${code}`);
+        s = s.slice(0, contentIdx) + `\n    ${REVIEW}\n    holdReasons: [],` + s.slice(contentIdx);
         n++;
       }
     }
