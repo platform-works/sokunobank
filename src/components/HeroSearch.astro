@@ -19,7 +19,7 @@ const { entries } = Astro.props;
 const json = JSON.stringify(entries).replace(/</g, "\\u003c");
 ---
 
-<div class="hs" data-hero-search>
+<div class="hs" id="search" data-hero-search>
   <form class="hs-form" action="/categories/" method="get" role="search">
     <label class="hs-label" for="hs-q">悩み・商品・サービスを検索</label>
     <svg class="hs-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><circle cx="11" cy="11" r="7" /><path d="M20 20l-4-4" stroke-linecap="round" /></svg>
