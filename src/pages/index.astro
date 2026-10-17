@@ -4,7 +4,8 @@ import UptPromoBanner from "../components/UptPromoBanner.astro";
 import CategoryCard from "../components/CategoryCard.astro";
 import GuideCard from "../components/GuideCard.astro";
 import { getPublishedCategories } from "../data/loadCategories";
-import { commerceCategories, upcomingCategories } from "../data/site-nav";
+import HeroSearch from "../components/HeroSearch.astro";
+import { commerceCategories, upcomingCategories, purposeFinder, departmentFinder, urgentGuides } from "../data/site-nav";
 
 // サービス選びの確認ガイド(affiliate-lp-factory で公開済みのLP)。`npm run lp:sync` が生成するデータで、無ければ何も表示しない。
 // 未公開のLPにはリンクしない。公開済みが0本の間はセクション自体を出さない。
@@ -33,6 +34,34 @@ const concerns = [
   { id: "marriage", thumb: "marriage", label: "結婚・人間関係", description: "結婚準備・ギフト・\n人間関係の悩みを解決", href: genrePath("marriage") ?? "/guides/greeting-cards/" },
   { id: "urgent", thumb: "urgent", label: "急ぎの商品・発注", description: "即納・短納期で探せる\n商品・サービス", href: "/categories/" },
 ];
+
+// ヒーロー検索の対象。公開済みのページだけを、既存データから組み立てる(重複は href で統合)。
+const genreSynonyms: Record<string, string> = {
+  hosting: "レンタルサーバー サーバー ホームページ ブログ wordpress ワードプレス サイト",
+  "water-server": "ウォーターサーバー 水 飲料水 家族 暮らし 生活 家庭",
+  "hair-removal": "脱毛 脱毛サロン 医療脱毛 ひげ ムダ毛 美容 サロン",
+  marriage: "結婚 婚活 結婚相談所 お見合い 出会い 恋愛 人間関係",
+  fortune: "占い 電話占い オンライン占い 恋愛 相性 人間関係 悩み",
+  diet: "ダイエット 痩せる 減量 食事 運動 健康 美容",
+};
+const searchMap = new Map<string, { t: string; k: string[]; g: string }>();
+const addEntry = (href: string | undefined, title: string, group: string, kw: string[] = []) => {
+  if (!href) return;
+  const cur = searchMap.get(href);
+  if (cur) cur.k.push(title, ...kw);
+  else searchMap.set(href, { t: title, k: kw, g: group });
+};
+categories.forEach((c) => addEntry(`/categories/${c.slug}/`, c.name, "カテゴリー", [c.summary ?? ""]));
+commerceCategories.forEach((c) => addEntry(c.href, c.name, "カテゴリー"));
+upcomingCategories.forEach((u) => addEntry(u.href, u.name, "ガイド"));
+purposeFinder.forEach((p) => addEntry(p.href, p.label, p.href?.startsWith("/categories/") ? "カテゴリー" : "ガイド"));
+departmentFinder.forEach((d) => d.items.forEach((i) => addEntry(i.href, i.label, i.href?.startsWith("/categories/") ? "カテゴリー" : "ガイド", [d.label])));
+urgentGuides.forEach((u) => addEntry(u.href, u.title, "ガイド", [u.description]));
+guideGenres.forEach((g) => g.lps.forEach((lp) => addEntry(lp.path, lp.title, "確認ガイド", [g.name, genreSynonyms[g.slug] ?? "", lp.description])));
+addEntry("/guides/nisa-basics/", "新しいNISAの仕組み", "ガイド", ["お金 資産形成 投資 つみたて 積立 資産運用 証券 口座 節約 保険"]);
+addEntry("/guides/cosmetic-medicine-checklist/", "美容医療のクリニック選び", "ガイド", ["美容 美容皮膚科 クリニック 医療 健康"]);
+addEntry("/guides/short-stature-style/", "身長が低めの方の服選び", "ガイド", ["服 ファッション 低身長 コーデ 暮らし"]);
+const searchEntries = [...searchMap.entries()].map(([h, v]) => ({ t: v.t, h, g: v.g, k: [...new Set(v.k.filter(Boolean))].join(" ") }));
 
 function primaryProvider(category: (typeof categories)[number]) {
   return category.providers.find((p) => p.isPrimary) ?? category.providers[0];
@@ -71,12 +100,7 @@ function speedKey(category: (typeof categories)[number]) {
           </a>
         </div>
 
-        <form class="fv-search" action="/categories/" method="get" role="search">
-          <label class="visually-hidden" for="fv-q">悩み・商品・サービスを検索</label>
-          <svg class="fv-search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><circle cx="11" cy="11" r="7" /><path d="M20 20l-4-4" stroke-linecap="round" /></svg>
-          <input id="fv-q" type="search" name="q" placeholder="悩み・商品・サービスを検索" autocomplete="off" />
-          <button type="submit">検索</button>
-        </form>
+        <HeroSearch entries={searchEntries} />
 
         <div class="fv-keywords">
           <span class="fv-keywords-label">よく検索されているキーワード：</span>
@@ -297,22 +321,15 @@ function speedKey(category: (typeof categories)[number]) {
   .fv-lead { font-size: clamp(1rem, 1.5vw, 1.2rem); font-weight: 700; line-height: 1.75; margin: 0.25rem 0 0; color: var(--color-text); }
   .fv-sub { font-size: 0.88rem; color: var(--color-text-muted); margin: 0; }
   .fv-ctas { display: flex; gap: 0.75rem; flex-wrap: wrap; margin-top: 0.5rem; }
-  .fv-btn { display: inline-flex; align-items: center; gap: 0.6rem; min-height: 54px; padding: 0 1.05rem; border-radius: 8px; font-weight: 700; font-size: 0.98rem; text-decoration: none; border: 2px solid var(--color-accent-dark); transition: background-color 0.15s, transform 0.15s, box-shadow 0.15s; }
-  .fv-btn svg { width: 22px; height: 22px; flex: none; }
-  .fv-btn .fv-arrow { width: 18px; height: 18px; }
+  .fv-btn { display: inline-flex; align-items: center; gap: 0.5rem; min-height: 46px; padding: 0 0.9rem; border-radius: 8px; font-weight: 700; font-size: 0.9rem; text-decoration: none; border: 2px solid var(--color-accent-dark); transition: background-color 0.15s, transform 0.15s, box-shadow 0.15s; }
+  .fv-btn svg { width: 19px; height: 19px; flex: none; }
+  .fv-btn .fv-arrow { width: 15px; height: 15px; }
   .fv-btn-primary { background: var(--color-accent-dark); color: #fff; }
   .fv-btn-primary:hover { background: #046b4b; transform: translateY(-1px); box-shadow: var(--shadow-sm); }
   .fv-btn-secondary { background: #fff; color: var(--color-accent-dark); }
   .fv-btn-secondary:hover { background: var(--color-accent-soft); transform: translateY(-1px); }
   .fv-btn:active { transform: translateY(0); }
   .fv-btn:focus-visible, .fv-concern:focus-visible, .fv-chip:focus-visible { outline: 3px solid var(--color-urgent); outline-offset: 2px; }
-  .fv-search { position: relative; display: flex; max-width: 660px; height: 58px; background: #fff; border: 1px solid #c9dfd2; border-radius: 8px; overflow: hidden; box-shadow: var(--shadow-sm); }
-  .fv-search:focus-within { border-color: var(--color-accent-dark); box-shadow: 0 0 0 3px var(--color-accent-soft); }
-  .fv-search .visually-hidden { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
-  .fv-search-icon { position: absolute; left: 1rem; top: 50%; width: 22px; height: 22px; margin-top: -11px; color: #8aa093; }
-  .fv-search input { flex: 1; min-width: 0; border: 0; outline: 0; padding: 0 1rem 0 3.1rem; font-size: 1rem; background: transparent; font-family: inherit; }
-  .fv-search button { border: 0; background: var(--color-accent-dark); color: #fff; font-weight: 700; font-size: 1rem; padding: 0 1.9rem; cursor: pointer; font-family: inherit; }
-  .fv-search button:hover { background: #046b4b; }
   .fv-keywords { display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap; font-size: 0.82rem; color: var(--color-text-muted); }
   .fv-keywords ul { display: flex; flex-wrap: wrap; gap: 0.4rem; list-style: none; margin: 0; padding: 0; }
   .fv-chip { display: inline-flex; align-items: center; min-height: 36px; padding: 0 0.85rem; border: 1px solid #c9dfd2; border-radius: 999px; background: rgba(255,255,255,0.85); color: var(--color-text); font-size: 0.82rem; text-decoration: none; }
@@ -464,7 +481,6 @@ function speedKey(category: (typeof categories)[number]) {
     .fv { padding: 1.75rem 0 1.5rem; }
     .fv-inner { grid-template-columns: 1fr; }
     .fv-visual { display: none; }
-    .fv-search { max-width: none; }
     .fv-features { grid-template-columns: 1fr; gap: 0.9rem; }
     .fv-features li { padding: 0; }
     .fv-features li + li { border-left: 0; border-top: 1px solid var(--color-border); padding-top: 0.9rem; }
