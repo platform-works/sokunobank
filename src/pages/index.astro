@@ -156,18 +156,23 @@ const allGuides = categories.flatMap((c) => c.guides ?? []);
           </div>
           <div class="department-grid">
             {guideGenres.map((g) => (
-              <div class="card department-card" data-genre={g.slug}>
+              <div class="card department-card guide-card" data-genre={g.slug}>
                 <h3>{g.name}</h3>
                 <ul>
                   {g.lps.map((lp) => (
                     <li>
                       <a href={lp.path}>{lp.title}</a>
+                      <span class="guide-desc">{lp.description}</span>
                     </li>
                   ))}
                 </ul>
               </div>
             ))}
           </div>
+          <p class="guide-note">
+            各ガイドは、広告主の公式サイトで確認した事実(確認日つき)と、選ぶときの確認ポイントを整理したものです。サービスの順位付けや優劣の評価はしません。
+            広告(アフィリエイト)を含む場合は「PR」と表示します。詳しくは<a href="/advertising/">広告掲載について</a>をご覧ください。
+          </p>
         </div>
       </section>
     )
@@ -250,6 +255,10 @@ const allGuides = categories.flatMap((c) => c.guides ?? []);
 </Layout>
 
 <style>
+  .guide-card li { display: block; }
+  .guide-card li > a { font-weight: 700; text-decoration: underline; text-underline-offset: 3px; }
+  .guide-desc { display: block; margin: 2px 0 10px; font-size: 13px; color: var(--color-text-muted); }
+  .guide-note { margin-top: 16px; font-size: 13px; color: var(--color-text-muted); }
   .purpose-grid {
     list-style: none;
     margin: 0;
