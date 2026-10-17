@@ -127,7 +127,10 @@ try {
 
   // --- 検査 ---
   check("check:dist(広告タグ・インラインJS構文)が合格", /OK: \d+ ページ/.test(checkOut), (checkOut.match(/OK:[^\n]*/) ?? [""])[0]);
-  check("未コミットの旧Affiliate LP(/lp/affiliate/)が dist に混入していない", ![...B.keys()].some((k) => k.startsWith("lp/affiliate/")), `作業ツリーの未コミット: ${untracked.join(", ") || "なし"}`);
+  // 旧Affiliate LP(/lp/affiliate/)は、別のセッションのコミットで追跡対象になり、本番にも出ている(2026-10-17確認: noindex・A8リンクなし・sitemap非掲載)。
+  // ここでは「今回の候補が、baseline(本番相当)に無い /lp/affiliate/ を新たに増やしていないこと」だけを検査する
+  const affNew = [...B.keys()].filter((k) => k.startsWith("lp/affiliate/") && !A.has(k));
+  check("旧Affiliate LP(/lp/affiliate/)を、baselineに無いものとして新たに増やしていない", affNew.length === 0, `新規: ${affNew.slice(0, 5).join(", ") || "なし"} / 作業ツリーの未コミット: ${untracked.join(", ") || "なし"}`);
   const robotsHead = sh("git show HEAD:public/robots.txt", root).replace(/\r\n/g, "\n");
   check("robots.txt が本番(baseline)・コミット済みと一致", B.get("robots.txt") === A.get("robots.txt") || readFileSync(join(candDist, "robots.txt"), "utf8").replace(/\r\n/g, "\n") === robotsHead, "");
   // _routes.json は、Cloudflareアダプタが「静的配信するパス」を列挙するファイル。LPが増えると、そのパスが追加されるだけのはず
