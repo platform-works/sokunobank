@@ -1,17 +1,10 @@
 ---
 import Layout from "../layouts/Layout.astro";
-import SearchHero from "../components/SearchHero.astro";
 import UptPromoBanner from "../components/UptPromoBanner.astro";
 import CategoryCard from "../components/CategoryCard.astro";
 import GuideCard from "../components/GuideCard.astro";
 import { getPublishedCategories } from "../data/loadCategories";
-import {
-  popularKeywords,
-  departmentFinder,
-  commerceCategories,
-  upcomingCategories,
-  concernFinder,
-} from "../data/site-nav";
+import { commerceCategories, upcomingCategories } from "../data/site-nav";
 
 // サービス選びの確認ガイド(affiliate-lp-factory で公開済みのLP)。`npm run lp:sync` が生成するデータで、無ければ何も表示しない。
 // 未公開のLPにはリンクしない。公開済みが0本の間はセクション自体を出さない。
@@ -21,6 +14,25 @@ const guideModules = import.meta.glob("../data/generated/lp-guide.json", { eager
 const guideGenres: GuideGenre[] = Object.values(guideModules)[0]?.default?.genres ?? [];
 
 const categories = getPublishedCategories();
+
+// ヒーローの導線(すべて既存の公開ページ)。LP Factory 由来のLPは公開済みのものがあればそちらを優先し、無ければ既存ガイドへ寄せる。
+const genrePath = (slug: string) => guideGenres.find((g) => g.slug === slug)?.lps[0]?.path;
+const guideHref = guideGenres.length > 0 ? "/#service-guides" : "/guides/nisa-basics/";
+const heroKeywords = [
+  { label: "名刺印刷", href: "/guides/business-card-printing/" },
+  { label: "会議用プロジェクター", href: "/categories/projector/" },
+  { label: "オフィスチェア", href: "/categories/office-chair/" },
+  { label: "ノベルティ", href: "/guides/novelty-goods/" },
+  { label: "封筒印刷", href: "/guides/envelope-printing/" },
+];
+const concerns = [
+  { id: "money", thumb: "money", label: "お金・資産形成", description: "資産運用・保険・節約など\nお金の悩みを解決", href: "/guides/nisa-basics/" },
+  { id: "work", thumb: "work", label: "仕事・ビジネス", description: "業務効率化・オフィス用品\nビジネスツールを探す", href: "/guides/office-supplies/" },
+  { id: "life", thumb: "life", label: "暮らし・生活", description: "住まい・家電・日用品など\n毎日の暮らしを快適に", href: genrePath("water-server") ?? "/guides/short-stature-style/" },
+  { id: "beauty", thumb: "beauty", label: "美容・健康", description: "美容ケア・健康グッズで\nよりよい毎日を", href: genrePath("hair-removal") ?? "/guides/cosmetic-medicine-checklist/" },
+  { id: "marriage", thumb: "marriage", label: "結婚・人間関係", description: "結婚準備・ギフト・\n人間関係の悩みを解決", href: genrePath("marriage") ?? "/guides/greeting-cards/" },
+  { id: "urgent", thumb: "urgent", label: "急ぎの商品・発注", description: "即納・短納期で探せる\n商品・サービス", href: "/categories/" },
+];
 
 function primaryProvider(category: (typeof categories)[number]) {
   return category.providers.find((p) => p.isPrimary) ?? category.providers[0];
@@ -35,64 +47,90 @@ function speedKey(category: (typeof categories)[number]) {
   description="仕事も、暮らしも、お金のことも。商品・サービスの条件や注意点を整理し、納得できる選択をサポートする情報プラットフォーム「SOKUNOBANK(即納バンク)」"
 >
   <!-- ============================================ -->
-  <!-- ① ファーストビュー - 新コンセプト -->
-  <!-- ============================================ -->
-  <section class="hero-new">
-    <div class="hero-container">
-      <div class="hero-content">
-        <h1 class="hero-title">その悩み、即解決へ。</h1>
-        <p class="hero-subtitle">仕事も、暮らしも、お金のことも。条件や注意点を整理し、あなたに合う選択肢をすばやく見つける。</p>
-        <div class="hero-ctas">
-          <a href="/#service-guides" class="hero-cta hero-cta-primary">
-            <span class="hero-cta-icon">📋</span>
-            サービス選びの確認ガイドを見る
+  <!-- ① ファーストビュー: 悩みベースのヒーロー(2026-10-17 デザインモック準拠) -->
+  <section class="fv" aria-labelledby="fv-title">
+    <div class="fv-bg" aria-hidden="true"></div>
+    <div class="container fv-inner">
+      <div class="fv-copy">
+        <h1 id="fv-title" class="fv-title">その悩み、<br /><span class="fv-title-accent">即解決へ。</span></h1>
+        <p class="fv-lead">
+          仕事も、暮らしも、お金のことも。<br />あなたの悩みに合った解決策を、すばやく見つける。
+        </p>
+        <p class="fv-sub">商品・サービスの条件や注意点を整理し、納得できる選択をサポートします。</p>
+
+        <div class="fv-ctas">
+          <a href={guideHref} class="fv-btn fv-btn-primary">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><circle cx="12" cy="12" r="9" /><path d="M15.5 8.5l-2 5-5 2 2-5z" stroke-linejoin="round" /></svg>
+            <span>サービス選びの確認ガイドを見る</span>
+            <svg class="fv-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6" stroke-linecap="round" stroke-linejoin="round" /></svg>
           </a>
-          <a href="/#products" class="hero-cta hero-cta-secondary">
-            <span class="hero-cta-icon">⚡</span>
-            急ぎの商品・発注先を探す
+          <a href="/categories/" class="fv-btn fv-btn-secondary">
+            <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M13 2L5 13.5h5.5L9.5 22 19 9.5h-5.8z" /></svg>
+            <span>急ぎの商品を探す</span>
+            <svg class="fv-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6" stroke-linecap="round" stroke-linejoin="round" /></svg>
           </a>
+        </div>
+
+        <form class="fv-search" action="/categories/" method="get" role="search">
+          <label class="visually-hidden" for="fv-q">悩み・商品・サービスを検索</label>
+          <svg class="fv-search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><circle cx="11" cy="11" r="7" /><path d="M20 20l-4-4" stroke-linecap="round" /></svg>
+          <input id="fv-q" type="search" name="q" placeholder="悩み・商品・サービスを検索" autocomplete="off" />
+          <button type="submit">検索</button>
+        </form>
+
+        <div class="fv-keywords">
+          <span class="fv-keywords-label">よく検索されているキーワード：</span>
+          <ul>
+            {heroKeywords.map((k) => <li><a class="fv-chip" href={k.href}>{k.label}</a></li>)}
+          </ul>
         </div>
       </div>
-      <div class="hero-visual">
-        <div class="hero-visual-grid">
-          <div class="hero-visual-item hero-visual-1">仕事</div>
-          <div class="hero-visual-item hero-visual-2">お金</div>
-          <div class="hero-visual-item hero-visual-3">暮らし</div>
-          <div class="hero-visual-item hero-visual-4">美容</div>
-          <div class="hero-visual-item hero-visual-5">結婚</div>
-          <div class="hero-visual-item hero-visual-6">購買</div>
-        </div>
+
+      <div class="fv-visual">
+        <img
+          src="/images/top/hero-visual.webp"
+          width="788"
+          height="579"
+          alt="仕事・暮らし・お金・美容・結婚・急ぎの発注の悩みを解決するイメージ。今日の悩みを明日の嬉しいに。"
+          fetchpriority="high"
+          decoding="async"
+        />
       </div>
     </div>
-  </section>
 
-  <!-- ============================================ -->
-  <!-- ② 何にお困りですか？ - 悩み別ナビゲーション -->
-  <!-- ============================================ -->
-  <section class="section section-soft">
+    <!-- 6つの悩みカテゴリカード(全面リンク) -->
     <div class="container">
-      <div class="section-head">
-        <h2>何にお困りですか？</h2>
-      </div>
-      <div class="concern-grid">
+      <ul class="fv-concerns">
         {
-          concernFinder.map((concern) =>
-            concern.href ? (
-              <a href={concern.href} class="concern-card concern-card-link card">
-                <h3>{concern.label}</h3>
-                <p class="concern-description">{concern.description}</p>
-                <span class="concern-cta">詳しく見る →</span>
+          concerns.map((c) => (
+            <li>
+              <a href={c.href} class="fv-concern" data-concern={c.id}>
+                <img src={`/images/top/concern-${c.thumb}.webp`} width="188" height="93" alt="" loading="lazy" decoding="async" />
+                <span class="fv-concern-head">
+                  <strong>{c.label}</strong>
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M9 5l7 7-7 7" stroke-linecap="round" stroke-linejoin="round" /></svg>
+                </span>
+                <span class="fv-concern-desc">{c.description}</span>
               </a>
-            ) : (
-              <div class="concern-card concern-card-disabled card">
-                <h3>{concern.label}</h3>
-                <p class="concern-description">{concern.description}</p>
-                <span class="concern-cta">準備中</span>
-              </div>
-            )
-          )
+            </li>
+          ))
         }
-      </div>
+      </ul>
+
+      <ul class="fv-features">
+        <li>
+          <svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true"><path d="M24 8v32M14 40h20M10 14h28M10 14l-6 14a6 6 0 0012 0zM38 14l-6 14a6 6 0 0012 0z" stroke-linecap="round" stroke-linejoin="round" /></svg>
+          <div><strong>比較しやすい</strong><span>複数の商品・サービスを横断して比較</span></div>
+        </li>
+        <li>
+          <svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true"><circle cx="24" cy="24" r="17" /><path d="M16 19h16M16 25h16M16 31h10" stroke-linecap="round" /></svg>
+          <div><strong>条件が見やすい</strong><span>料金・納期・対応範囲などの条件を整理</span></div>
+        </li>
+        <li>
+          <svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true"><path d="M24 5l15 6v11c0 9-6 16-15 20C15 38 9 31 9 22V11z" stroke-linejoin="round" /><path d="M17 24l5 5 9-10" stroke-linecap="round" stroke-linejoin="round" /></svg>
+          <div><strong>注意点がわかる</strong><span>選ぶ前に知っておきたいポイントを解説</span></div>
+        </li>
+      </ul>
     </div>
   </section>
 
@@ -247,200 +285,55 @@ function speedKey(category: (typeof categories)[number]) {
 </Layout>
 
 <style is:global>
-  /* ファーストビュー - 新コンセプト */
-  .hero-new {
-    background: linear-gradient(135deg, var(--color-bg-soft) 0%, var(--color-bg) 100%);
-    padding: 3rem 1rem;
-  }
+  /* ファーストビュー(2026-10-17 デザインモック準拠) */
+  .fv { position: relative; padding: 2.5rem 0 2.25rem; overflow: hidden; background: linear-gradient(180deg, #f4fbf7 0%, #fff 70%); }
+  .fv-bg { position: absolute; inset: 0; pointer-events: none;
+    background: radial-gradient(60% 70% at 85% 25%, #dcefff 0%, rgba(220,239,255,0) 70%), radial-gradient(40% 50% at 0% 10%, #dff5e8 0%, rgba(223,245,232,0) 70%); }
+  .fv-inner { position: relative; display: grid; grid-template-columns: minmax(0, 1.18fr) minmax(0, 1fr); gap: 1rem; align-items: center; }
+  .fv-copy { position: relative; z-index: 2; display: flex; flex-direction: column; gap: 1rem; min-width: 0; }
+  .fv-title { font-size: clamp(2.6rem, 5.4vw, 4.6rem); font-weight: 800; line-height: 1.12; letter-spacing: 0.02em; margin: 0; color: var(--color-text); }
+  .fv-title-accent { color: var(--color-accent-dark); }
+  .fv-lead { font-size: clamp(1rem, 1.5vw, 1.2rem); font-weight: 700; line-height: 1.75; margin: 0.25rem 0 0; color: var(--color-text); }
+  .fv-sub { font-size: 0.88rem; color: var(--color-text-muted); margin: 0; }
+  .fv-ctas { display: flex; gap: 0.75rem; flex-wrap: wrap; margin-top: 0.5rem; }
+  .fv-btn { display: inline-flex; align-items: center; gap: 0.6rem; min-height: 54px; padding: 0 1.05rem; border-radius: 8px; font-weight: 700; font-size: 0.98rem; text-decoration: none; border: 2px solid var(--color-accent-dark); transition: background-color 0.15s, transform 0.15s, box-shadow 0.15s; }
+  .fv-btn svg { width: 22px; height: 22px; flex: none; }
+  .fv-btn .fv-arrow { width: 18px; height: 18px; }
+  .fv-btn-primary { background: var(--color-accent-dark); color: #fff; }
+  .fv-btn-primary:hover { background: #046b4b; transform: translateY(-1px); box-shadow: var(--shadow-sm); }
+  .fv-btn-secondary { background: #fff; color: var(--color-accent-dark); }
+  .fv-btn-secondary:hover { background: var(--color-accent-soft); transform: translateY(-1px); }
+  .fv-btn:active { transform: translateY(0); }
+  .fv-btn:focus-visible, .fv-concern:focus-visible, .fv-chip:focus-visible { outline: 3px solid var(--color-urgent); outline-offset: 2px; }
+  .fv-search { position: relative; display: flex; max-width: 660px; height: 58px; background: #fff; border: 1px solid #c9dfd2; border-radius: 8px; overflow: hidden; box-shadow: var(--shadow-sm); }
+  .fv-search:focus-within { border-color: var(--color-accent-dark); box-shadow: 0 0 0 3px var(--color-accent-soft); }
+  .fv-search .visually-hidden { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+  .fv-search-icon { position: absolute; left: 1rem; top: 50%; width: 22px; height: 22px; margin-top: -11px; color: #8aa093; }
+  .fv-search input { flex: 1; min-width: 0; border: 0; outline: 0; padding: 0 1rem 0 3.1rem; font-size: 1rem; background: transparent; font-family: inherit; }
+  .fv-search button { border: 0; background: var(--color-accent-dark); color: #fff; font-weight: 700; font-size: 1rem; padding: 0 1.9rem; cursor: pointer; font-family: inherit; }
+  .fv-search button:hover { background: #046b4b; }
+  .fv-keywords { display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap; font-size: 0.82rem; color: var(--color-text-muted); }
+  .fv-keywords ul { display: flex; flex-wrap: wrap; gap: 0.4rem; list-style: none; margin: 0; padding: 0; }
+  .fv-chip { display: inline-flex; align-items: center; min-height: 36px; padding: 0 0.85rem; border: 1px solid #c9dfd2; border-radius: 999px; background: rgba(255,255,255,0.85); color: var(--color-text); font-size: 0.82rem; text-decoration: none; }
+  .fv-chip:hover { border-color: var(--color-accent-dark); background: var(--color-accent-soft); }
+  .fv-visual { position: relative; z-index: 1; margin-left: -4%; }
+  .fv-visual img { -webkit-mask-image: linear-gradient(to bottom, transparent 0, #000 9%), linear-gradient(to left, transparent 0, #000 7%); -webkit-mask-composite: source-in; mask-image: linear-gradient(to bottom, transparent 0, #000 9%), linear-gradient(to left, transparent 0, #000 7%); mask-composite: intersect; display: block; width: 104%; max-width: none; height: auto; }
 
-  .hero-container {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 3rem;
-    align-items: center;
-    max-width: 1200px;
-    margin: 0 auto;
-  }
+  .fv-concerns { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 0.9rem; list-style: none; margin: 0.5rem 0 1.1rem; padding: 0; position: relative; z-index: 3; }
+  .fv-concern { display: flex; flex-direction: column; gap: 0.4rem; height: 100%; padding: 0.65rem 0.65rem 0.85rem; background: #fff; border: 1px solid var(--color-border); border-radius: 10px; box-shadow: var(--shadow-sm); text-decoration: none; color: var(--color-text); transition: transform 0.15s, box-shadow 0.15s, border-color 0.15s; }
+  .fv-concern:hover { transform: translateY(-3px); border-color: var(--color-accent-vivid); box-shadow: 0 6px 16px rgba(16,36,62,0.1); }
+  .fv-concern img { display: block; width: 100%; height: auto; aspect-ratio: 2 / 1; object-fit: cover; border-radius: 6px; }
+  .fv-concern-head { display: flex; align-items: center; justify-content: space-between; gap: 0.25rem; font-size: 1.02rem; }
+  .fv-concern-head svg { width: 16px; height: 16px; color: var(--color-text-muted); flex: none; }
+  .fv-concern:hover .fv-concern-head svg { color: var(--color-accent-dark); }
+  .fv-concern-desc { white-space: pre-line; font-size: 0.8rem; line-height: 1.55; color: var(--color-text-muted); }
 
-  .hero-content {
-    display: flex;
-    flex-direction: column;
-    gap: 1.5rem;
-  }
-
-  .hero-title {
-    font-size: 2.8rem;
-    font-weight: 700;
-    line-height: 1.15;
-    color: var(--color-text);
-  }
-
-  .hero-subtitle {
-    font-size: 1.1rem;
-    color: var(--color-text);
-    font-weight: 500;
-    line-height: 1.6;
-  }
-
-  .hero-ctas {
-    display: flex;
-    gap: 1rem;
-    flex-wrap: wrap;
-  }
-
-  .hero-cta {
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-    padding: 0.875rem 1.5rem;
-    border-radius: 8px;
-    text-decoration: none;
-    font-weight: 600;
-    transition: all 0.2s;
-    cursor: pointer;
-    border: none;
-    font-size: 0.95rem;
-  }
-
-  .hero-cta-primary {
-    background: var(--color-accent);
-    color: white;
-  }
-
-  .hero-cta-primary:hover {
-    background: var(--color-accent-dark);
-    transform: translateY(-2px);
-  }
-
-  .hero-cta-secondary {
-    background: white;
-    color: var(--color-accent);
-    border: 2px solid var(--color-accent);
-  }
-
-  .hero-cta-secondary:hover {
-    background: var(--color-bg-soft);
-  }
-
-  .hero-cta-icon {
-    font-size: 1.25rem;
-  }
-
-  .hero-visual {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
-
-  .hero-visual-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr 1fr;
-    gap: 1.5rem;
-    width: 100%;
-  }
-
-  .hero-visual-item {
-    aspect-ratio: 1;
-    border-radius: 12px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-weight: 600;
-    color: white;
-    font-size: 1.1rem;
-    transition: transform 0.3s;
-  }
-
-  .hero-visual-item:hover {
-    transform: scale(1.05);
-  }
-
-  .hero-visual-1 {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    grid-row: span 2;
-  }
-
-  .hero-visual-2 {
-    background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
-  }
-
-  .hero-visual-3 {
-    background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
-  }
-
-  .hero-visual-4 {
-    background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
-  }
-
-  .hero-visual-5 {
-    background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
-  }
-
-  .hero-visual-6 {
-    background: linear-gradient(135deg, #30cfd0 0%, #330867 100%);
-    grid-row: span 2;
-  }
-
-  /* 何にお困りですか？ */
-  .concern-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-    gap: 1.5rem;
-  }
-
-  .concern-card {
-    padding: 1.75rem;
-    border: 1px solid var(--color-border);
-    border-radius: 10px;
-    display: flex;
-    flex-direction: column;
-    gap: 0.75rem;
-    transition: all 0.2s;
-  }
-
-  .concern-card-link {
-    text-decoration: none;
-    color: inherit;
-  }
-
-  .concern-card-link:hover {
-    border-color: var(--color-accent);
-    background: var(--color-bg-soft);
-    box-shadow: var(--shadow-sm);
-    transform: translateY(-2px);
-  }
-
-  .concern-card-link:focus {
-    outline: 2px solid var(--color-accent);
-    outline-offset: 2px;
-  }
-
-  .concern-card-disabled {
-    opacity: 0.7;
-    cursor: default;
-  }
-
-  .concern-card h3 {
-    font-size: 1.3rem;
-    margin: 0;
-    font-weight: 600;
-    color: var(--color-accent);
-  }
-
-  .concern-description {
-    font-size: 0.9rem;
-    color: var(--color-text-muted);
-    margin: 0;
-    flex-grow: 1;
-    line-height: 1.5;
-  }
-
-  .concern-cta {
-    font-size: 0.95rem;
-    color: var(--color-accent);
-    font-weight: 600;
-    display: inline-block;
-  }
+  .fv-features { display: grid; grid-template-columns: repeat(3, 1fr); list-style: none; margin: 0; padding: 1.1rem 1rem; background: #fff; border: 1px solid var(--color-border); border-radius: 10px; box-shadow: var(--shadow-sm); }
+  .fv-features li { display: flex; align-items: center; gap: 1rem; padding: 0 1.25rem; }
+  .fv-features li + li { border-left: 1px solid var(--color-border); }
+  .fv-features svg { width: 46px; height: 46px; flex: none; color: var(--color-accent-dark); }
+  .fv-features strong { display: block; font-size: 1.05rem; }
+  .fv-features span { font-size: 0.82rem; color: var(--color-text-muted); }
 
   /* サービス選びの確認ガイド */
   .service-guides-grid {
@@ -535,59 +428,29 @@ function speedKey(category: (typeof categories)[number]) {
   }
 
   /* レスポンシブ */
-  @media (max-width: 1024px) {
-    .hero-container {
-      grid-template-columns: 1fr;
-      gap: 2rem;
-    }
-
-    .hero-visual-grid {
-      grid-template-columns: 1fr 1fr;
-    }
-
-    .hero-visual-1 {
-      grid-row: unset;
-      grid-column: span 1;
-    }
-
-    .hero-visual-6 {
-      grid-row: unset;
-      grid-column: span 1;
-    }
+  @media (max-width: 1100px) {
+    .fv-concerns { grid-template-columns: repeat(3, minmax(0, 1fr)); }
   }
-
-  @media (max-width: 768px) {
-    .hero-title {
-      font-size: 2rem;
-    }
-
-    .hero-subtitle {
-      font-size: 0.95rem;
-    }
-
-    .hero-ctas {
-      flex-direction: column;
-    }
-
-    .hero-cta {
-      justify-content: center;
-      width: 100%;
-    }
-
-    .hero-visual-grid {
-      grid-template-columns: 1fr;
-    }
-
-    .concern-grid {
-      grid-template-columns: 1fr;
-    }
-
-    .service-guides-grid {
-      grid-template-columns: 1fr;
-    }
-
-    .guide-grid {
-      grid-template-columns: 1fr;
-    }
+  @media (max-width: 900px) {
+    .fv { padding: 1.75rem 0 1.5rem; }
+    .fv-inner { grid-template-columns: 1fr; }
+    .fv-visual { display: none; }
+    .fv-search { max-width: none; }
+    .fv-features { grid-template-columns: 1fr; gap: 0.9rem; }
+    .fv-features li { padding: 0; }
+    .fv-features li + li { border-left: 0; border-top: 1px solid var(--color-border); padding-top: 0.9rem; }
+  }
+  @media (max-width: 640px) {
+    .fv-ctas { flex-direction: column; }
+    .fv-btn { width: 100%; justify-content: flex-start; }
+    .fv-btn .fv-arrow { margin-left: auto; }
+    .fv-concerns { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0.65rem; }
+    .fv-concern-head { font-size: 0.92rem; }
+    .service-guides-grid { grid-template-columns: 1fr; }
+    .guide-grid { grid-template-columns: 1fr; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .fv-btn, .fv-concern { transition: none; }
+    .fv-btn:hover, .fv-concern:hover { transform: none; }
   }
 </style>
