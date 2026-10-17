@@ -331,3 +331,15 @@ FAQは必要に応じて追加する。
 - **素材ID 1(自由入力のテキスト広告)は、リンク文言だけ変更してよい**(2026-10-12、ユーザー指示)。href・rel・a8mat・計測画像は原文のまま。差し替えは `uptTextAd()`(`src/data/lp/upt-ads.ts`)、設置は `UptAdButton.astro`。設置後は `node scripts/check-upt-text-ad.cjs` で原文一致を確認する
 - **ASP広告LP(Up-T型)の新規作成・拡張は `.claude/skills/add-affiliate-lp` に従う**(2026-10-11、ユーザー指示でスキル化)。広告コード原文保持・画像運用・計測・公開前検証の手順と落とし穴をまとめている
 - **商品カテゴリーの細分化(2026-10-15)**: Up-Tのカテゴリー一覧(ユーザー提示のスクリーンショット)に合わせ、`original-print-products.ts` を49商品・6グループ(ウェア / クラス・学校行事 / 法人・店舗・イベント / バッグ・タオル / スマホ・雑貨・グッズ / 特集・その他)に細分化した。のぼり旗・展示用品・販促バナー・紙印刷・ワークユニフォーム・ハッピ・マスク等の法人需要は `corporate: true`。`?item=<id>` でLPへ直接リンクでき、リスティング・回遊LP・記事内リンクから使う(一覧は `node scripts/export-lp-items.mjs` → `docs/lp-original-print-items.csv`)。**既存id(tshirt / hoodie / polo / cap / apron / tote / towel / mug / phonecase / keyholder)は広告で使用中のため変更しない**。`detectProduct` は id 完全一致 → 最長キーワード一致の順で特定し、同順位の複数一致は特定しない
+
+## サービス選びの確認ガイド(affiliate-lp-factory 連携、2026-10-17 導入)
+
+別リポジトリ `C:\dev\projects\affiliate-lp-factory` で作る10ジャンルのLP(/lp/<ジャンル>/<意図>/)を、即納バンクへ**公開済みのものだけ自動で取り込む**。LPのソースを即納バンクへ手動コピーしない。
+
+- `npm run lp:sync`(`cf:deploy`/`cf:preview` に組み込み済み): ファクトリーをビルドし、公開済み・公開可能と判定されたLPだけを `public/lp/<ジャンル>/`・`public/_lp-assets/` に配置し、トップ用 `src/data/generated/lp-guide.json` を生成する。これらは **.gitignore 済みの生成物**。公開済みが0本またはファクトリーが無ければ何も出ない。場所は環境変数 `LP_FACTORY_DIR`(既定 `../affiliate-lp-factory`)
+- `postbuild`(`scripts/inject-lp-site-tags.mjs`): 取り込んだLPへ、トップの<head>から取り出した全ページ共通の計測タグ(GA4・LINEヤフー広告・LinkSwitch)を**原文のまま**挿入する(ASPタグ改変禁止ルールに従う。check:ad-tags も通る)
+- トップの「サービス選びの確認ガイド」(`id="service-guides"`)と sitemap は `lp-guide.json` から自動生成。**未公開のLPにはリンクしない・「準備中」カードは出さない**(公開済みが0本の間はセクション自体を出さない)
+- LPの公開可否・ステータス(draft〜advertising)・CTA(A8提携承認+リンク取得後のみ有効)・広告入稿区分は、ファクトリー側 `docs/publishing-status.md` が正本。本リポジトリでLP本文を編集しない
+- 公開したLPは、A8「広告掲載URL管理」へのURL提出と `public/llms.txt` への追記が必要(人間の作業)
+- ファクトリーのLPは `/lp/[slug]/`(1階層)や `/lp/original-print/` と衝突しない2階層パス。`public/lp/` に同名ディレクトリが既にある場合は `lp:sync` が中止する
+- 注意: 作業ツリーの未コミット `src/pages/lp/affiliate/` などは、上記の仕組みとは無関係の別実装(下書き)。`dist` に出力されるため、デプロイ前に取り扱いを決める

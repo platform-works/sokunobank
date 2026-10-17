@@ -2,6 +2,10 @@ import type { APIRoute } from "astro";
 import { getPublishedCategories } from "../data/loadCategories";
 import { getAllCommerceCategoryConfigs } from "../lib/commerce/registry";
 
+// affiliate-lp-factory で公開済みのLP(npm run lp:sync が生成。公開済みのものだけが入る)
+const guideModules = import.meta.glob("../data/generated/lp-guide.json", { eager: true }) as Record<string, { default?: { genres?: { lps: { path: string }[] }[] } }>;
+const factoryLpPaths: string[] = (Object.values(guideModules)[0]?.default?.genres ?? []).flatMap((g) => g.lps.map((l) => l.path));
+
 // 静的ページ + 公開カテゴリー(DM型・commerce型どちらも)+ ガイド記事を毎回集めてsitemapを生成する。
 // カテゴリーを追加してもこのファイル自体の変更は不要(ガイド記事は今のところ手動追加)。
 const staticPaths = ["/", "/about/", "/privacy/", "/advertising/", "/categories/"];
@@ -26,7 +30,7 @@ export const GET: APIRoute = ({ site }) => {
   const base = site?.toString().replace(/\/$/, "") ?? "https://sokunobank.com";
   const categoryPaths = getPublishedCategories().map((c) => `/categories/${c.slug}/`);
   const commercePaths = getAllCommerceCategoryConfigs().map((c) => `/categories/${c.slug}/`);
-  const allPaths = [...staticPaths, ...categoryPaths, ...commercePaths, ...guidePaths];
+  const allPaths = [...staticPaths, ...categoryPaths, ...commercePaths, ...guidePaths, ...factoryLpPaths];
 
   const urls = allPaths
     .map((p) => `  <url><loc>${base}${p}</loc></url>`)

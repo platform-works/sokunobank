@@ -203,38 +203,3 @@ export const urgentGuides: UrgentGuideLink[] = [
     href: "/guides/urgent-office-chair/",
   },
 ];
-
-/**
- * サービス選びの確認ガイド(10ジャンル・11LP)。ガイド本体は別リポジトリ affiliate-lp-factory で準備中。
- * 公開前は「準備中」表示でリンクを張らない(存在しないページへのリンクは作らない)。
- * ローカル確認用: ビルド時に PUBLIC_LP_GUIDE=1 を指定すると、LPへのリンクが有効になる(既定はオフ=本番は変化なし)。
- * 本番で有効化するには、LPを public/lp/** に配置したうえで、この既定値を変更する(人間の承認後)。
- */
-const LP_GUIDE_LIVE = import.meta.env.PUBLIC_LP_GUIDE === "1";
-const guide = (label: string, path: string) => ({ label, href: LP_GUIDE_LIVE ? path : undefined });
-export const serviceGuideGenres: { label: string; href?: string }[] = LP_GUIDE_LIVE
-  ? [
-      guide("証券会社:NISAの口座選び", "/lp/securities/nisa/"),
-      guide("証券会社:IPOの抽選方式", "/lp/securities/ipo/"),
-      guide("レンタルサーバー", "/lp/hosting/wordpress/"),
-      guide("ウォーターサーバー", "/lp/water-server/family/"),
-      guide("美容クリニック", "/lp/beauty-clinic/checklist/"),
-      guide("脱毛サロン", "/lp/hair-removal/contract/"),
-      guide("AGA治療", "/lp/aga/consultation/"),
-      guide("結婚相談所", "/lp/marriage/selection/"),
-      guide("占い", "/lp/fortune/online/"),
-      guide("ダイエット", "/lp/diet/support/"),
-      guide("低身長", "/lp/short-stature/consultation/"),
-    ]
-  : [
-      { label: "証券会社(NISA・IPO)" },
-      { label: "レンタルサーバー" },
-      { label: "ウォーターサーバー" },
-      { label: "美容クリニック" },
-      { label: "脱毛サロン" },
-      { label: "AGA治療" },
-      { label: "結婚相談所" },
-      { label: "占い" },
-      { label: "ダイエット" },
-      { label: "低身長" },
-    ];
