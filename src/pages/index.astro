@@ -41,6 +41,7 @@ const genreSynonyms: Record<string, string> = {
   "water-server": "ウォーターサーバー 水 飲料水 家族 暮らし 生活 家庭",
   "hair-removal": "脱毛 脱毛サロン 医療脱毛 ひげ ムダ毛 美容 サロン",
   marriage: "結婚 婚活 結婚相談所 お見合い 出会い 恋愛 人間関係",
+  "water-heater": "給湯器 お湯が出ない 故障 修理 交換 エコキュート 見積り 業者 水まわり 暮らし 住まい 急なトラブル",
   fx: "FX 外国為替証拠金取引 口座 スプレッド スワップ 自動売買 スキャルピング 取引 投資 お金 資産形成 レバレッジ",
   career: "転職 キャリア 仕事 悩み 年収 営業 エンジニア セキュリティ 管理職 ハイクラス 職場 人間関係 評価 辞めたい",
   fortune: "占い 電話占い オンライン占い 恋愛 相性 人間関係 悩み",
@@ -142,6 +143,14 @@ function speedKey(category: (typeof categories)[number]) {
           ))
         }
       </ul>
+
+      {
+        guideGenres.some((g) => g.slug === "water-heater") && (
+          <p class="fv-concern-sub">
+            暮らし・生活の急なトラブル:<a href="/lp/water-heater/emergency/">給湯器が壊れたときの確認ポイント(見積り・表示料金・契約)→</a>
+          </p>
+        )
+      }
 
       {
         guideGenres.some((g) => g.slug === "fx") && (
