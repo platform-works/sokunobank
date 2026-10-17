@@ -184,7 +184,7 @@ try {
     "# 本番デプロイ差分と隔離検証(自動生成。デプロイはしていない)",
     "",
     `- 比較: 本番相当 \`${baseline}\` ⇔ 候補 \`HEAD(${head})\`(どちらも、コミット済みのファイルだけを別の一時 worktree でビルド)`,
-    `- 取り込むLP: ${simPublish.length ? `**模擬**(${simPublish.join(", ")} を公開済みにしたファクトリーの複製)` : "実データ(公開済みLPは現在0本)"}`,
+    `- 取り込むLP: ${simPublish.length ? `**模擬**(${simPublish.join(", ")} を公開済みにしたファクトリーの複製)` : `実データ(ファクトリーのコミット済みで公開承認済みのLP: ${lpFiles.length}本 ${lpFiles.map((f) => "/" + f.replace(/index\.html$/, "")).join(", ")})`}`,
     `- lp:sync: ${syncOut.trim().split("\n").slice(-1)[0]}`,
     `- 作業ツリーの未コミット(デプロイに含まれない・変更も削除もしていない): ${untracked.join(", ") || "なし"}`,
     "",
