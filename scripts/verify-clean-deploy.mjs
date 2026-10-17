@@ -159,7 +159,8 @@ try {
 
   const top = readFileSync(join(candDist, "index.html"), "utf8");
   const sitemap = readFileSync(join(candDist, "sitemap.xml"), "utf8");
-  const lpFiles = [...B.keys()].filter((k) => /^lp\/[^/]+\/[^/]+\/index\.html$/.test(k) && !["original-print", "affiliate"].includes(k.split("/")[1]));
+  // 2階層(/lp/<ジャンル>/<意図>/)に加え、ジャンル直下(/lp/<ジャンル>/。例: /lp/fx/)のLPも数える。手書きのLP([slug] の dm など)は、取り込み対象のジャンルディレクトリだけを数える
+  const lpFiles = [...B.keys()].filter((k) => /^lp\/[^/]+(\/[^/]+)?\/index\.html$/.test(k) && !["original-print", "affiliate"].includes(k.split("/")[1]) && factoryDirs.includes(k.split("/")[1]));
   if (simPublish.length === 0 && expectPaths.length === 0) {
     check("公開済みLPが0本のとき、トップにガイド枠が出ない(「準備中」カードも出さない)", !/SERVICE GUIDES/.test(top) && !/サービス選びの確認ガイド/.test(top), "");
     check("公開済みLPが0本のとき、sitemap は本番と同一", A.get("sitemap.xml") === B.get("sitemap.xml"), "");
