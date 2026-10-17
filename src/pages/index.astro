@@ -427,6 +427,11 @@ function speedKey(category: (typeof categories)[number]) {
     text-decoration: underline;
   }
 
+  /* 急ぎの商品・発注先: 3カラム(PC) / 2カラム(タブレット) / 1カラム(スマホ)。同一行の高さは揃える */
+  .category-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1.1rem; align-items: stretch; }
+  @media (max-width: 1023px) { .category-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+  @media (max-width: 639px) { .category-grid { grid-template-columns: minmax(0, 1fr); } }
+
   /* レスポンシブ */
   @media (max-width: 1100px) {
     .fv-concerns { grid-template-columns: repeat(3, minmax(0, 1fr)); }
