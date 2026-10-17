@@ -153,6 +153,7 @@ function speedKey(category: (typeof categories)[number]) {
                   <p class="service-guide-category">{genre.name}</p>
                   <p class="service-guide-title">{lp.title}</p>
                   <p class="service-guide-description">{lp.description}</p>
+                  <span class="service-guide-more">続きを読む →</span>
                 </a>
               ))
             )}
@@ -335,58 +336,81 @@ function speedKey(category: (typeof categories)[number]) {
   .fv-features strong { display: block; font-size: 1.05rem; }
   .fv-features span { font-size: 0.82rem; color: var(--color-text-muted); }
 
-  /* サービス選びの確認ガイド */
-  .service-guides-grid {
+  /* サービス選びの確認ガイド / 困ったときの確認ガイド: 3カラム(PC) / 2カラム(タブレット) / 1カラム(スマホ)。
+     カードの角丸・枠線・余白・hover・下部導線は「急ぎの商品・発注先を探す」(CategoryCard)・GuideCard と共通 */
+  .service-guides-grid,
+  .guide-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-    gap: 1.5rem;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 1.1rem;
+    align-items: stretch;
   }
 
   .service-guide-card {
-    padding: 1.5rem;
-    background: var(--color-bg-soft);
-    border: 1px solid var(--color-border);
-    border-radius: 10px;
-    text-decoration: none;
-    color: inherit;
     display: flex;
     flex-direction: column;
-    gap: 0.75rem;
-    transition: all 0.2s;
+    gap: 0.5rem;
+    height: 100%;
+    padding: 1.25rem 1.35rem;
+    background: var(--color-bg);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-lg);
+    text-decoration: none;
+    color: var(--color-text);
+    transition: border-color 0.15s, background-color 0.15s, box-shadow 0.15s;
   }
 
   .service-guide-card:hover {
-    border-color: var(--color-accent);
-    background: white;
-    box-shadow: var(--shadow-sm);
-    transform: translateY(-2px);
+    border-color: var(--color-accent-vivid);
+    background: var(--color-bg-soft);
+    box-shadow: 0 4px 14px rgba(16, 36, 62, 0.1);
   }
 
-  .service-guide-card:focus {
-    outline: 2px solid var(--color-accent);
+  .service-guide-card:focus-visible {
+    outline: 3px solid var(--color-urgent);
     outline-offset: 2px;
   }
 
   .service-guide-category {
     font-size: 0.8rem;
-    color: var(--color-accent);
+    color: var(--color-accent-dark);
     font-weight: 600;
-    text-transform: uppercase;
     margin: 0;
   }
 
   .service-guide-title {
-    font-size: 1.05rem;
-    font-weight: 600;
+    font-size: 1rem;
+    font-weight: 700;
     color: var(--color-text);
     margin: 0;
   }
 
   .service-guide-description {
-    font-size: 0.85rem;
+    font-size: 0.88rem;
     color: var(--color-text-muted);
     margin: 0;
-    line-height: 1.5;
+    line-height: 1.6;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 3;
+    line-clamp: 3;
+    overflow: hidden;
+  }
+
+  .service-guide-more {
+    margin-top: auto;
+    padding-top: 0.5rem;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--color-accent-dark);
+  }
+  @media (max-width: 1023px) {
+    .service-guides-grid,
+    .guide-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  }
+  @media (max-width: 639px) {
+    .service-guides-grid,
+    .guide-grid { grid-template-columns: minmax(0, 1fr); }
   }
 
   /* サイト紹介 */
@@ -451,8 +475,6 @@ function speedKey(category: (typeof categories)[number]) {
     .fv-btn .fv-arrow { margin-left: auto; }
     .fv-concerns { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0.65rem; }
     .fv-concern-head { font-size: 0.92rem; }
-    .service-guides-grid { grid-template-columns: 1fr; }
-    .guide-grid { grid-template-columns: 1fr; }
   }
   @media (prefers-reduced-motion: reduce) {
     .fv-btn, .fv-concern { transition: none; }
