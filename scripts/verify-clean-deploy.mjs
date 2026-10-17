@@ -132,9 +132,14 @@ try {
     check("_routes.json: 既存の静的パスが失われず、追加は取り込んだLP・アセットのパスだけ", lost.length === 0 && gained.every((p) => /^\/(lp\/[^/]+\/|_lp-assets\/)/.test(p)) && JSON.stringify(ra.include) === JSON.stringify(rb.include), `追加: ${gained.join(", ") || "なし"} / 失われた: ${lost.join(", ") || "なし"}`);
   }
   const factoryDirs = existsSync(join(cand, "src/data/generated/lp-sync-state.json")) ? JSON.parse(readFileSync(join(cand, "src/data/generated/lp-sync-state.json"), "utf8")).dirs : [];
-  const unexpectedAdded = added.filter((k) => !(factoryDirs.some((d) => k.startsWith(`lp/${d}/`)) || k.startsWith("_lp-assets/")));
+  // トップページ(index.astro)のスコープCSSは、トップを変更するとハッシュ名が変わる(旧1つ→新1つの入れ替えだけを許容)
+  const topCssAdded = added.filter((k) => /^_astro\/index\.[^/]+\.css$/.test(k));
+  const topCssRemoved = removed.filter((k) => /^_astro\/index\.[^/]+\.css$/.test(k));
+  const topCssSwap = topCssAdded.length === topCssRemoved.length && topCssAdded.length <= 1;
+  if (topCssAdded.length || topCssRemoved.length) check("トップのスコープCSSの入れ替え(旧1つ→新1つ)で、トップがその新CSSを参照している", topCssSwap && (topCssAdded.length === 0 || readFileSync(join(candDist, "index.html"), "utf8").includes(topCssAdded[0].replace("_astro/", ""))), `${topCssRemoved.join(",")} → ${topCssAdded.join(",")}`);
+  const unexpectedAdded = added.filter((k) => !(factoryDirs.some((d) => k.startsWith(`lp/${d}/`)) || k.startsWith("_lp-assets/") || topCssAdded.includes(k)));
   check("追加されたファイルは、取り込んだ公開済みLPとそのアセットだけ", unexpectedAdded.length === 0, unexpectedAdded.slice(0, 8).join(", "));
-  check("削除されたファイルがない", removed.length === 0, removed.slice(0, 8).join(", "));
+  check("削除されたファイルがない(トップのスコープCSSの入れ替えを除く)", removed.filter((k) => !topCssRemoved.includes(k)).length === 0, removed.filter((k) => !topCssRemoved.includes(k)).slice(0, 8).join(", "));
   for (const must of ["lp/original-print/index.html", "categories/index.html", "index.html"]) check(`存在する: ${must}`, B.has(must), "");
   check("UP-T導線(トップの UptPromoBanner)が保持されている", /original-print/.test(readFileSync(join(candDist, "index.html"), "utf8")), "");
   check("GA4ローダーがトップに1つ(既存計測を維持)", (readFileSync(join(candDist, "index.html"), "utf8").match(/googletagmanager\.com\/gtag\/js/g) ?? []).length === 1, "");
