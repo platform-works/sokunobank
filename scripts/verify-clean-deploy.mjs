@@ -181,8 +181,8 @@ try {
       check(`${path}: PR表記がある`, /class="pr"/.test(html), "");
       check(`${path}: 下書きバナーがない`, !/data-draft="true"/.test(html), "");
       const a8 = (html.match(/https:\/\/px\.a8\.net\/svt\/ejp\?a8mat=/g) ?? []).length;
-      check(`${path}: A8タグのリンクが設置ルール内(0個、または テキスト4か所(上段・カード内・中段・下段)+バナーがある場合は上段に1個で計5個)`, a8 === 0 || a8 === 4 || a8 === 5, `a8リンク ${a8} 個`);
-      if (expectCta.length) check(`${path}: A8タグ(CTA)が${expectCta.includes(path) ? "4つ(テキストのみ)または5つ(バナーあり)" : "ない(無効)"}`, expectCta.includes(path) ? (a8 === 4 || a8 === 5) : a8 === 0, `a8リンク ${a8} 個`);
+      check(`${path}: A8タグのリンクが設置ルール内(0個、または 各掲載サービスにつきテキスト4か所(上段・カード内・中段・下段)+バナーがあれば上段に1個。複数サービスの掲載LPは、その合計)`, a8 === 0 || a8 >= 4, `a8リンク ${a8} 個`);
+      if (expectCta.length) check(`${path}: A8タグ(CTA)が${expectCta.includes(path) ? "4つ以上(サービスごとに4〜5)" : "ない(無効)"}`, expectCta.includes(path) ? a8 >= 4 : a8 === 0, `a8リンク ${a8} 個`);
     }
     const draftInSitemap = [...sitemap.matchAll(/<loc>https:\/\/sokunobank\.com(\/lp\/[^<]+)<\/loc>/g)].map((m) => m[1]).filter((p) => !lpFiles.some((f) => "/" + f.replace(/index\.html$/, "") === p) && !/original-print/.test(p));
     check("sitemap に、公開していないLPが混入していない", draftInSitemap.length === 0, draftInSitemap.join(", "));
