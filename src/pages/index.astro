@@ -156,7 +156,7 @@ function speedKey(category: (typeof categories)[number]) {
       {
         guideGenres.some((g) => g.slug === "water-heater") && (
           <p class="fv-concern-sub">
-            暮らし・生活の急なトラブル:<a href="/lp/water-heater/emergency/">給湯器が壊れたときの確認ポイント(見積り・表示料金・契約)→</a>
+            暮らし・生活の急なトラブル:<a href="/lp/water-heater/emergency/">給湯器が壊れたときの確認ポイント(見積り・表示料金・契約)→</a>{guideGenres.find((g) => g.slug === "water-heater")?.lps.some((l) => l.path === "/lp/water-heater/ecocute/") && <> / <a href="/lp/water-heater/ecocute/">エコキュートの修理か交換か、見積りの確認ポイント→</a></>}
           </p>
         )
       }
