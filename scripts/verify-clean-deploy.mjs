@@ -181,8 +181,8 @@ try {
       check(`${path}: PR表記がある`, /class="pr"/.test(html), "");
       check(`${path}: 下書きバナーがない`, !/data-draft="true"/.test(html), "");
       const a8 = (html.match(/https:\/\/px\.a8\.net\/svt\/ejp\?a8mat=/g) ?? []).length;
-      check(`${path}: A8タグのリンクが高々1つ(二重描画なし)`, a8 <= 1, `a8リンク ${a8} 個`);
-      if (expectCta.length) check(`${path}: A8タグ(CTA)が${expectCta.includes(path) ? "ちょうど1つ" : "ない(無効)"}`, a8 === (expectCta.includes(path) ? 1 : 0), `a8リンク ${a8} 個`);
+      check(`${path}: A8タグのリンクが設置ルール内(0個、または 上段バナー+テキスト・カード内・中段・下段の5個)`, a8 === 0 || a8 === 5, `a8リンク ${a8} 個`);
+      if (expectCta.length) check(`${path}: A8タグ(CTA)が${expectCta.includes(path) ? "ちょうど5つ(上段2・カード内・中段・下段)" : "ない(無効)"}`, a8 === (expectCta.includes(path) ? 5 : 0), `a8リンク ${a8} 個`);
     }
     const draftInSitemap = [...sitemap.matchAll(/<loc>https:\/\/sokunobank\.com(\/lp\/[^<]+)<\/loc>/g)].map((m) => m[1]).filter((p) => !lpFiles.some((f) => "/" + f.replace(/index\.html$/, "") === p) && !/original-print/.test(p));
     check("sitemap に、公開していないLPが混入していない", draftInSitemap.length === 0, draftInSitemap.join(", "));
