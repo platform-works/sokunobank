@@ -13,6 +13,13 @@
 - 新しいカテゴリーを追加する際も、この「メイン1社+比較参考複数社」の構成を踏襲する。
 - 参考掲載企業(メイン以外)の `description` には、**「比較・信頼性のための参考情報として掲載」のような社内向けの編集方針メモを書かない**。利用者に見える文章には、その企業に関する事実(何をしている会社か等)のみを書き、確認が取れていなければ `description` 自体を省略する。
 
+### 領域別の送客チャネル方針(2026-10-24、ユーザー指示)
+
+- **家電・ファッションブランド**:Yahoo!ショッピングとAmazonが主体。Yahoo!は商品カード(ValueCommerce経由)、Amazonは検索結果へのテキストリンク(「Amazonでも探す」枠、実装例: `src/components/commerce/generator/AmazonSearchSection.astro`)。ファッションブランドではプライベートブランド(PB)の訴求を行う(「PB」の具体的な意味は未確認。着手前にユーザーへ確認すること)
+- **トラベル**:楽天が主体。楽天トラベルAPIは市場商品検索API(`src/lib/rakuten/`)とは別のAPIのため、実装前にAPI仕様・規約・認証を調査する
+- **楽天の表示条件**(規約確認済みの範囲):クレジットバッジは提供HTMLを無改変で表示する(必須)、楽天データのブロックから楽天以外へのリンクを張らない、楽天商品のリンクは楽天アフィリエイトURLのみ。画像・評価の表示条件は規約本文に記載がなく未確認
+- **Amazonルールとの調整(2026-10-24、案1で確定)**:Amazonは価格・評価・画像を取得できないため、「主体」はリンクによる送客に限られる。下記「commerce系」セクションの該当ルールを、領域別(家電・ファッションブランドは並列の送客先、表示は独立枠のテキストリンクのみ)に改訂済み。以下は変えない:180日ルール(期限2027-03-22)の監視、画像の自社ホスティング禁止、他社データをAmazonのものとして見せない、Amazonアソシエイト連携ルールの「レジ横」方式・リンク形式
+
 ### ラクスルDM「スピード優先/コスト優先」の重要な区別(2026-09-23判明)
 
 ラクスルのDM発送には**プランが2種類**あり、混同すると誤った情報になる。
@@ -56,7 +63,7 @@ Yahoo!ショッピング(Yahoo!デベロッパーAPI)・ValueCommerceなど、AP
 - **ローカル開発**:`.dev.vars`(Wranglerが自動読み込み)に実値を記載する。このファイルは`.gitignore`済みで、コミットしない
 - **本番(Cloudflare Workers)**:`wrangler.jsonc`(または`wrangler.toml`)には実値を書かない。git管理される前提のファイルのため、書くと流出する。代わりに `wrangler secret put <NAME>` で対話式に登録する(Cloudflare側で暗号化保存)。**このコマンドの実行自体はユーザー本人が行う**ため、完了報告やREADMEに「以下のコマンドをユーザー自身が実行する必要がある」旨を明記すること
 - **`.env.example`**:変数名のみを記載し、実際の値は絶対に含めない(コミット対象)
-- 現在管理対象の変数名:`YAHOO_APP_ID`、`VALUECOMMERCE_AFFILIATE_ID`(値は`.dev.vars`/Cloudflareシークレットのみに存在し、このリポジトリのどこにも実値を書かない)
+- 現在管理対象の変数名:`YAHOO_APP_ID`、`VALUECOMMERCE_AFFILIATE_ID`、`RAKUTEN_APPLICATION_ID`、`RAKUTEN_ACCESS_KEY`(任意:`RAKUTEN_AFFILIATE_ID`、`RAKUTEN_REFERER`。楽天は`src/lib/rakuten/`、2026-10-24追加、DRY_RUN段階で本番未接続)(値は`.dev.vars`/Cloudflareシークレットのみに存在し、このリポジトリのどこにも実値を書かない)
 
 ### 禁止事項
 - コード内へのAPIキー・アフィリエイトIDの直書き
@@ -76,7 +83,7 @@ Yahoo!ショッピング(Yahoo!デベロッパーAPI)・ValueCommerceなど、AP
 - 「在庫・配送予定は変動します…」の注意書きを商品一覧の**上と下**に表示する(現状:hero内の`delivery-note`が上、`Disclaimer`コンポーネントが下)
 - PR表記とアフィリエイト開示を必ず表示する(広告バナーには「PR」ラベル、フッターにアフィリエイト開示文)
 - **ValueCommerceのYahoo!ショッピングアフィリエイトバナー(PC用`pcBannerHtml`+スマホ用`mobileOverlayHtml`)を`ads`に必ず設定する**。この型のカテゴリー共通の送客導線であり、特定カテゴリー専用の任意項目ではない。新カテゴリー追加時に省略しない(タグは`projector.config.ts`のものをそのまま複製して使う。規約上コード自体の改変は禁止のため書き換えない)。2026-09-26、胡蝶蘭ページでこの項目が省略されていたことが発覚したため明文化した
-- Amazon商材はメインの比較対象にしない(既存のAmazonアソシエイト連携ルールと同じ方針。commerce系カテゴリーもYahoo!ショッピングが主軸)
+- commerce系カテゴリーはYahoo!ショッピングが主軸。家電・ファッションブランド領域ではAmazonを並列の送客先とする(2026-10-24改訂、ユーザー指示)。ただしAmazonは価格・評価・画像を取得できないため、**独立した「Amazonでも探す」枠のテキストリンクのみ**とし、Yahoo!の商品カードの中にはAmazonリンクを入れない。Amazonのデータを比較対象(価格・評価の比較表等)にはしない。既存カテゴリー(projector等)へのAmazon枠の展開は、ユーザーの指示があるまで行わない(発電機のみ導入済み)
 - **「即納人気ブランドから探す」セクション(`popularBrands`、`PickupBrandSection.astro`)の「成り立ち・特徴を見る」(`<details>`)は、PC(721px以上)ではデフォルトで開いた状態、スマートフォン(720px以下)ではデフォルトで閉じた状態にする**(2026-09-27制定、ユーザー指示)。実装は`<details open>`をサーバー側で常に出力し、`<script is:inline>`(Astroの既定の遅延scriptではなく、ペイント前に同期実行させるため)でモバイル幅の場合だけ`open`属性を除去する方式。新カテゴリーへこのセクションを追加する際も同じ挙動を維持する(詳細手順は`.claude/skills/add-popular-brand-section/SKILL.md`参照)
 - **GA4/LINEヤフー広告の計測タグ設置は新カテゴリーごとの作業として発生しない**(2026-09-28制定)。GA4(gtag)・LINEヤフー広告(Yahoo!タグ)は`src/layouts/Layout.astro`に全ページ共通で設置済みで、`outbound_product_click`(商品カード・ブランドカードクリック)/`brand_click`(ブランドカードクリック)/`filter_use`(お届け先・到着希望・並び順・「商品を探す」)の計測コードは`ProductGrid.astro`・`PickupBrandSection.astro`・`CommerceFilterPanel.astro`という共通テンプレート内に実装済みのため、各コンポーネントへ渡す`slug`さえ正しければ新カテゴリーでも自動的に計測される。**新カテゴリー追加時にタグを新しく貼り付ける必要はないが、実機で発火確認は必須**(手順は[docs/new-category-checklist.md](docs/new-category-checklist.md)のステップ7)。タグ自体(LINEヤフー広告のコンバージョン測定タグの`yahoo_conversion_id`等)を新カテゴリー追加を理由に変更・複製しない
 - 秘密情報(Yahoo! Client ID、バリューコマースのsid/pid等)はコード・設定ファイルのどちらにも書かない。`.dev.vars`(ローカル)/Cloudflare Secrets(本番)のみを使う

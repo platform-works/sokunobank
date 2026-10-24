@@ -21,12 +21,12 @@ export const LICENSE_REGISTRY: LicenseRegistry = {
   },
   rakuten: {
     fetchAggregate: { status: "allowed", basis: "市場商品検索API の reviewCount・reviewAverage(公式ドキュメント)" },
-    publishAggregate: unverified("楽天ウェブサービス利用規約の表示条件が未確認"),
+    publishAggregate: unverified("評価の表示条件は規約に記載なし。クレジットバッジ必須、楽天データ部分から楽天以外へのリンク禁止(第8条)。未設置のため保留"),
     fetchText: unverified("公式ドキュメントの出力項目に本文なし。別経路は未確認"),
     analyzeText: unverified(NO_TEXT),
     storeText: unverified(NO_TEXT),
     publishText: unverified(NO_TEXT),
-    publishImage: unverified("画像の表示条件・クレジット表記を規約で未確認"),
+    publishImage: unverified("画像の表示条件は規約本文に記載なし。クレジットバッジ(提供HTML無改変)の設置が前提。設置・確認後に更新"),
   },
   amazon: {
     fetchAggregate: unverified("Creators API GetItems のドキュメントにレビュー評価・件数リソースの記載なし"),

@@ -25,6 +25,7 @@ import GeneratorRuntime from "../../../components/commerce/generator/GeneratorRu
 import TypeComparison from "../../../components/commerce/generator/TypeComparison.astro";
 import DisasterGuide from "../../../components/commerce/generator/DisasterGuide.astro";
 import CapacityCalculator from "../../../components/commerce/generator/CapacityCalculator.astro";
+import AmazonSearchSection from "../../../components/commerce/generator/AmazonSearchSection.astro";
 import SafetyNotice from "../../../components/commerce/generator/SafetyNotice.astro";
 import { generatorConfig as c } from "../../../lib/commerce/categories/generator.config";
 import { CONTENT_UPDATED_ON, useCases } from "../../../lib/commerce/generatorContent";
@@ -113,6 +114,8 @@ const pageJsonLd = {
 
       <Disclaimer text={c.deliveryNote} />
     </section>
+
+    <AmazonSearchSection />
 
     {
       c.seoSections.map((section) => (

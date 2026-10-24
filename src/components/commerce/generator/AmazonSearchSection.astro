@@ -1,0 +1,189 @@
+---
+// 「Amazonでも探す」枠(2026-10-24導入、ユーザー指示)。商品一覧(Yahoo!ショッピング)とは別ブロックで、
+// CLAUDE.mdの「Amazonアソシエイト連携ルール(レジ横方式)」に従い、検索結果ページへのテキストリンクだけを置く。
+// - 価格・評価・画像・在庫・配達日は一切表示しない(Creators API未利用。取得・自社ホスティングは規約違反)。
+//   Yahoo!や楽天のデータをAmazonのものとして見せない。線画アイコンで代替する。
+// - Yahoo!の商品カードの中にはAmazonリンクを入れない。広告であることが分かるPR表記を付け、rel="sponsored"。
+// - 計測は既存イベント generator_usage_outbound に link_type=amazon_search を付けて送る(新イベントは作らない)。
+const amazonTag = "sokunobank-22";
+const amazonSearch = (keyword: string) => `https://www.amazon.co.jp/s?k=${encodeURIComponent(keyword)}&tag=${amazonTag}`;
+
+const items = [
+  {
+    id: "generator",
+    icon: "generator",
+    name: "発電機",
+    note: "インバーター式・ガソリン式など。出力(W)と運転時間は、商品ページの仕様欄で確認してください。",
+    keyword: "インバーター発電機",
+  },
+  {
+    id: "power-station",
+    icon: "battery",
+    name: "ポータブル電源",
+    note: "屋内で使いやすいバッテリー式。容量(Wh)と定格出力(W)を、使う機器の消費電力と照らして選びます。",
+    keyword: "ポータブル電源",
+  },
+  {
+    id: "extension-cord",
+    icon: "plug",
+    name: "延長コード・電源タップ",
+    note: "発電機の電源を機器まで引くときに使います。許容電流(A)が、つなぐ機器の合計を超えないものを選びます。",
+    keyword: "延長コード 屋外 発電機",
+  },
+  {
+    id: "fuel-can",
+    icon: "can",
+    name: "ガソリン携行缶",
+    note: "ガソリン式の燃料を運ぶ容器。保管・運搬の注意は商品の説明書と、前述の安全情報を確認してください。",
+    keyword: "ガソリン携行缶",
+  },
+];
+---
+
+<section class="amazon-section" id="amazon-search">
+  <div class="amazon-heading">
+    <h2>Amazonでも探す</h2>
+    <span class="amazon-pr">PR</span>
+  </div>
+  <p class="amazon-lead">
+    上の商品一覧はYahoo!ショッピングの商品です。あわせてAmazonで探したい場合は、次の検索結果ページから確認できます。
+  </p>
+  <ul class="amazon-list">
+    {
+      items.map((item) => (
+        <li>
+          <span class="icon-badge" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+              {item.icon === "generator" && (
+                <>
+                  <rect x="3" y="7" width="18" height="11" rx="1.5" />
+                  <path d="M7 18v2M17 18v2M7 11h4M13 11h4" />
+                </>
+              )}
+              {item.icon === "battery" && (
+                <>
+                  <rect x="4" y="7" width="15" height="10" rx="1.5" />
+                  <path d="M21 10.5v3M11 9.5l-2 3h4l-2 3" />
+                </>
+              )}
+              {item.icon === "plug" && (
+                <>
+                  <path d="M9 3v5M15 3v5M7 8h10v3a5 5 0 0 1-10 0V8z" />
+                  <path d="M12 16v5" />
+                </>
+              )}
+              {item.icon === "can" && (
+                <>
+                  <rect x="5" y="8" width="14" height="12" rx="1.5" />
+                  <path d="M9 8V5h5l1 3M12 12v4" />
+                </>
+              )}
+            </svg>
+          </span>
+          <strong>{item.name}</strong>
+          <p>{item.note}</p>
+          <a
+            class="btn btn-secondary amazon-link"
+            href={amazonSearch(item.keyword)}
+            target="_blank"
+            rel="sponsored noopener"
+            data-value={item.id}
+            data-ga-link-text={`${item.name}をAmazonで探す`}
+          >
+            Amazonで探す<span aria-hidden="true"> →</span>
+          </a>
+        </li>
+      ))
+    }
+  </ul>
+  <p class="amazon-note">
+    価格・在庫・配達日はAmazonの表示が最新です。本サイトでは、Amazonの価格・評価・在庫・配達日を表示・保証していません。Amazonアソシエイトのリンクを含みます。
+  </p>
+</section>
+
+<script is:inline>
+  // 既存イベント generator_usage_outbound にlink_type=amazon_searchを付けて送る(target="_blank"のため遷移抑止は不要)
+  (function () {
+    document.querySelectorAll(".amazon-link").forEach(function (a) {
+      a.addEventListener("click", function () {
+        if (!window.sokunobankDebounceClick) return;
+        window.sokunobankDebounceClick(a, function () {
+          if (window.sokunobankTrackEvent) {
+            window.sokunobankTrackEvent("generator_usage_outbound", {
+              category: "generator",
+              value: a.dataset.value,
+              link_type: "amazon_search",
+              link_url: a.href,
+              link_text: a.dataset.gaLinkText || undefined,
+              page_path: window.location.pathname,
+            });
+          }
+        });
+      });
+    });
+  })();
+</script>
+
+<style>
+  .amazon-section {
+    margin: 2rem 0;
+  }
+  .amazon-heading {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  .amazon-heading h2 {
+    margin: 0;
+  }
+  .amazon-pr {
+    font-size: 0.68rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    color: var(--color-text-muted);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-sm);
+    padding: 0 0.35rem;
+  }
+  .amazon-lead,
+  .amazon-note {
+    color: var(--color-text-muted);
+    font-size: 0.88rem;
+  }
+  .amazon-list {
+    list-style: none;
+    margin: 1rem 0;
+    padding: 0;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 1rem;
+  }
+  .amazon-list li {
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-lg);
+    padding: 1rem 1.25rem;
+  }
+  .amazon-list li p {
+    color: var(--color-text-muted);
+    font-size: 0.9rem;
+    margin: 0.4rem 0 0.75rem;
+  }
+  .amazon-list strong {
+    display: block;
+  }
+  .icon-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: var(--color-accent-soft);
+    color: var(--color-accent-vivid);
+    margin-bottom: 0.6rem;
+  }
+  .icon-badge svg {
+    width: 18px;
+    height: 18px;
+  }
+</style>
