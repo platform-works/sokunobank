@@ -96,6 +96,14 @@ const pageJsonLd = {
 
     <AmazonSearchSection />
 
+    {
+      c.popularBrands && c.popularBrands.length > 0 && (
+        <FoldSection label="ブランドから探す">
+          <PickupBrandSection brands={c.popularBrands} slug={c.slug} />
+        </FoldSection>
+      )
+    }
+
     <FoldSection label="発電機とポータブル電源の違い(比較表)">
       <TypeComparison />
     </FoldSection>
@@ -115,14 +123,6 @@ const pageJsonLd = {
     <FoldSection label="用途別に選ぶ(防災・家庭・工事・キャンプ・車中泊)">
       <UsageCards />
     </FoldSection>
-
-    {
-      c.popularBrands && c.popularBrands.length > 0 && (
-        <FoldSection label="ブランドから探す">
-          <PickupBrandSection brands={c.popularBrands} slug={c.slug} />
-        </FoldSection>
-      )
-    }
 
     {
       c.seoSections.map((section) => (
