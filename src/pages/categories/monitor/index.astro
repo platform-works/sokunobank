@@ -20,7 +20,7 @@ import GeneratorRuntime from "../../../components/commerce/generator/GeneratorRu
 import { monitorConfig as c } from "../../../lib/commerce/categories/monitor.config";
 import { CONTENT_UPDATED_LABEL, CONTENT_UPDATED_ON, resolutions, useCases, yahooSearchUrl } from "../../../lib/commerce/monitorContent";
 
-const usageQuery: Record<string, string> = { gaming: "ゲーミングモニター", mobile: "モバイルモニター", remote: "PCモニター テレワーク" };
+const usageQuery: Record<string, string> = { gaming: "ゲーミングモニター", mobile: "モバイルモニター" };
 
 const canonicalUrl = new URL(Astro.url.pathname, Astro.site).toString();
 const pageJsonLd = {
@@ -78,7 +78,7 @@ const pageJsonLd = {
       </section>
     </FoldSection>
 
-    <FoldSection label="用途別に選ぶ(ゲーミング・モバイル・在宅)">
+    <FoldSection label="用途別に選ぶ(ゲーミング・在宅・モバイル)">
       <section class="usage-section" id="usage">
         <h2>用途別に選ぶ</h2>
         <p class="method-lead">商品を用途で絞り込むには、上のSTEP1で用途を選んでください。用途は商品名の表記で判定しています。</p>

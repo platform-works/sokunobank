@@ -10,7 +10,7 @@ export const monitorConfig: CommerceCategoryConfig = {
   apiPath: "/api/monitor/products/",
   pageTitle: "PCモニターを比較・購入｜画面サイズ・解像度・予算から探す",
   metaDescription:
-    "ゲーミング・モバイル・在宅の用途から、画面サイズ(インチ)・解像度(4K・WQHD・フルHD)・予算・ブランドを選び、Yahoo!ショッピングのPCモニターをレビュー評価・価格で比較できます。JAPANNEXT・I-O DATA・DELL・LG・Philips等のブランドも。",
+    "ゲーミング・在宅・モバイルの用途から、画面サイズ(インチ)・解像度(4K・WQHD・フルHD)・予算・ブランドを選び、Yahoo!ショッピングのPCモニターをレビュー評価・価格で比較できます。JAPANNEXT・I-O DATA・DELL・LG・Philips等のブランドも。",
   h1: "PCモニターを比較・購入｜画面サイズ・解像度・予算から探す",
   subheadline:
     "用途・画面サイズ・解像度・予算を選んで、Yahoo!ショッピングのレビュー評価が高いPCモニターを比較できます。",

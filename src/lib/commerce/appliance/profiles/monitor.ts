@@ -27,8 +27,8 @@ export const monitorProfile: ApplianceProfile = {
     stepBrand: "ブランドを選ぶ(任意)",
     capacityGroupLabel: "サイズ",
     capacityGroupAria: "画面サイズ",
-    specRowNote: "用途は商品名の表記(ゲーミング・モバイルなど)、解像度と画面サイズは商品名に明記された値だけで絞り込みます。",
-    useCaseFilterNote: "用途は、商品名に「ゲーミング」「モバイル」などの表記がある商品で絞り込んでいます。",
+    specRowNote: "用途は商品名の表記(ゲーミング・在宅・モバイルなど)、解像度と画面サイズは商品名に明記された値だけで絞り込みます。",
+    useCaseFilterNote: "用途は、商品名に「ゲーミング」「在宅」「テレワーク」「モバイル」などの表記がある商品で絞り込んでいます。",
     detailNote: "画面サイズ・解像度は商品名の表記から読み取った値です。接続端子・リフレッシュレート・在庫・配送の詳細は商品ページで確認してください。",
     landingSubheadline: (label) => `${label}のPCモニターを、レビュー・画面サイズ・価格で比べて選べます。`,
     emptyCapacity: (r) =>

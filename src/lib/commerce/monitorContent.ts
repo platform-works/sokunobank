@@ -6,7 +6,7 @@ export const CONTENT_UPDATED_ON = "2026-10-24";
 export const CONTENT_UPDATED_LABEL = "2026年10月24日";
 
 export interface UseCase {
-  id: "gaming" | "mobile" | "remote";
+  id: "gaming" | "mobile";
   label: string;
   description: string;
   note?: string;
@@ -18,19 +18,13 @@ export const useCases: UseCase[] = [
   {
     id: "gaming",
     label: "ゲーミング",
-    description: "商品名に「ゲーミング」などの表記がある商品で絞り込みます。リフレッシュレート(Hz)や応答速度は、商品ページの仕様欄で確認してください。",
+    description: "商品名に「ゲーミング」または「在宅」「テレワーク」「リモート」などの表記がある商品で絞り込みます。リフレッシュレート(Hz)や応答速度は、商品ページの仕様欄で確認してください。",
     guide: [],
   },
   {
     id: "mobile",
     label: "モバイル(持ち運び)",
     description: "商品名に「モバイル」などの表記がある商品で絞り込みます。接続端子(USB Type-C・miniHDMI等)が手持ちの機器に対応しているかを、商品ページで確認してください。",
-    guide: [],
-  },
-  {
-    id: "remote",
-    label: "在宅・テレワーク",
-    description: "商品名に「在宅」「テレワーク」「リモート」などの表記がある商品で絞り込みます。該当する商品は多くありません。",
     guide: [],
   },
 ];
