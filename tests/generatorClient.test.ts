@@ -142,3 +142,27 @@ describe("利用環境の目安", () => {
     expect(environments.every((e) => e.type === "portable")).toBe(true);
   });
 });
+
+describe("車中泊ではエンジン式を選べない", () => {
+  it("車中泊を選ぶと、選択済みのエンジン式は解除され、エンジン式は選択できない", async () => {
+    const { mergeSelection, isEngineBlocked } = await import("../src/lib/commerce/generatorClient");
+    expect(isEngineBlocked("vehicle")).toBe(true);
+    expect(isEngineBlocked("camp")).toBe(false);
+    const withGas = { ...none, type: "gasoline" as const };
+    expect(mergeSelection(withGas, { useCase: "vehicle" }).type).toBeNull();
+    const veh = { ...none, useCase: "vehicle" };
+    expect(mergeSelection(veh, { type: "cassette" }).type).toBeNull();
+    expect(mergeSelection(veh, { type: "portable" }).type).toBe("portable");
+    // キャンプではエンジン式も選べる
+    expect(mergeSelection({ ...none, useCase: "camp" }, { type: "gasoline" }).type).toBe("gasoline");
+  });
+  it("車中泊の絞り込みでは、エンジン式を除外し、種類が確認できない商品は表示しない", () => {
+    const sel = { ...none, useCase: "vehicle" };
+    const portable = { name: "車中泊 ポータブル電源 1000Wh" };
+    const gas = { name: "車中泊 ガソリン インバーター発電機 2000W" };
+    const unknown = { name: "車中泊 電源" };
+    const r = filterBySelection([portable, gas, unknown], sel);
+    expect(r.visible).toEqual([portable]);
+    expect(r.unknown).toBe(1);
+  });
+});

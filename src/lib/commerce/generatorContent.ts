@@ -158,6 +158,17 @@ export const environments: Environment[] = [
     caveat: "冷蔵庫の消費電力は機種で大きく異なります。銘板で確認してください。",
   },
   {
+    id: "camp-tent",
+    label: "キャンプのテント内",
+    description: "テント内で照明と扇風機。テント内ではエンジン式発電機を使えないため、バッテリー式のポータブル電源だけが候補です。",
+    items: [
+      { applianceId: "led", qty: 1, hours: 6 },
+      { applianceId: "fan", qty: 1, hours: 8 },
+    ],
+    type: "portable",
+    caveat: "エンジン式発電機を使う場合は、出入口や窓などの開口部から離れた、屋外の風通しの良い場所で使ってください。テント内での使用は、屋内と同等以上の危険とされています(NITE・消費者庁)。",
+  },
+  {
     id: "vehicle-summer",
     label: "夏の車中泊",
     description: "照明1基と扇風機。バッテリー式のポータブル電源だけが候補です(車内でエンジン式発電機は使えません)。",

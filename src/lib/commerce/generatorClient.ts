@@ -108,6 +108,11 @@ export function filterBySelection<T extends { name: string; price?: number }>(pr
     const s = specsOf(p);
     let ok = true;
     let missing = false;
+    if (isEngineBlocked(sel.useCase)) {
+      // 車内で使う想定の用途: バッテリー式だけを残す。エンジン式は除外し、種類が確認できない商品は推測せず表示しない
+      if (s.productType === null) missing = true;
+      else if (s.productType !== "portable") ok = false;
+    }
     if (sel.type !== null) {
       if (s.productType === null) missing = true;
       else if (s.productType !== sel.type) ok = false;
@@ -203,11 +208,22 @@ export function isEngineType(t: ProductType | null): boolean {
 }
 
 /**
+ * 車内(車中泊)で使う用途では、エンジン式発電機(ガソリン・カセットガス)を選べない。自動車内やテント内での
+ * エンジン式発電機の使用は、屋内と同等以上の危険があるとされている(NITE・消費者庁)ため、
+ * 種類の選択も、商品の絞り込み(エンジン式・種類が確認できない商品を除外)も、バッテリー式に限定する。
+ */
+export function isEngineBlocked(useCase: string | null): boolean {
+  return useCase === "vehicle";
+}
+
+/**
  * エンジン式の発電機には容量(Wh)の表記が無いため、種類と容量は同時に指定できない
  * (両方指定すると必ず0件になる)。後から指定した方を優先し、矛盾する方を解除する。
  */
 export function mergeSelection(prev: Selection, patch: Partial<Selection>): Selection {
   const next = Object.assign({}, prev, patch);
+  // 車中泊では、エンジン式の選択を受け付けない(後から車中泊を選んだ場合は種類を解除する)
+  if (isEngineBlocked(next.useCase) && isEngineType(next.type)) next.type = patch.type ? prev.type : null;
   if (isEngineType(next.type) && next.capacity !== null) {
     if (patch.capacity) next.type = null;
     else next.capacity = null;

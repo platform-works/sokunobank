@@ -49,6 +49,12 @@ const useCaseHints = Object.fromEntries(useCases.filter((u) => u.note).map((u) =
         ))
       }
     </div>
+    <p class="step-note" data-role="engine-note" hidden>
+      エンジン式(ガソリン・カセットガス)の発電機は、屋外の風通しの良い場所で使ってください。屋内・自動車内・テント内で使うと、一酸化炭素(CO)中毒など屋内と同等以上の危険があります(NITE・消費者庁)。
+    </p>
+    <p class="step-hint" data-role="vehicle-note" hidden>
+      車中泊では、車内でエンジン式発電機を使えないため、ガソリン・カセットガス式は選べません。バッテリー式のポータブル電源だけを表示します(NITE・消費者庁)。
+    </p>
   </div>
 
   <div class="step-row">
@@ -112,6 +118,7 @@ const useCaseHints = Object.fromEntries(useCases.filter((u) => u.note).map((u) =
     capacityBands,
     powerBands,
     getSelection,
+    isEngineBlocked,
     isEngineType,
     setSelection,
     trackFilterUse,
@@ -123,6 +130,8 @@ const useCaseHints = Object.fromEntries(useCases.filter((u) => u.note).map((u) =
     const buttons = Array.from(root.querySelectorAll<HTMLButtonElement>(".step-option"));
     const capNoteEl = root.querySelector<HTMLElement>('[data-role="capacity-note"]');
     const hintEl = root.querySelector<HTMLElement>('[data-role="usecase-hint"]');
+    const engineNoteEl = root.querySelector<HTMLElement>('[data-role="engine-note"]');
+    const vehicleNoteEl = root.querySelector<HTMLElement>('[data-role="vehicle-note"]');
     const countEl = root.querySelector<HTMLElement>('[data-role="count"]');
     const areaSelect = root.querySelector<HTMLSelectElement>('[data-role="area"]');
     const goLink = root.querySelector<HTMLAnchorElement>('[data-role="go"]');
@@ -141,7 +150,12 @@ const useCaseHints = Object.fromEntries(useCases.filter((u) => u.note).map((u) =
         b.setAttribute("aria-pressed", String(pressed));
         // エンジン式には容量(Wh)の表記がないため、容量ボタンは選べなくする(選ぶと必ず0件になるため)
         if (kind === "capacity") b.disabled = isEngineType(sel.type);
+        // 車中泊(車内)では、エンジン式(ガソリン・カセットガス)を選べなくする
+        if (kind === "type") b.disabled = isEngineBlocked(sel.useCase) && (value === "gasoline" || value === "cassette");
       }
+      if (vehicleNoteEl) vehicleNoteEl.hidden = !isEngineBlocked(sel.useCase);
+      // エンジン式を選んでいる間は、屋外での使用を促す注意を出す(車中泊の注意と重複する間は出さない)
+      if (engineNoteEl) engineNoteEl.hidden = !isEngineType(sel.type);
       if (capNoteEl) capNoteEl.hidden = !isEngineType(sel.type);
       if (hintEl) {
         const text = sel.useCase ? hints[sel.useCase] : undefined;
