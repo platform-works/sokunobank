@@ -1,0 +1,12 @@
+---
+// Up-T オリジナルプリント広告LP(/lp/original-print/)へのテキストリンク。
+// サイト内LPへのリンクのため rel は不要だが、広告LPであることを「(PR)」で明示する。
+// クリック計測は Header.astro の共通ハンドラー(data-promo / data-placement)が行う。
+interface Props {
+  placement: string;
+  label?: string;
+}
+const { placement, label = "オリジナルTシャツ・グッズの発注方法と納期確認のポイント" } = Astro.props;
+---
+
+<a href="/lp/original-print/" data-promo="upt-original-print" data-placement={placement}>{label}(PR) →</a>

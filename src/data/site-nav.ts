@@ -24,6 +24,8 @@ export const popularKeywords: NavLink[] = [
   { label: "名刺", href: "/guides/business-card-printing/" },
   { label: "封筒", href: "/guides/envelope-printing/" },
   { label: "ノベルティ", href: "/guides/novelty-goods/" },
+  // 2026-10-11: Up-T(オリジナルプリント)の広告LP。広告であることをラベルで明示する
+  { label: "オリジナルTシャツ・グッズ(PR)", href: "/lp/original-print/" },
 ];
 
 /** 「急ぎの目的から探す」セクション */
@@ -44,6 +46,7 @@ export const purposeFinder: NavLink[] = [
   { label: "イベントに間に合わせたい", href: "/categories/" },
   { label: "急に名刺が必要", href: "/guides/business-card-printing/" },
   { label: "採用説明会の資料が必要", href: "/guides/recruitment-brochure/" },
+  { label: "オリジナルTシャツ・グッズを急ぎで作りたい(PR)", href: "/lp/original-print/" },
 ];
 
 /** 「部署から探す」セクション */
@@ -62,6 +65,7 @@ export const departmentFinder: DepartmentGroup[] = [
       { label: "チラシ", href: "/guides/flyer-printing/" },
       { label: "ポスター", href: "/guides/poster-printing/" },
       { label: "ノベルティ", href: "/guides/novelty-goods/" },
+      { label: "オリジナルTシャツ・グッズ(PR)", href: "/lp/original-print/" },
     ],
   },
   {

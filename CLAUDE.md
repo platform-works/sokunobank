@@ -53,7 +53,7 @@ ValueCommerce・A8.net等、どのASP(アフィリエイトサービスプロバ
 - **PC/スマホで同じタグを表示する場合も、別々のタグを表示する場合も、同時に2つともDOM上に描画しない**。特に1x1トラッキング画像や計測スクリプトが含まれるタグを両方描画してCSSの`display:none`で出し分けると、非表示側でも画像・スクリプトは読み込まれてしまい、実際のインプレッション数が二重にカウントされる。実装例: [TopBannerAd.astro](src/components/TopBannerAd.astro) — PC用・スマホ用それぞれのタグを`<template>`(中身はDOMに挿入されるまで画像等が読み込まれない)に入れておき、ページ読み込み時に画面幅を判定して該当する方だけ`cloneNode`で実際のDOMに複製する。PC=ヘッダー直下にsticky表示して追従、スマホ=画面下部にfixedで固定して追従
 - 広告バナーには必ず「PR」ラベルを表示し、フッターのアフィリエイト開示文と合わせて広告であることを明示する
 - 検証時にタグ内のトラッキングURLを直接curl等で繰り返し叩かない(実際のインプレッション・クリックとして計測されてしまう)。ページ描画確認は`grep`でタグの存在・重複有無を確認する程度にとどめる
-- **現在利用しているASP**: ValueCommerce(Yahoo!ショッピング、commerce系カテゴリーの広告バナー・MyLinkBox・LinkSwitch)、A8.net(DM発送代行一括.jp、`src/data/categories/dm.json`の`ads.pcBannerHtml`/`ads.mobileBannerHtml`)。新しいASPを追加した場合はここに追記する
+- **現在利用しているASP**: ValueCommerce(Yahoo!ショッピング、commerce系カテゴリーの広告バナー・MyLinkBox・LinkSwitch)、A8.net(DM発送代行一括.jp、`src/data/categories/dm.json`の`ads.pcBannerHtml`/`ads.mobileBannerHtml`)、Up-T(オリジナルプリント、`/lp/original-print/`、広告コードは`src/data/lp/upt-ads.ts`に原文のまま)。新しいASPを追加した場合はここに追記する
 - **ValueCommerce LinkSwitch(2026-09-27導入)**: `src/layouts/Layout.astro`の`<head>`に全ページ共通で1回だけ設置。Yahoo!ショッピングの商品リンクは、`buildAffiliateUrl`等でサーバー側にアフィリエイトURLを事前組み立てせず、必ず元の商品URL(Yahoo!ショッピングの通常URL)をそのまま出力すること。ブラウザ上のLinkSwitchが自動的にアフィリエイトリンクへ変換する。LinkSwitchによって変換された後のURLは、DB・JSON・キャッシュのどこにも保存しない(常に元URLのみを保持・キャッシュする)
 
 ## APIキー・アフィリエイトIDの管理ルール(2026-09-26 導入)
@@ -321,3 +321,20 @@ FAQは必要に応じて追加する。
 - 背景画像は **PC(900px以上)のみ表示し、モバイルでは非表示**にする(通信量・表示速度・情報量のバランスを優先。モバイルは装飾より軽さ・コンパクトさを優先する)
 - テキストが乗る側は白系グラデーションを重ねて、見出し・検索欄の可読性を必ず確保する
 - ユーザーから参考画像・モックアップを提示された場合は、実装前に**実在する他社サイトかどうかを確認する**(商標・名称衝突リスクの点検のため)
+
+## Up-T(オリジナルプリント)LP(2026-10-11 実装)
+
+- `/lp/original-print/`(`src/pages/lp/original-print.astro`、noindex、sitemap/llms.txt対象外)。A8.netの広告コード(素材ID 1=テキスト、74=728×90 PC、15=300×250 スマホ)は `src/data/lp/upt-ads.ts` に原文のまま保持し、`set:html` で出力する。PC/スマホのバナーは `<script type="text/plain">` に入れ、画面幅で該当する方だけDOMへ挿入する(**Astroでは `<template set:html>` を使わない**: 内容が文書末尾へ出力され、ビルドが停止することがあった)
+- 選択UIの文言・コピー・案内文は `src/data/lp/original-print.ts`。**Up-T公式で未確認の事実(最短日数・即日対象商品・取扱カテゴリ・割引)は書かない**。納期は計算・保証せず、公式確認を案内する
+- CTAクリック計測は `sokunobankTrackEvent`(イベント: `lp_select` / `lp_guide_open` / `upt_ad_click`)。Yahoo!広告の離脱CVを発火する `sokunobankTrackOutboundClick` は使わない(ユーザー指示)
+- 公開後、A8.netの「広告掲載URL管理」へ掲載URLを提出する(ユーザー本人の作業)
+
+### Up-T LPの商品選択・画像運用(2026-10-11 追加)
+
+- 商品マスターは `src/data/lp/original-print-products.ts`(独立設定ファイル)。**Up-T公式サイトを取得できず、正式な商品名・販売状況は未照合(`verified: false`)**。表示するのは、ユーザー提示のUp-Tカテゴリ画像に載っている項目(`publish: true`)のみ。クラスTシャツ・バッジ・ステッカー・文具等は `publish: false` で保持し、公式で確認できてから公開する
+- 商品イメージは自作の簡易SVG(`product-art.ts`)で、画面に「イメージ図(実際の商品写真ではありません)」と明記する。写真を使う場合は `uses[].image` に設定する(実在のUp-T商品写真・制作実績と誤認させない)
+- 画像: マスターは `assets/lp-master/original-print/`(元の解像度・ファイル名のまま、Webには公開されない)。`node scripts/build-lp-images.mjs` で `public/images/lp/original-print/` にWebP/AVIFを複数幅で生成し、管理者向け一覧 `assets/lp-master/original-print/index.html`(原寸ダウンロード・出典・ライセンス表示)を作る。台帳は同フォルダの `manifest.json`
+- 計測: `product_selected`(product / product_group / source=dropdown|strip|grid|intent)、`lp_select`(design / deadline / qty)、`upt_ad_click`、`lp_guide_open`
+- **素材ID 1(自由入力のテキスト広告)は、リンク文言だけ変更してよい**(2026-10-12、ユーザー指示)。href・rel・a8mat・計測画像は原文のまま。差し替えは `uptTextAd()`(`src/data/lp/upt-ads.ts`)、設置は `UptAdButton.astro`。設置後は `node scripts/check-upt-text-ad.cjs` で原文一致を確認する
+- **ASP広告LP(Up-T型)の新規作成・拡張は `.claude/skills/add-affiliate-lp` に従う**(2026-10-11、ユーザー指示でスキル化)。広告コード原文保持・画像運用・計測・公開前検証の手順と落とし穴をまとめている
+- **商品カテゴリーの細分化(2026-10-15)**: Up-Tのカテゴリー一覧(ユーザー提示のスクリーンショット)に合わせ、`original-print-products.ts` を49商品・6グループ(ウェア / クラス・学校行事 / 法人・店舗・イベント / バッグ・タオル / スマホ・雑貨・グッズ / 特集・その他)に細分化した。のぼり旗・展示用品・販促バナー・紙印刷・ワークユニフォーム・ハッピ・マスク等の法人需要は `corporate: true`。`?item=<id>` でLPへ直接リンクでき、リスティング・回遊LP・記事内リンクから使う(一覧は `node scripts/export-lp-items.mjs` → `docs/lp-original-print-items.csv`)。**既存id(tshirt / hoodie / polo / cap / apron / tote / towel / mug / phonecase / keyholder)は広告で使用中のため変更しない**。`detectProduct` は id 完全一致 → 最長キーワード一致の順で特定し、同順位の複数一致は特定しない

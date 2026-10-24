@@ -1,0 +1,28 @@
+name: CI
+
+# 検査のみ。Cloudflareへのデプロイは行わない(デプロイは手動の wrangler deploy のみ)。
+on:
+  push:
+    branches: [master]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run build
+      - run: npm run test
+      - name: インラインJSの構文検査(生成された全HTML)
+        run: npm run check:syntax
+      - name: 広告タグの重複・欠落検査
+        run: npm run check:ad-tags

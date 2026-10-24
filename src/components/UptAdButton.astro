@@ -1,0 +1,78 @@
+---
+// A8.net 素材ID 1(自由入力のテキスト広告)を、緑のボタンとして表示する共通コンポーネント。
+// - 広告コードは、リンク文言以外は原文のまま(set:html。URL・パラメーター・計測画像は改変しない)
+// - 見た目は親要素のCSSのみ。PR表記を併記する
+// - クリック計測は Header.astro の共通ハンドラー(upt_ad_click)が行う
+import { uptTextAd } from "../data/lp/upt-ads";
+
+interface Props {
+  /** 次のページへ進みたくなる、行動+便益のリンク文言(納期・価格などを保証する表現は使わない) */
+  label: string;
+  /** 設置場所(GA4の ad_position) */
+  placement: string;
+  /** ボタン上の補足(任意) */
+  caption?: string;
+}
+const { label, placement, caption = "Up-T公式サイトへ(広告リンク)" } = Astro.props;
+---
+
+<div class="upt-ad-button">
+  <p class="upt-ad-caption"><span class="pr">PR</span>{caption}</p>
+  <div class="upt-ad-link" data-upt-ad="1" data-ad-type="text" data-ad-position={placement} set:html={uptTextAd(label)} />
+</div>
+
+<style>
+  .upt-ad-button {
+    margin: 1rem 0;
+    max-width: 520px;
+  }
+  .upt-ad-caption {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin: 0 0 0.4rem;
+    font-size: 0.8rem;
+    color: var(--color-text-muted);
+  }
+  .upt-ad-caption .pr {
+    padding: 0.05rem 0.45rem;
+    border: 1px solid var(--color-text-muted);
+    border-radius: var(--radius-sm);
+    background: #fff;
+    color: var(--color-text);
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+  }
+  .upt-ad-link :global(a) {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    min-height: 52px;
+    padding: 0.5rem 2.5rem;
+    border-radius: var(--radius-md);
+    background: var(--color-accent-dark);
+    color: #fff;
+    font-weight: 700;
+    font-size: 1rem;
+    line-height: 1.4;
+    text-align: center;
+    text-decoration: none;
+  }
+  .upt-ad-link :global(a)::after {
+    content: "›";
+    position: absolute;
+    right: 1rem;
+    font-size: 1.5rem;
+    line-height: 1;
+  }
+  .upt-ad-link :global(a:hover) {
+    filter: brightness(0.92);
+  }
+  .upt-ad-link :global(a:focus-visible) {
+    outline: 2px solid var(--color-text);
+    outline-offset: 2px;
+  }
+</style>

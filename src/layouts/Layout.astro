@@ -1,6 +1,7 @@
 ---
 import Header from "../components/Header.astro";
 import Footer from "../components/Footer.astro";
+import { PUBLISHED_PRODUCTS } from "../data/lp/original-print-products";
 
 interface Props {
   title: string;
@@ -163,14 +164,36 @@ const organizationJsonLd = {
           });
         }
       };
+
+      // Up-T(オリジナルプリント)送客LPの「Up-Tへ進むボタン」クリックを、LINEヤフー広告の
+      // 離脱クリックCVとして計測する。Yahoo!ショッピング用(上のラベル)とは別のコンバージョンで、
+      // 数値が混ざらないようにしている。ラベルは管理画面で「SOKUNOBANK_up-t送客クリック」を
+      // 作成した後に発行される値を UPT_YAHOO_CONVERSION_LABEL に設定する。空の間は発火しない。
+      // 呼び出し側(LPのクリックリスナー)は広告リンクの遷移・コードに干渉しない。
+      var UPT_YAHOO_CONVERSION_LABEL = "6m-cCOaTipwdEPD7tehE";
+      window.sokunobankTrackUptConversion = function () {
+        if (!UPT_YAHOO_CONVERSION_LABEL || typeof ytag !== "function") return;
+        ytag({
+          type: "yss_conversion",
+          config: {
+            yahoo_conversion_id: "1001413776",
+            yahoo_conversion_label: UPT_YAHOO_CONVERSION_LABEL,
+            yahoo_conversion_value: "0",
+          },
+        });
+      };
     </script>
 
     <!--
-      LINEヤフー広告 Yahoo!タグ(サイトジェネラルタグ、2026-09-27導入)。全ページ共通のこの
-      Layout.astroに1回だけ設置する(二重設置しない)。管理画面発行時のタグをそのまま使用。
+      LINEヤフー広告 Yahoo!タグ(サイトジェネラルタグ、2026-09-27導入。2026-10-15にサイトリターゲティングを追加)。
+      全ページ共通のこのLayout.astroに1回だけ設置する(二重設置しない)。管理画面発行時のタグをそのまま使用。
       コンバージョン測定タグ自体は上のwindow.sokunobankTrackOutboundClick内でクリック時に
       呼び出す(離脱クリック計測のため)。
     -->
+    <script is:inline define:vars={{ lpItemIds: PUBLISHED_PRODUCTS.map((p) => p.id) }}>
+      // ディスプレイ広告のラベル用の許可リスト(商品マスターの公開商品IDのみ)。
+      window.sokunobankLpItemIds = lpItemIds;
+    </script>
     <script async src="https://s.yimg.jp/images/listing/tool/cv/ytag.js"></script>
     <script is:inline>
       window.yjDataLayer = window.yjDataLayer || [];
@@ -178,6 +201,54 @@ const organizationJsonLd = {
         yjDataLayer.push(arguments);
       }
       ytag({ type: "ycl_cookie", config: { ycl_use_non_cookie_storage: true } });
+
+      // サイトリターゲティングタグ(検索広告用。2026-10-15導入)。広告管理ツール「オーディエンスリスト > タグ・IDを表示」で
+      // 発行された形式のまま(ID: 1001413776、yahoo_sstag_custom_params は空)。全ページ共通で1回だけ呼ぶ。
+      // ページのURLは、オーディエンスリストの「URLに〇〇を含む」条件(例: item=cap)で分類できる。
+      ytag({
+        type: "yss_retargeting",
+        config: {
+          yahoo_ss_retargeting_id: "1001413776",
+          yahoo_sstag_custom_params: {},
+        },
+      });
+
+      // ディスプレイ広告用サイトリターゲティングタグ(2026-10-15導入)。広告管理ツール(即納バンク_ディスプレイ広告)で
+      // 発行されたタグの値のまま(ID: NLEVOMGY4G。ラベル・ページタイプ・商品項目は、発行どおり空)。
+      // 全ページ共通で1回だけ呼ぶ。ytag.js のローダーは上の1つを共用する(二重にロードしない)。
+      // 検索広告用(yss_retargeting)とは、type とIDが別。キャップ流入は、URL条件(item=cap)で分類する。
+      // ラベルは、LP(/lp/original-print/)の初回表示時のみ、URLの item が許可リスト(公開商品ID)に
+      // 完全一致するときだけ、その商品IDを設定する。任意のURLパラメーターはそのまま送らない。
+      var sokunobankRtgLabel = "";
+      try {
+        var rtgPath = location.pathname;
+        var rtgItem = new URLSearchParams(location.search).get("item");
+        if ((rtgPath === "/lp/original-print" || rtgPath === "/lp/original-print/") && rtgItem && (window.sokunobankLpItemIds || []).indexOf(rtgItem) !== -1) {
+          sokunobankRtgLabel = rtgItem;
+        }
+      } catch (e) {}
+      ytag({
+        type: "yjad_retargeting",
+        config: {
+          yahoo_retargeting_id: "NLEVOMGY4G",
+          yahoo_retargeting_label: sokunobankRtgLabel,
+          yahoo_retargeting_page_type: "",
+          yahoo_retargeting_items: [{ item_id: "", category_id: "", price: "", quantity: "" }],
+        },
+      });
+
+      // LPで利用者が商品を選んだとき用の補助(オーディエンスリストの「カスタムパラメーター」条件用)。
+      // 値は商品IDとグループIDのみ(固定のID。個人情報・自由入力は送らない)。
+      window.sokunobankYahooRetargetingItem = function (item, group) {
+        if (typeof ytag !== "function") return;
+        ytag({
+          type: "yss_retargeting",
+          config: {
+            yahoo_ss_retargeting_id: "1001413776",
+            yahoo_sstag_custom_params: { item: String(item || ""), item_group: String(group || "") },
+          },
+        });
+      };
     </script>
 
     <!--

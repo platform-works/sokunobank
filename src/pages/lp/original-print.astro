@@ -1,0 +1,1728 @@
+---
+// Up-T(オリジナルプリント)送客LP。広告LP(noindex)。
+// 既存の /lp/[slug]/ とは別の静的ルートとして追加(カテゴリーデータ・既存LPには影響しない)。
+// 広告コード(A8.net)は upt-ads.ts の原文を set:html でそのまま出力する(改変禁止)。
+// 商品マスターは original-print-products.ts、イメージ図は product-art.ts。
+import Layout from "../../layouts/Layout.astro";
+import FaqSection from "../../components/FaqSection.astro";
+import { QUESTIONS, DEFAULT_SUB, EMPTY_ANSWERS, FAQ_ITEMS, buildGuide } from "../../data/lp/original-print";
+import {
+  PRODUCT_GROUPS,
+  PUBLISHED_PRODUCTS,
+  DEFAULT_PRODUCT_ID,
+  getProduct,
+} from "../../data/lp/original-print-products";
+import { productArt } from "../../data/lp/product-art";
+import { UPT_AD_BANNER_74_PC, UPT_AD_BANNER_15_MOBILE, UPT_PRODUCT_LINK, UPT_CAP_TEXT_LINK, uptTextAd } from "../../data/lp/upt-ads";
+import UptAdButton from "../../components/UptAdButton.astro";
+
+const product = getProduct(DEFAULT_PRODUCT_ID)!;
+// メインCTAのリンク文言(素材ID 1は自由入力のテキスト広告)。商品名に連動し、次のページへ進みたくなる行動文にする。
+// 納期・価格などを保証する表現は使わない。
+// 商品リンクのコード(原文)をJSON文字列にする。"<" を \u003c にして、</script> による誤終了を防ぐ(JSON.parse で原文に戻る)
+const productLinkJson = JSON.stringify(UPT_PRODUCT_LINK).replace(/</g, "\\u003c");
+const capTextLinkJson = JSON.stringify(UPT_CAP_TEXT_LINK).replace(/</g, "\\u003c");
+function pickCtaLabel(name: string): string {
+  return `Up-Tで${name}の商品と納期を確認する`;
+}
+function heroCtaLabel(shortName: string): string {
+  return `Up-Tで${shortName}を選んで納期を確認`;
+}
+const guide = buildGuide({ ...EMPTY_ANSWERS, product: product.id });
+const qs = QUESTIONS;
+const grouped = PRODUCT_GROUPS.map((g) => ({ ...g, items: PUBLISHED_PRODUCTS.filter((p) => p.group === g.id) })).filter(
+  (g) => g.items.length > 0,
+);
+const heroBase = "/images/lp/original-print/up-t-hero";
+const reasons = [
+  {
+    title: "簡単デザイン・入稿",
+    text: "データの入稿から、デザインの進め方の確認まで。条件に合わせて整理します。",
+    icon: '<svg viewBox="0 0 48 48" aria-hidden="true"><path d="M24 6C13 6 6 14 6 23s6 11 11 11h3c2 0 3 1 3 3 0 3 2 5 5 5 9 0 14-8 14-17C42 14 34 6 24 6z" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linejoin="round"/><circle cx="16" cy="22" r="2.5"/><circle cx="23" cy="15" r="2.5"/><circle cx="32" cy="18" r="2.5"/></svg>',
+  },
+  {
+    title: "豊富なアイテム",
+    text: "Tシャツから雑貨まで。作りたいものから選べます。",
+    icon: '<svg viewBox="0 0 48 48" aria-hidden="true"><path d="M24 5 7 13v22l17 8 17-8V13z" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linejoin="round"/><path d="M7 13l17 8 17-8M24 21v22" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linejoin="round"/></svg>',
+  },
+  {
+    title: "納期の確認",
+    text: "商品・数量・配送先・注文確定時刻によって、発送可能日が変わります。",
+    icon: '<svg viewBox="0 0 48 48" aria-hidden="true"><path d="M4 12h26v22H4zM30 20h9l5 6v8H30z" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linejoin="round"/><circle cx="14" cy="36" r="4" fill="#fff" stroke="currentColor" stroke-width="2.4"/><circle cx="37" cy="36" r="4" fill="#fff" stroke="currentColor" stroke-width="2.4"/></svg>',
+  },
+];
+---
+
+<Layout
+  title="オリジナルプリントの発注方法と納期確認のポイント"
+  description="オリジナルグッズの発注前に、デザインの有無・商品・納期・数量から、発注方法と事前準備を整理します。(PR)"
+  noindex
+>
+  <section class="uphero" aria-labelledby="lp-h1">
+    <div class="container uphero-grid">
+      <p class="pr-line">
+        <span class="pr-badge">PR</span>
+        <span>広告を含みます。制作・発送はUp-T(広告主)が行います。</span>
+      </p>
+
+      <div class="copy">
+        <h1 id="lp-h1" data-lp-headline>
+          オリジナル<span data-lp-product>{product.shortName}</span>、<em data-lp-catch>{product.catchcopy}</em>
+        </h1>
+        <p class="copy-sub" data-lp-sub>{product.subcopy}</p>
+      </div>
+
+      <!-- ファーストビューの主要画像: 遅延読み込みしない(fetchpriority=high)。AVIF/WebPの複数幅(srcset) -->
+      <picture class="hero-pic">
+        <source
+          type="image/avif"
+          srcset={`${heroBase}-960.avif 960w, ${heroBase}-1672.avif 1672w`}
+          sizes="(min-width: 900px) 1100px, 100vw"
+        />
+        <source
+          type="image/webp"
+          srcset={`${heroBase}-960.webp 960w, ${heroBase}-1672.webp 1672w`}
+          sizes="(min-width: 900px) 1100px, 100vw"
+        />
+        <img
+          src={`${heroBase}-1672.webp`}
+          width="1672"
+          height="941"
+          alt="オリジナルグッズを手に笑顔の学生たちのイメージ"
+          fetchpriority="high"
+          decoding="async"
+        />
+      </picture>
+
+      <form class="selector card" data-lp-form onsubmit="return false" aria-label="発注条件の選択">
+        <div class="q-grid">
+          <!-- Q1 デザイン -->
+          <fieldset class="q" data-q="design">
+            <legend><span class="qn">Q1</span>{qs[0].label}</legend>
+            <div class="opts">
+              {
+                qs[0].options.map((o) => (
+                  <label class="opt">
+                    <input type="radio" name="design" value={o.value} />
+                    <span>{o.label}</span>
+                  </label>
+                ))
+              }
+            </div>
+          </fieldset>
+
+          <!-- Q2 商品: PCはプルダウン(階層+検索)、スマホは画像付きボタン -->
+          <div class="q q-product" data-q="product">
+            <p class="q-title" id="q-product-title"><span class="qn">Q2</span>何を作りますか?</p>
+
+            <div class="combo pc-only" data-combo>
+              <button
+                type="button"
+                class="combo-btn"
+                id="q-product"
+                aria-haspopup="listbox"
+                aria-expanded="false"
+                aria-controls="combo-pop"
+                aria-labelledby="q-product-title combo-label"
+              >
+                <span class="combo-art" data-combo-art set:html={productArt(product.art)} />
+                <span class="combo-label" id="combo-label" data-combo-label>{product.name}</span>
+                <span class="combo-caret" aria-hidden="true"></span>
+              </button>
+              <div class="combo-pop" id="combo-pop" data-combo-pop hidden>
+                <input
+                  type="search"
+                  class="combo-search"
+                  placeholder="商品名で検索"
+                  aria-label="商品名で検索"
+                  aria-controls="combo-list"
+                  autocomplete="off"
+                  data-combo-search
+                />
+                <ul class="combo-list" id="combo-list" role="listbox" aria-label="商品" data-combo-list>
+                  {
+                    grouped.map((g) => (
+                      <>
+                        <li role="presentation" class="combo-group" data-group-head={g.id}>
+                          {g.label}
+                        </li>
+                        {g.items.map((p) => (
+                          <li
+                            role="option"
+                            id={`opt-${p.id}`}
+                            class="combo-opt"
+                            data-option={p.id}
+                            data-group={g.id}
+                            data-name={`${p.name} ${p.shortName} ${p.keywords.join(" ")}`.toLowerCase()}
+                            aria-selected={p.id === product.id ? "true" : "false"}
+                          >
+                            <span class="combo-art" set:html={productArt(p.art)} />
+                            <span>{p.name}</span>
+                          </li>
+                        ))}
+                      </>
+                    ))
+                  }
+                </ul>
+                <p class="combo-empty" data-combo-empty hidden>該当する商品がありません</p>
+              </div>
+            </div>
+
+            <div class="pgrid-wrap sp-only" data-pgrid>
+              <div class="ptabs" role="tablist" aria-label="商品グループ">
+                <button type="button" role="tab" class="ptab" data-tab="all" aria-selected="true" id="ptab-all">すべて</button>
+                {
+                  grouped.map((g) => (
+                    <button type="button" role="tab" class="ptab" data-tab={g.id} aria-selected="false" id={`ptab-${g.id}`}>
+                      {g.label}
+                    </button>
+                  ))
+                }
+              </div>
+              <div class="pgrid" role="group" aria-label="商品を選ぶ" data-pgrid-list>
+                {
+                  PUBLISHED_PRODUCTS.map((p) => (
+                    <button
+                      type="button"
+                      class="pitem"
+                      data-product-btn={p.id}
+                      data-group={p.group}
+                      aria-pressed={p.id === product.id ? "true" : "false"}
+                    >
+                      <span class="pitem-art" set:html={productArt(p.art)} />
+                      <span class="pitem-name">{p.name}</span>
+                      <span class="pitem-check" aria-hidden="true">✓</span>
+                    </button>
+                  ))
+                }
+              </div>
+              <button type="button" class="pmore" data-pmore aria-expanded="false">すべてのアイテムから選ぶ →</button>
+            </div>
+          </div>
+
+          <!-- Q3 納期 -->
+          <fieldset class="q" data-q="deadline">
+            <legend><span class="qn">Q3</span>{qs[1].label}</legend>
+            <div class="opts">
+              {
+                qs[1].options.map((o) => (
+                  <label class="opt">
+                    <input type="radio" name="deadline" value={o.value} />
+                    <span>{o.label}</span>
+                  </label>
+                ))
+              }
+            </div>
+            <div class="date-row" data-date-row hidden>
+              <label for="use-date">使用したい日</label>
+              <input id="use-date" type="date" name="use-date" />
+            </div>
+          </fieldset>
+
+          <!-- Q4 数量 -->
+          <fieldset class="q" data-q="qty">
+            <legend><span class="qn">Q4</span>{qs[2].label}</legend>
+            <div class="opts">
+              {
+                qs[2].options.map((o) => (
+                  <label class="opt">
+                    <input type="radio" name="qty" value={o.value} />
+                    <span>{o.label}</span>
+                  </label>
+                ))
+              }
+            </div>
+          </fieldset>
+        </div>
+
+        <!-- A8.net 素材ID 1(テキスト広告)をメインCTAとして配置。広告コードは原文のまま(文言も変更しない)。見た目は親要素のCSSのみでボタン化する -->
+        <div class="main-ad">
+          <p class="main-ad-label"><span class="pr-badge">PR</span>Up-T公式サイトへ(広告リンク)</p>
+          <div class="ad-button" data-upt-ad="1" data-ad-type="text" data-ad-position="hero" set:html={uptTextAd(heroCtaLabel(product.shortName))} />
+          <a class="guide-link" href="#guide" data-guide-link>条件の整理を見る</a>
+        </div>
+      </form>
+
+      <p class="hero-note">発送日・割引の適用を保証するものではありません。最新の条件はUp-T公式でご確認ください。</p>
+    </div>
+  </section>
+
+  <div class="container">
+
+    <!-- 選んだ商品に連動する情報(商品名・紹介・デザイン方法・チェックポイント・利用シーン) -->
+    <section class="pick" aria-live="polite" aria-labelledby="pick-h">
+      <div class="pick-body">
+        <h2 id="pick-h">選んだアイテム: <span data-pick-name>{product.name}</span></h2>
+        <p class="pick-lead" data-pick-lead>{product.lead}</p>
+        <div class="pick-cols">
+          <div>
+            <h3>デザイン方法</h3>
+            <ul data-pick-design>
+              {product.design.map((d) => <li>{d}</li>)}
+            </ul>
+          </div>
+          <div>
+            <h3>注文前のチェックポイント</h3>
+            <ul data-pick-checks>
+              {product.checks.map((d) => <li>{d}</li>)}
+            </ul>
+          </div>
+        </div>
+        <p class="pick-note" data-pick-note>商品名・取り扱い・仕様は、Up-T公式の商品ページでご確認ください。</p>
+        <!-- A8.net 素材ID 1(自由入力のテキスト広告)。リンク文言のみ商品名に連動して書き換える(href・計測画像は原文のまま) -->
+        <UptAdButton label={pickCtaLabel(product.name)} placement="pick_button" caption="Up-T公式サイトへ(広告リンク)" />
+
+        <!-- A8.net 商品リンク(キャップの商品)。キャップ選択時だけ読み込んで表示する(他の商品では読み込まない)。
+             コードは原文のまま JSON で保持(</ は \u003c にエスケープ。JSON.parse で原文に戻る)。クリックは [data-upt-ad] で計測する -->
+        <div class="pick-product-link" data-upt-ad="product_link" data-ad-type="product" data-ad-position="pick_product" data-pick-product hidden>
+          <p class="pick-product-caption"><span class="pr-badge">PR</span>Up-Tのキャップ商品の一例(広告リンク)</p>
+          <div class="pick-product-row">
+            <div class="pick-product-slot" data-pick-product-slot></div>
+            <!-- A8テキストリンク(HUKPU・商品詳細へ)。原文のまま、キャップ選択時だけ注入する。クリックは cap_text_link として計測 -->
+            <div class="pick-product-text" data-upt-ad="cap_text_link" data-ad-type="text" data-ad-position="pick_product_text" data-pick-product-text></div>
+          </div>
+        </div>
+        <script type="application/json" data-product-link-json set:html={productLinkJson} />
+        <script type="application/json" data-cap-text-json set:html={capTextLinkJson} />
+      </div>
+    </section>
+
+    <section class="scenes-wrap" aria-labelledby="scenes-h">
+      <h2 id="scenes-h">こんなシーンで選ばれています</h2>
+      <div class="scenes" data-scenes>
+        {
+          product.uses.map((u) => (
+            <div class="scene">
+              <div class="scene-img" set:html={productArt(product.art)} />
+              <p class="scene-title">{u.title}</p>
+              <p class="scene-sub">{u.sub}</p>
+            </div>
+          ))
+        }
+      </div>
+    </section>
+
+    <section class="reasons" aria-labelledby="reasons-h">
+      <h2 id="reasons-h">選ばれる<strong>3つ</strong>の理由</h2>
+      <ul class="reason-list">
+        {
+          reasons.map((r) => (
+            <li class="reason">
+              <span class="reason-icon" set:html={r.icon} />
+              <div>
+                <p class="reason-title">{r.title}</p>
+                <p class="reason-text">{r.text}</p>
+              </div>
+            </li>
+          ))
+        }
+      </ul>
+    </section>
+
+    <section class="guide card" id="guide" aria-live="polite">
+      <h2>選んだ条件の整理</h2>
+      <div class="guide-grid">
+        <div>
+          <h3>おすすめの発注方法</h3>
+          <p data-guide-method>{guide.method}</p>
+        </div>
+        <div>
+          <h3>事前に準備するもの</h3>
+          <ul data-guide-prepare>
+            {guide.prepare.map((p) => <li>{p}</li>)}
+          </ul>
+        </div>
+        <div>
+          <h3>納期の確認について</h3>
+          <p data-guide-deadline>{guide.deadline}</p>
+        </div>
+      </div>
+
+      <div class="cta-box">
+        <p class="cta-lead" data-guide-cta>{guide.ctaLead}</p>
+        <!-- A8.net 素材ID 74(PC・728×90)/ 15(スマホ・300×250)。表示する方だけをDOMに挿入する(二重描画しない)。type="text/plain"の<script>は解析・描画されず、画像も読み込まれない -->
+        <div class="ad-banner" data-upt-banner data-position="guide">
+          <div class="ad-banner-slot" data-banner-slot></div>
+          <script type="text/plain" data-variant="pc" set:html={UPT_AD_BANNER_74_PC} />
+          <script type="text/plain" data-variant="mobile" set:html={UPT_AD_BANNER_15_MOBILE} />
+        </div>
+        <p class="note">
+          リンク先はUp-T公式サイトです。表示内容・納期・料金は変更されることがあります。購入・申込前にUp-T公式の最新情報をご確認ください。
+        </p>
+      </div>
+    </section>
+
+    <!-- PC: 作れるアイテムを探す(選択はフォームと同期)。2026-10-15: 選んだアイテム・用途・理由・条件の整理の後ろへ移動 -->
+    <section class="strip pc-only" aria-labelledby="strip-h">
+      <h2 id="strip-h">作れるアイテムを探す <small>Tシャツから雑貨まで、作りたいものを選べます</small></h2>
+      <div class="strip-groups" data-strip>
+        {
+          grouped.map((g) => (
+            <div class="strip-group">
+              <h3 class="strip-group-title">{g.label}</h3>
+              <div class="strip-grid">
+                {g.items.map((p) => (
+                  <button
+                    type="button"
+                    class="sitem"
+                    data-product-btn={p.id}
+                    aria-pressed={p.id === product.id ? "true" : "false"}
+                  >
+                    <span class="sitem-art" set:html={productArt(p.art)} />
+                    <span class="sitem-name">{p.name}</span>
+                    <span class="pitem-check" aria-hidden="true">✓</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+          ))
+        }
+      </div>
+    </section>
+
+    <section class="steps">
+      <h2>発注前チェックリスト</h2>
+      <ul class="checks">
+        <li>いつ使うか(使用日・イベント日)を決めている</li>
+        <li>何個必要か(サイズ・色ごとの内訳)を決めている</li>
+        <li>デザインのデータ・ラフ案の有無を確認した</li>
+        <li>印刷位置・範囲を決めている</li>
+        <li>発送日と到着日は別であることを理解し、余裕を持った日程にしている</li>
+      </ul>
+    </section>
+
+    <FaqSection items={FAQ_ITEMS} />
+
+    <!-- 最後の念押し: 紹介先(Up-T)の情報と、A8素材ID 74(PC)/15(スマホ)。公式サイトのURLは直接リンクにせず、表記のみ(計測を妨げないため) -->
+    <section class="closing card" aria-labelledby="closing-h">
+      <p class="closing-pr"><span class="pr-badge">PR</span>広告</p>
+      <h2 id="closing-h">条件が決まったら、Up-T公式サイトで確認</h2>
+      <dl class="closing-info">
+        <div>
+          <dt>紹介先</dt>
+          <dd>Up-T(アップティー)</dd>
+        </div>
+        <div>
+          <dt>サービス</dt>
+          <dd>オリジナルTシャツ・グッズの制作</dd>
+        </div>
+        <div>
+          <dt>公式サイト</dt>
+          <dd>up-t.jp</dd>
+        </div>
+        <div>
+          <dt>確認すること</dt>
+          <dd>商品・数量・配送先・注文確定時刻によって、発送可能日が変わります。注文前に公式サイトの表示をご確認ください。</dd>
+        </div>
+      </dl>
+      <UptAdButton label="Up-T公式サイトで商品と納期を確認する" placement="footer_button" caption="最後に、Up-T公式サイトで確認" />
+      <div class="ad-banner closing-banner" data-upt-banner data-position="footer">
+        <div class="ad-banner-slot" data-banner-slot></div>
+        <script type="text/plain" data-variant="pc" set:html={UPT_AD_BANNER_74_PC} />
+        <script type="text/plain" data-variant="mobile" set:html={UPT_AD_BANNER_15_MOBILE} />
+      </div>
+      <p class="note">リンク先はUp-T公式サイトです。納期・料金は変更されることがあります。</p>
+    </section>
+  </div>
+</Layout>
+
+<style>
+  /* ===== 表示切替(PC=900px以上) ===== */
+  .pc-only {
+    display: none;
+  }
+  @media (min-width: 900px) {
+    .pc-only {
+      display: block;
+    }
+    .sp-only {
+      display: none;
+    }
+  }
+
+  /* ===== ファーストビュー ===== */
+  .uphero {
+    position: relative;
+    overflow: hidden;
+    background: linear-gradient(110deg, #ffffff 0%, var(--color-bg-soft-2) 100%);
+    border-bottom: 1px solid var(--color-border);
+  }
+  .uphero-grid {
+    display: grid;
+    gap: 0.9rem;
+    padding-top: 0.9rem;
+    padding-bottom: 1.25rem;
+    grid-template-areas: "pr" "copy" "pic" "form" "note";
+  }
+  .pr-line {
+    grid-area: pr;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.5rem;
+    margin: 0;
+    font-size: 0.78rem;
+    color: var(--color-text-muted);
+  }
+  .pr-badge {
+    display: inline-block;
+    padding: 0.05rem 0.45rem;
+    border: 1px solid var(--color-text-muted);
+    border-radius: var(--radius-sm);
+    background: #fff;
+    color: var(--color-text);
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+  }
+  .copy {
+    grid-area: copy;
+  }
+  .copy h1 {
+    margin: 0 0 0.5rem;
+    font-size: clamp(1.7rem, 7.4vw, 2.2rem);
+    line-height: 1.3;
+    letter-spacing: 0.01em;
+  }
+  .copy h1 em {
+    font-style: normal;
+    color: var(--color-accent-dark);
+    display: inline-block;
+  }
+  .copy-sub {
+    margin: 0;
+    font-size: 0.95rem;
+    line-height: 1.7;
+    color: var(--color-text);
+  }
+  .hero-pic {
+    grid-area: pic;
+    display: block;
+  }
+  .hero-pic img {
+    display: block;
+    width: 100%;
+    height: auto;
+    aspect-ratio: 1672 / 941;
+    object-fit: cover;
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--color-border);
+  }
+  .hero-note {
+    grid-area: note;
+    margin: 0;
+    font-size: 0.78rem;
+    color: var(--color-text-muted);
+  }
+  .selector {
+    grid-area: form;
+    padding: 1rem;
+  }
+
+  /* ===== 選択フォーム ===== */
+  .q-grid {
+    display: grid;
+    gap: 1rem;
+    margin-bottom: 1rem;
+  }
+  .q {
+    border: 0;
+    padding: 0;
+    margin: 0;
+    min-width: 0;
+  }
+  .q legend,
+  .q-title {
+    font-weight: 700;
+    font-size: 0.95rem;
+    margin: 0 0 0.4rem;
+    padding: 0;
+  }
+  .qn {
+    display: inline-block;
+    margin-right: 0.4rem;
+    color: var(--color-accent-dark);
+  }
+  .opts {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+  }
+  .opt {
+    position: relative;
+    cursor: pointer;
+  }
+  .opt input {
+    position: absolute;
+    opacity: 0;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    cursor: pointer;
+  }
+  .opt span {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    min-height: 44px;
+    padding: 0 0.5rem;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    background: #fff;
+    font-size: 0.8rem;
+  }
+  .opt input:checked + span {
+    border-color: var(--color-accent-dark);
+    background: var(--color-accent-dark);
+    color: #fff;
+    font-weight: 700;
+  }
+  .opt input:checked + span::before {
+    content: "✓";
+    font-weight: 700;
+  }
+  .opt input:focus-visible + span {
+    outline: 2px solid var(--color-text);
+    outline-offset: 2px;
+  }
+  .date-row {
+    margin-top: 0.6rem;
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    flex-wrap: wrap;
+  }
+  .date-row[hidden] {
+    display: none;
+  }
+  .date-row input {
+    min-height: 44px;
+    padding: 0 0.6rem;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    font: inherit;
+  }
+
+  /* --- PC: 商品プルダウン(階層+検索) --- */
+  .combo {
+    position: relative;
+  }
+  .combo-btn {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    width: 100%;
+    min-height: 48px;
+    padding: 0 0.7rem;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    background: #fff;
+    color: var(--color-text);
+    font: inherit;
+    font-size: 0.95rem;
+    text-align: left;
+    cursor: pointer;
+  }
+  .combo-btn:focus-visible,
+  .combo-search:focus-visible {
+    outline: 2px solid var(--color-text);
+    outline-offset: 2px;
+  }
+  .combo-label {
+    flex: 1;
+    font-weight: 600;
+  }
+  .combo-caret {
+    width: 8px;
+    height: 8px;
+    border-right: 2px solid var(--color-text-muted);
+    border-bottom: 2px solid var(--color-text-muted);
+    transform: rotate(45deg);
+    margin-right: 4px;
+  }
+  .combo-art {
+    display: inline-flex;
+    width: 32px;
+    height: 32px;
+    flex: none;
+  }
+  .combo-art :global(svg),
+  .pitem-art :global(svg),
+  .sitem-art :global(svg) {
+    width: 100%;
+    height: 100%;
+  }
+  .combo-pop {
+    position: absolute;
+    z-index: 30;
+    left: 0;
+    right: 0;
+    top: calc(100% + 4px);
+    padding: 0.5rem;
+    background: #fff;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    box-shadow: 0 8px 24px rgba(16, 36, 62, 0.14);
+  }
+  .combo-pop[hidden] {
+    display: none;
+  }
+  .combo-search {
+    width: 100%;
+    min-height: 44px;
+    padding: 0 0.7rem;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-sm);
+    font: inherit;
+  }
+  .combo-list {
+    list-style: none;
+    margin: 0.4rem 0 0;
+    padding: 0;
+    max-height: 280px;
+    overflow-y: auto;
+  }
+  .combo-group {
+    padding: 0.5rem 0.5rem 0.2rem;
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: var(--color-text-muted);
+  }
+  .combo-opt {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    min-height: 44px;
+    padding: 0 0.5rem;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+  }
+  .combo-opt[aria-selected="true"] {
+    background: var(--color-accent-soft);
+    font-weight: 700;
+  }
+  .combo-opt.is-active {
+    outline: 2px solid var(--color-accent-dark);
+    outline-offset: -2px;
+  }
+  .combo-opt[hidden],
+  .combo-group[hidden] {
+    display: none;
+  }
+  .combo-empty {
+    margin: 0.5rem;
+    color: var(--color-text-muted);
+    font-size: 0.9rem;
+  }
+
+  /* --- スマホ: 画像付き商品ボタン(タブ+2〜3列) --- */
+  .ptabs {
+    display: flex;
+    gap: 0.4rem;
+    overflow-x: auto;
+    padding-bottom: 0.4rem;
+    margin-bottom: 0.4rem;
+  }
+  .ptab {
+    flex: none;
+    min-height: 44px;
+    padding: 0 0.9rem;
+    border: 1px solid var(--color-border);
+    border-radius: 999px;
+    background: #fff;
+    color: var(--color-text);
+    font: inherit;
+    font-size: 0.88rem;
+    cursor: pointer;
+  }
+  .ptab[aria-selected="true"] {
+    background: var(--color-accent-soft);
+    border-color: var(--color-accent-dark);
+    color: var(--color-accent-dark);
+    font-weight: 700;
+  }
+  .pgrid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0.5rem;
+  }
+  .pitem,
+  .sitem {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 0.3rem;
+    min-height: 92px;
+    padding: 0.5rem 0.25rem;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    background: #fff;
+    color: var(--color-text);
+    font: inherit;
+    cursor: pointer;
+  }
+  .pitem[hidden] {
+    display: none;
+  }
+  .pitem-art {
+    display: inline-flex;
+    width: 44px;
+    height: 44px;
+  }
+  .pitem-name,
+  .sitem-name {
+    font-size: 0.72rem;
+    line-height: 1.3;
+    text-align: center;
+  }
+  .pitem-check {
+    display: none;
+    position: absolute;
+    top: 4px;
+    right: 4px;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: var(--color-accent-dark);
+    color: #fff;
+    font-size: 0.75rem;
+    line-height: 20px;
+    text-align: center;
+  }
+  .pitem[aria-pressed="true"],
+  .sitem[aria-pressed="true"] {
+    border: 2px solid var(--color-accent-dark);
+    background: var(--color-accent-soft);
+    font-weight: 700;
+  }
+  .pitem[aria-pressed="true"] .pitem-check,
+  .sitem[aria-pressed="true"] .pitem-check {
+    display: block;
+  }
+  .pitem:focus-visible,
+  .sitem:focus-visible,
+  .ptab:focus-visible,
+  .pmore:focus-visible {
+    outline: 2px solid var(--color-text);
+    outline-offset: 2px;
+  }
+  .pmore {
+    display: block;
+    width: 100%;
+    min-height: 44px;
+    margin-top: 0.4rem;
+    border: 0;
+    background: none;
+    color: var(--color-accent-dark);
+    font: inherit;
+    font-size: 0.9rem;
+    text-decoration: underline;
+    cursor: pointer;
+  }
+
+  /* --- メインCTA(A8素材ID 1) --- */
+  .main-ad-label {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin: 0 0 0.4rem;
+    font-size: 0.8rem;
+    color: var(--color-text-muted);
+  }
+  /* 広告コードは変更せず、親要素のCSSのみでボタンに見せる(リンク文言はA8の素材のまま) */
+  .ad-button :global(a) {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    min-height: 52px;
+    padding: 0 2.5rem;
+    border-radius: var(--radius-md);
+    background: var(--color-accent-dark);
+    color: #fff;
+    font-weight: 700;
+    font-size: 1.05rem;
+    text-decoration: none;
+  }
+  .ad-button :global(a)::after {
+    content: "›";
+    position: absolute;
+    right: 1rem;
+    font-size: 1.5rem;
+    line-height: 1;
+  }
+  .ad-button :global(a:hover) {
+    filter: brightness(0.92);
+  }
+  .ad-button :global(a:focus-visible) {
+    outline: 2px solid var(--color-text);
+    outline-offset: 2px;
+  }
+  .guide-link {
+    display: inline-block;
+    margin-top: 0.5rem;
+    font-size: 0.9rem;
+    color: var(--color-accent-dark);
+    text-decoration: underline;
+  }
+
+  /* ===== 中段 ===== */
+  .strip {
+    margin: 1.5rem 0 1rem;
+  }
+  .strip h2 {
+    font-size: 1.15rem;
+    margin: 0 0 0.6rem;
+  }
+  .strip h2 small {
+    margin-left: 0.6rem;
+    font-size: 0.8rem;
+    font-weight: 400;
+    color: var(--color-text-muted);
+  }
+  .strip-groups {
+    display: grid;
+    gap: 1rem;
+  }
+  .strip-group-title {
+    margin: 0 0 0.4rem;
+    font-size: 0.9rem;
+    color: var(--color-accent-dark);
+  }
+  .strip-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(112px, 1fr));
+    gap: 0.5rem;
+  }
+  .sitem {
+    min-height: 120px;
+    padding: 0.6rem 0.4rem;
+  }
+  .sitem-art {
+    display: inline-flex;
+    width: 64px;
+    height: 64px;
+  }
+  .sitem-name {
+    font-size: 0.78rem;
+  }
+  .pick {
+    display: grid;
+    gap: 1.25rem;
+    margin: 1.5rem 0;
+    padding: 1.25rem;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-lg);
+    background: #fff;
+  }
+  .pick h2 {
+    font-size: 1.2rem;
+    margin: 0 0 0.5rem;
+  }
+  .pick h3 {
+    font-size: 0.92rem;
+    margin: 0 0 0.3rem;
+    color: var(--color-accent-dark);
+  }
+  .pick-lead {
+    margin: 0 0 1rem;
+  }
+  .pick-cols {
+    display: grid;
+    gap: 1rem;
+  }
+  .pick ul {
+    margin: 0;
+    padding-left: 1.2rem;
+  }
+  .pick-product-link {
+    margin-top: 1rem;
+    max-width: 760px;
+  }
+  .pick-product-caption {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin: 0 0 0.4rem;
+    font-size: 0.8rem;
+    color: var(--color-text-muted);
+  }
+  .pick-product-row {
+    display: grid;
+    gap: 0.75rem;
+    align-items: center;
+  }
+  .pick-product-slot {
+    min-height: 120px;
+  }
+  .pick-product-text {
+    min-width: 0;
+  }
+  .pick-product-text :global(a) {
+    display: block;
+    padding: 0.85rem 1rem;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    background: var(--color-bg-soft);
+    color: var(--color-accent-dark);
+    font-size: 0.9rem;
+    line-height: 1.7;
+    text-decoration: underline;
+    overflow-wrap: anywhere;
+  }
+  .pick-product-text :global(a:hover) {
+    background: var(--color-accent-soft);
+  }
+  .pick-product-slot :global(img) {
+    max-width: 100%;
+    height: auto;
+  }
+  .pick-note {
+    margin: 1rem 0 0;
+    font-size: 0.8rem;
+    color: var(--color-text-muted);
+  }
+  .scenes-wrap h2,
+  .reasons h2 {
+    font-size: 1.15rem;
+    margin: 1.5rem 0 0.75rem;
+  }
+  .scenes {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.75rem;
+  }
+  .scene {
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-lg);
+    background: #fff;
+    overflow: hidden;
+  }
+  .scene-img {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    aspect-ratio: 16 / 10;
+    background: linear-gradient(135deg, #e8f5fb, #e3f7ec);
+  }
+  .scene:nth-child(2) .scene-img {
+    background: linear-gradient(135deg, #fdf3e1, #e8f5fb);
+  }
+  .scene:nth-child(3) .scene-img {
+    background: linear-gradient(135deg, #e3f7ec, #f3eefc);
+  }
+  .scene:nth-child(4) .scene-img {
+    background: linear-gradient(135deg, #fde8ec, #fdf3e1);
+  }
+  .scene-img :global(svg) {
+    width: 42%;
+    height: auto;
+    max-height: 80%;
+  }
+  .scene-img :global(img) {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+  .scene-title {
+    margin: 0.5rem 0.6rem 0;
+    font-weight: 700;
+    font-size: 0.92rem;
+  }
+  .scene-sub {
+    margin: 0.1rem 0.6rem 0.6rem;
+    font-size: 0.8rem;
+    color: var(--color-text-muted);
+  }
+  .reasons h2 strong {
+    color: var(--color-accent-dark);
+    font-size: 1.4rem;
+  }
+  .reason-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    gap: 0.75rem;
+  }
+  .reason {
+    display: flex;
+    align-items: center;
+    gap: 0.9rem;
+    padding: 0.9rem 1rem;
+    border-radius: var(--radius-lg);
+    background: var(--color-bg-soft-2);
+    border: 1px solid var(--color-border);
+  }
+  .reason-icon {
+    flex: none;
+    width: 44px;
+    height: 44px;
+    color: var(--color-accent-dark);
+  }
+  .reason-icon :global(svg) {
+    width: 100%;
+    height: 100%;
+  }
+  .reason-title {
+    margin: 0;
+    font-weight: 700;
+  }
+  .reason-text {
+    margin: 0.1rem 0 0;
+    font-size: 0.85rem;
+    color: var(--color-text-muted);
+  }
+
+  /* ===== 案内パネル ===== */
+  .guide {
+    margin: 1.5rem 0;
+    padding: 1.25rem;
+    scroll-margin-top: 80px;
+  }
+  .guide h2 {
+    margin-top: 0;
+  }
+  .guide h3 {
+    font-size: 0.95rem;
+    margin: 0 0 0.4rem;
+    color: var(--color-accent-dark);
+  }
+  .guide-grid {
+    display: grid;
+    gap: 1.25rem;
+  }
+  .guide p,
+  .guide ul {
+    margin: 0;
+  }
+  .guide ul {
+    padding-left: 1.2rem;
+  }
+  .cta-box {
+    margin-top: 1.5rem;
+    padding-top: 1.25rem;
+    border-top: 1px solid var(--color-border);
+  }
+  .cta-lead {
+    font-weight: 600;
+    margin-bottom: 0.75rem;
+  }
+  .ad-banner-slot {
+    overflow-x: auto;
+    max-width: 100%;
+  }
+  .ad-banner-slot :global(img) {
+    max-width: 100%;
+    height: auto;
+  }
+  .note {
+    margin-top: 0.75rem;
+    font-size: 0.8rem;
+    color: var(--color-text-muted);
+  }
+  .closing {
+    margin: 2rem 0 2.5rem;
+    padding: 1.25rem;
+  }
+  .closing-pr {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    margin: 0 0 0.4rem;
+    font-size: 0.75rem;
+    color: var(--color-text-muted);
+  }
+  .closing h2 {
+    margin: 0 0 0.75rem;
+    font-size: 1.2rem;
+  }
+  .closing-info {
+    margin: 0 0 1rem;
+    display: grid;
+    gap: 0.5rem;
+  }
+  .closing-info div {
+    display: grid;
+    grid-template-columns: 6.5rem 1fr;
+    gap: 0.5rem;
+    padding: 0.5rem 0;
+    border-bottom: 1px solid var(--color-border);
+  }
+  .closing-info dt {
+    font-weight: 700;
+    color: var(--color-accent-dark);
+    font-size: 0.88rem;
+  }
+  .closing-info dd {
+    margin: 0;
+    font-size: 0.92rem;
+  }
+  .closing-banner {
+    text-align: center;
+  }
+  .closing-banner .ad-banner-slot {
+    display: flex;
+    justify-content: center;
+  }
+  .steps {
+    margin: 2rem 0;
+  }
+  .checks {
+    padding-left: 1.2rem;
+  }
+  .checks li {
+    margin: 0.4rem 0;
+  }
+
+  /* ===== PC(900px以上) ===== */
+  @media (min-width: 900px) {
+    /* 画像は右寄せ・高さいっぱい。左端は背景色へなじませる */
+    .hero-pic {
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      right: -9vw;
+      aspect-ratio: 1672 / 941;
+      z-index: 0;
+      -webkit-mask-image: linear-gradient(90deg, transparent 0%, #000 24%);
+      mask-image: linear-gradient(90deg, transparent 0%, #000 24%);
+    }
+    .hero-pic img {
+      height: 100%;
+      border: 0;
+      border-radius: 0;
+    }
+    .uphero-grid {
+      /* 選択ボックスは幅を固定(420px)。見出しは画像側へ広げて表示する */
+      grid-template-columns: 420px minmax(0, 1fr);
+      grid-template-areas: "pr pr" "copy copy" "form ." "note .";
+      align-items: start;
+      padding-top: 1.25rem;
+      padding-bottom: 2rem;
+      column-gap: 2rem;
+    }
+    .uphero-grid > :not(.hero-pic) {
+      position: relative;
+      z-index: 1;
+    }
+    .copy {
+      max-width: 560px;
+    }
+    .copy h1 {
+      font-size: clamp(2.4rem, 4vw, 3.4rem);
+      line-height: 1.25;
+      margin-top: 0.5rem;
+    }
+    .copy-sub {
+      font-size: 1.05rem;
+    }
+    .selector {
+      padding: 1.1rem 1.25rem;
+    }
+    .opts {
+      gap: 0.35rem;
+    }
+    .opt span {
+      padding: 0 0.55rem;
+      font-size: 0.8rem;
+    }
+    .q-grid {
+      grid-template-columns: minmax(0, 1fr);
+      gap: 0.85rem;
+    }
+    .hero-note {
+      background: rgba(255, 255, 255, 0.8);
+      justify-self: start;
+    }
+    .pick-cols {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+    .pick-product-row {
+      grid-template-columns: 300px minmax(0, 1fr);
+      gap: 1.25rem;
+    }
+    .scenes {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+    .reason-list {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+    .guide-grid {
+      grid-template-columns: repeat(3, 1fr);
+    }
+  }
+</style>
+
+<script>
+  import {
+    EMPTY_ANSWERS,
+    HEADLINE_BY_ANSWER,
+    DEFAULT_SUB,
+    LP_SLUG,
+    buildGuide,
+    type Answers,
+    type QuestionKey,
+  } from "../../data/lp/original-print";
+  import { DEFAULT_PRODUCT_ID, detectProduct, getProduct } from "../../data/lp/original-print-products";
+  import { productArt } from "../../data/lp/product-art";
+  import { UPT_LINKS } from "../../data/lp/upt-ads";
+
+  type Tracker = (name: string, params: Record<string, unknown>) => void;
+  const w = window as unknown as {
+    sokunobankTrackEvent?: Tracker;
+    sokunobankGetAttribution?: () => Record<string, unknown>;
+    sokunobankDebounceClick?: (el: HTMLElement, fn: () => void) => void;
+    sokunobankTrackUptConversion?: () => void;
+  };
+
+  // 既存の計測関数(Layout.astro)を使う。Yahoo!広告の離脱CVを発火する sokunobankTrackOutboundClick は使わない。
+  // 値はすべて固定ID(個人情報・自由入力・日付そのものは送らない)。
+  function track(name: string, params: Record<string, unknown>) {
+    try {
+      const attribution = typeof w.sokunobankGetAttribution === "function" ? w.sokunobankGetAttribution() : {};
+      w.sokunobankTrackEvent?.(name, { lp: LP_SLUG, ...attribution, ...params });
+    } catch {
+      // 計測の失敗でページ機能を止めない
+    }
+  }
+
+  const $ = <T extends HTMLElement = HTMLElement>(sel: string) => document.querySelector<T>(sel);
+  const $$ = <T extends HTMLElement = HTMLElement>(sel: string) => Array.from(document.querySelectorAll<T>(sel));
+
+  // LP専用のクリック計測(回答つき)を使うため、共通ハンドラー(Header.astro)の upt_ad_click を無効にする
+  document.documentElement.dataset.uptLp = "1";
+
+  const answers: Answers = { ...EMPTY_ANSWERS, product: DEFAULT_PRODUCT_ID };
+  let lastKey: QuestionKey | null = null;
+
+  function daysBucket(n: number | null): string | undefined {
+    if (n === null || n < 0) return undefined;
+    if (n <= 7) return "within_7";
+    if (n <= 14) return "8_to_14";
+    return "15_plus";
+  }
+
+  function setText(sel: string, text: string) {
+    const el = $(sel);
+    if (el) el.textContent = text;
+  }
+  function setList(sel: string, items: string[]) {
+    const ul = $(sel);
+    if (!ul) return;
+    ul.textContent = "";
+    items.forEach((t) => {
+      const li = document.createElement("li");
+      li.textContent = t;
+      ul.appendChild(li);
+    });
+  }
+
+  /**
+   * A8商品リンク(キャップの商品)は、キャップ選択時だけ読み込む。最初にキャップが選ばれたときに、原文のコードを
+   * そのまま(span → 外部スクリプト → インラインスクリプトの順に)実行する。以後は表示/非表示の切り替えのみ。
+   */
+  let productLinkLoaded = false;
+  function toggleProductLink(show: boolean) {
+    const box = $("[data-pick-product]");
+    const slot = $("[data-pick-product-slot]");
+    const json = $("[data-product-link-json]");
+    if (!box || !slot || !json) return;
+    if (show && !productLinkLoaded) {
+      productLinkLoaded = true;
+      try {
+        // 商品の横のテキストリンク(A8発行の原文。スクリプトを含まないHTML)
+        const textJson = $("[data-cap-text-json]");
+        const textBox = $("[data-pick-product-text]");
+        if (textJson && textBox) textBox.innerHTML = JSON.parse(textJson.textContent ?? '""');
+        const code: string = JSON.parse(json.textContent ?? '""');
+        const tmp = document.createElement("div");
+        tmp.innerHTML = code; // scriptは挿入されても実行されない(原文の構造をそのまま取り出す)
+        const scripts = Array.from(tmp.querySelectorAll("script"));
+        tmp.querySelectorAll("script").forEach((n) => n.remove());
+        while (tmp.firstChild) slot.appendChild(tmp.firstChild);
+        const run = (i: number) => {
+          if (i >= scripts.length) return;
+          const orig = scripts[i];
+          const el = document.createElement("script");
+          el.type = orig.type || "text/javascript";
+          const src = orig.getAttribute("src");
+          if (src) {
+            el.src = src;
+            el.onload = () => run(i + 1);
+            el.onerror = () => run(i + 1);
+            slot.appendChild(el);
+          } else {
+            el.text = orig.textContent ?? "";
+            slot.appendChild(el);
+            run(i + 1);
+          }
+        };
+        run(0);
+      } catch {
+        // 広告の読み込み失敗でページの機能を止めない
+      }
+    }
+    box.hidden = !show;
+  }
+
+  /** 商品と関連情報だけを更新する(フォームの他の回答はリセットしない) */
+  function renderProduct() {
+    const p = getProduct(answers.product) ?? getProduct(DEFAULT_PRODUCT_ID)!;
+    setText("[data-lp-product]", p.shortName);
+    // メインCTA(素材ID 1)のリンク文言だけを商品に合わせて更新する(href・計測画像は変更しない)
+    const heroLink = $('[data-ad-position="hero"] a');
+    if (heroLink) heroLink.textContent = `Up-Tで${p.shortName}を選んで納期を確認`;
+    // キャップ選択時は、キャップ商品のテキストリンク(A8発行)に遷移先を切り替える。それ以外は素材ID 1(Up-Tのトップ)
+    const linkKey = p.id === "cap" ? "cap" : "top";
+    ["hero", "pick_button"].forEach((pos) => {
+      const a = $(`[data-ad-position="${pos}"] a`) as HTMLAnchorElement | null;
+      if (!a) return;
+      const target = UPT_LINKS[linkKey];
+      if (a.getAttribute("href") !== target.href) a.setAttribute("href", target.href);
+      const px = a.parentElement?.querySelector<HTMLImageElement>('img[width="1"]');
+      if (px && px.getAttribute("src") !== target.pixel) px.setAttribute("src", target.pixel);
+    });
+    setText("[data-lp-catch]", p.catchcopy);
+    setText("[data-combo-label]", p.name);
+    const comboArt = $("[data-combo-art]");
+    if (comboArt) comboArt.innerHTML = productArt(p.art);
+    $$("[data-option]").forEach((el) => el.setAttribute("aria-selected", String(el.dataset.option === p.id)));
+    $$("[data-product-btn]").forEach((el) => el.setAttribute("aria-pressed", String(el.dataset.productBtn === p.id)));
+
+    setText("[data-pick-name]", p.name);
+    toggleProductLink(p.id === "cap");
+    const pickLink = $('[data-ad-position="pick_button"] a');
+    if (pickLink) pickLink.textContent = `Up-Tで${p.name}の商品と納期を確認する`;
+    setText("[data-pick-lead]", p.lead);
+    setList("[data-pick-design]", p.design);
+    setList("[data-pick-checks]", p.checks);
+
+    const scenes = $("[data-scenes]");
+    if (scenes) {
+      scenes.textContent = "";
+      p.uses.forEach((u) => {
+        const card = document.createElement("div");
+        card.className = "scene";
+        const img = document.createElement("div");
+        img.className = "scene-img";
+        if (u.image) {
+          const im = document.createElement("img");
+          im.src = u.image.src;
+          if (u.image.srcset) im.srcset = u.image.srcset;
+          im.width = u.image.width;
+          im.height = u.image.height;
+          im.alt = u.image.alt;
+          im.loading = "lazy";
+          img.appendChild(im);
+        } else {
+          img.innerHTML = productArt(p.art);
+        }
+        const t = document.createElement("p");
+        t.className = "scene-title";
+        t.textContent = u.title;
+        const s = document.createElement("p");
+        s.className = "scene-sub";
+        s.textContent = u.sub;
+        card.append(img, t, s);
+        scenes.appendChild(card);
+      });
+    }
+    renderGuide();
+    renderCopy();
+    ensureGridVisible(p.id, p.group);
+  }
+
+  function renderGuide() {
+    const g = buildGuide(answers);
+    setText("[data-guide-method]", g.method);
+    setText("[data-guide-deadline]", g.deadline);
+    setText("[data-guide-cta]", g.ctaLead);
+    setList("[data-guide-prepare]", g.prepare);
+  }
+
+  /** 右側のサブコピー: 直近に選んだ回答(デザイン・納期・数量)に連動する。商品は見出しに反映 */
+  function renderCopy() {
+    const v = lastKey ? answers[lastKey] : null;
+    const copy = lastKey && v ? HEADLINE_BY_ANSWER[`${lastKey}:${v}`] : null;
+    const cur = getProduct(answers.product) ?? getProduct(DEFAULT_PRODUCT_ID)!;
+    setText("[data-lp-sub]", copy ? copy.headline : cur.subcopy);
+  }
+
+  // --- 商品の選択(PCプルダウン・PCストリップ・スマホグリッド共通) ---
+  let userSelected = false;
+  function selectProduct(id: string, source: string) {
+    const p = getProduct(id);
+    if (!p) return;
+    if (source !== "intent") userSelected = true;
+    const changed = answers.product !== p.id;
+    answers.product = p.id;
+    renderProduct();
+    if (changed || source === "intent") {
+      track("product_selected", { product: p.id, product_group: p.group, source });
+    }
+    // LINEヤフー広告のサイトリターゲティング(カスタムパラメーター)。利用者が選んだ商品を、固定のIDだけで送る。
+    // 流入時の商品(?item=)は、タグが取得するURLで分類できるため、intent での初期選択では送らない
+    if (changed && source !== "intent") {
+      try {
+        (window as unknown as { sokunobankYahooRetargetingItem?: (i: string, g: string) => void }).sokunobankYahooRetargetingItem?.(p.id, p.group);
+      } catch {
+        // no-op
+      }
+    }
+  }
+
+  document.addEventListener("click", (e) => {
+    const btn = (e.target as Element).closest<HTMLElement>("[data-product-btn]");
+    if (btn?.dataset.productBtn) {
+      selectProduct(btn.dataset.productBtn, btn.closest("[data-pgrid]") ? "grid" : "strip");
+    }
+  });
+
+  // --- PC: 階層+検索つきプルダウン ---
+  const combo = $("[data-combo]");
+  const comboBtn = $<HTMLButtonElement>(".combo-btn");
+  const pop = $("[data-combo-pop]");
+  const search = $<HTMLInputElement>("[data-combo-search]");
+  const empty = $("[data-combo-empty]");
+  let activeIdx = -1;
+
+  const visibleOptions = () => $$("[data-option]").filter((o) => !o.hidden);
+  function setActive(idx: number) {
+    const opts = visibleOptions();
+    $$("[data-option]").forEach((o) => o.classList.remove("is-active"));
+    activeIdx = Math.max(-1, Math.min(idx, opts.length - 1));
+    const el = opts[activeIdx];
+    if (el) {
+      el.classList.add("is-active");
+      el.scrollIntoView({ block: "nearest" });
+      search?.setAttribute("aria-activedescendant", el.id);
+    } else {
+      search?.removeAttribute("aria-activedescendant");
+    }
+  }
+  function filterOptions(q: string) {
+    const needle = q.trim().toLowerCase();
+    $$("[data-option]").forEach((o) => {
+      o.hidden = needle !== "" && !(o.dataset.name ?? "").includes(needle);
+    });
+    $$("[data-group-head]").forEach((h) => {
+      const g = h.dataset.groupHead;
+      h.hidden = !$$("[data-option]").some((o) => o.dataset.group === g && !o.hidden);
+    });
+    if (empty) empty.hidden = visibleOptions().length > 0;
+    setActive(visibleOptions().length > 0 ? 0 : -1);
+  }
+  function openCombo() {
+    if (!pop || !comboBtn) return;
+    pop.hidden = false;
+    comboBtn.setAttribute("aria-expanded", "true");
+    if (search) {
+      search.value = "";
+      filterOptions("");
+      search.focus();
+    }
+    setActive(visibleOptions().findIndex((o) => o.dataset.option === answers.product));
+  }
+  function closeCombo(focusBtn = false) {
+    if (!pop || !comboBtn || pop.hidden) return;
+    pop.hidden = true;
+    comboBtn.setAttribute("aria-expanded", "false");
+    if (focusBtn) comboBtn.focus();
+  }
+  comboBtn?.addEventListener("click", () => (pop?.hidden ? openCombo() : closeCombo()));
+  comboBtn?.addEventListener("keydown", (e) => {
+    if (e.key === "ArrowDown" || e.key === "ArrowUp") {
+      e.preventDefault();
+      openCombo();
+    }
+  });
+  search?.addEventListener("input", () => filterOptions(search.value));
+  search?.addEventListener("keydown", (e) => {
+    const opts = visibleOptions();
+    if (e.key === "ArrowDown") {
+      e.preventDefault();
+      setActive(Math.min(activeIdx + 1, opts.length - 1));
+    } else if (e.key === "ArrowUp") {
+      e.preventDefault();
+      setActive(Math.max(activeIdx - 1, 0));
+    } else if (e.key === "Enter") {
+      e.preventDefault();
+      const el = opts[activeIdx];
+      if (el?.dataset.option) {
+        selectProduct(el.dataset.option, "dropdown");
+        closeCombo(true);
+      }
+    } else if (e.key === "Escape" || e.key === "Tab") {
+      closeCombo(e.key === "Escape");
+    }
+  });
+  $("[data-combo-list]")?.addEventListener("click", (e) => {
+    const el = (e.target as Element).closest<HTMLElement>("[data-option]");
+    if (el?.dataset.option) {
+      selectProduct(el.dataset.option, "dropdown");
+      closeCombo(true);
+    }
+  });
+  document.addEventListener("click", (e) => {
+    if (combo && !combo.contains(e.target as Node)) closeCombo();
+  });
+
+  // --- スマホ: グループタブ+「すべてのアイテムから選ぶ」 ---
+  const COLLAPSED_COUNT = 6;
+  let activeTab = "all";
+  let expanded = false;
+  const moreBtn = $<HTMLButtonElement>("[data-pmore]");
+  function applyGrid() {
+    const items = $$("[data-pgrid-list] [data-product-btn]");
+    const inTab = items.filter((i) => activeTab === "all" || i.dataset.group === activeTab);
+    items.forEach((i) => {
+      const idx = inTab.indexOf(i);
+      i.hidden = idx < 0 || (!expanded && idx >= COLLAPSED_COUNT);
+    });
+    if (moreBtn) {
+      moreBtn.hidden = inTab.length <= COLLAPSED_COUNT;
+      moreBtn.setAttribute("aria-expanded", String(expanded));
+      moreBtn.textContent = expanded ? "閉じる" : "すべてのアイテムから選ぶ →";
+    }
+  }
+  const tabs = $$<HTMLButtonElement>(".ptab");
+  tabs.forEach((t, i) => {
+    t.addEventListener("click", () => {
+      activeTab = t.dataset.tab ?? "all";
+      expanded = false;
+      tabs.forEach((x) => x.setAttribute("aria-selected", String(x === t)));
+      applyGrid();
+    });
+    t.addEventListener("keydown", (e) => {
+      if (e.key !== "ArrowRight" && e.key !== "ArrowLeft") return;
+      e.preventDefault();
+      const next = tabs[(i + (e.key === "ArrowRight" ? 1 : -1) + tabs.length) % tabs.length];
+      next.focus();
+      next.click();
+    });
+  });
+  moreBtn?.addEventListener("click", () => {
+    expanded = !expanded;
+    applyGrid();
+  });
+  applyGrid();
+
+  /** 選択した商品がグリッド上で隠れている場合は、その商品のグループタブへ切り替え、必要なら展開して見える状態にする */
+  function ensureGridVisible(id: string, group: string) {
+    const item = $(`[data-pgrid-list] [data-product-btn="${id}"]`);
+    if (!item || !item.hidden) return;
+    activeTab = group;
+    expanded = false;
+    tabs.forEach((x) => x.setAttribute("aria-selected", String(x.dataset.tab === group)));
+    applyGrid();
+    if (item.hidden) {
+      expanded = true;
+      applyGrid();
+    }
+  }
+
+  // --- Q1/Q3/Q4(デザイン・納期・数量) ---
+  const form = $<HTMLFormElement>("[data-lp-form]");
+  const dateRow = $("[data-date-row]");
+  const dateInput = $<HTMLInputElement>("#use-date");
+
+  function updateDays() {
+    const v = dateInput?.value;
+    if (!v) {
+      answers.daysLeft = null;
+      return;
+    }
+    const [y, m, d] = v.split("-").map(Number);
+    const target = new Date(y, m - 1, d).getTime();
+    const now = new Date();
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
+    answers.daysLeft = Math.round((target - today) / 86400000);
+  }
+
+  form?.addEventListener("change", (e) => {
+    const t = e.target as HTMLInputElement;
+    if (t.name === "use-date") {
+      updateDays();
+      renderGuide();
+      track("lp_select", { question: "deadline", answer: "date_value_set", days_bucket: daysBucket(answers.daysLeft) });
+      return;
+    }
+    if (t.name !== "design" && t.name !== "deadline" && t.name !== "qty") return;
+    const key = t.name as QuestionKey;
+    (answers as unknown as Record<string, string | null>)[key] = t.value;
+    if (key === "deadline") {
+      if (dateRow) dateRow.hidden = t.value !== "date";
+      if (t.value !== "date") answers.daysLeft = null;
+      else updateDays();
+    }
+    lastKey = key;
+    renderCopy();
+    renderGuide();
+    track("lp_select", { question: key, answer: t.value });
+  });
+
+  $("[data-guide-link]")?.addEventListener("click", () => {
+    track("lp_guide_open", {
+      design: answers.design ?? undefined,
+      product: answers.product ?? undefined,
+      deadline: answers.deadline ?? undefined,
+      qty: answers.qty ?? undefined,
+    });
+  });
+
+  // --- キーワード流入からの初期選択(ユーザー自身の選択を優先) ---
+  try {
+    const qs = new URLSearchParams(window.location.search);
+    const found = detectProduct(["item", "product", "intent", "utm_term", "utm_content", "q"].map((k) => qs.get(k) ?? ""));
+    if (found && !userSelected) selectProduct(found.id, "intent");
+  } catch {
+    // no-op
+  }
+
+  // --- 広告バナー: PC用(素材ID 74)/スマホ用(素材ID 15)のうち、該当する方だけを挿入する ---
+  const isMobileBanner = window.matchMedia("(max-width: 720px)").matches;
+  $$("[data-upt-banner]").forEach((box) => {
+    const slot = box.querySelector<HTMLElement>("[data-banner-slot]");
+    const src = box.querySelector<HTMLScriptElement>(`script[data-variant="${isMobileBanner ? "mobile" : "pc"}"]`);
+    if (slot && src?.textContent) {
+      // 広告コードの原文をそのままHTMLとして挿入する(加工しない)
+      slot.innerHTML = src.textContent;
+      slot.dataset.uptAd = isMobileBanner ? "15" : "74";
+      slot.dataset.adType = "banner";
+      slot.dataset.adPosition = box.dataset.position ?? "";
+    }
+  });
+
+  // --- 広告クリックの計測(リスナー追加のみ。遷移・広告コードには干渉しない) ---
+  document.addEventListener(
+    "click",
+    (e) => {
+      const el = (e.target as Element | null)?.closest<HTMLElement>("[data-upt-ad]");
+      if (!el || !(e.target as Element).closest("a")) return;
+      const run = () => {
+        // LINEヤフー広告の離脱クリックCV(Up-T送客)。リンク・広告コードには触れず、発火のみ行う
+        w.sokunobankTrackUptConversion?.();
+        track("upt_ad_click", {
+          ad_id: el.dataset.uptAd,
+          ad_type: el.dataset.adType,
+          ad_position: el.dataset.adPosition || undefined,
+          design: answers.design ?? undefined,
+          product: answers.product ?? undefined,
+          deadline: answers.deadline ?? undefined,
+          qty: answers.qty ?? undefined,
+          days_bucket: daysBucket(answers.daysLeft),
+        });
+      };
+      if (typeof w.sokunobankDebounceClick === "function") w.sokunobankDebounceClick(el, run);
+      else run();
+    },
+    true,
+  );
+
+  renderProduct();
+</script>

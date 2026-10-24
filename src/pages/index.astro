@@ -1,6 +1,7 @@
 ---
 import Layout from "../layouts/Layout.astro";
 import SearchHero from "../components/SearchHero.astro";
+import UptPromoBanner from "../components/UptPromoBanner.astro";
 import CategoryCard from "../components/CategoryCard.astro";
 import ComparisonTable from "../components/ComparisonTable.astro";
 import GuideCard from "../components/GuideCard.astro";
@@ -32,6 +33,7 @@ const allGuides = categories.flatMap((c) => c.guides ?? []);
   description="「今日中/明日までに欲しい」法人の発注担当者向けに、DM発送・印刷・販促物などの即納サービスを納期・価格・対応条件から比較します。"
 >
   <SearchHero keywords={popularKeywords} />
+  <UptPromoBanner />
 
   <section class="section section-soft">
     <div class="container">

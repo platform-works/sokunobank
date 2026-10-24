@@ -32,6 +32,12 @@ const navLinks = [
       </ul>
     </nav>
 
+    <a class="header-cta" href="/lp/original-print/" data-promo="upt-original-print" data-placement="header">
+      <span class="header-cta-full">Tシャツ・グッズを作る</span>
+      <span class="header-cta-short">Tシャツ作成</span>
+      <span class="header-cta-pr" aria-label="広告">PR</span>
+    </a>
+
     <details class="nav-mobile">
       <summary aria-label="メニューを開く">
         <span class="menu-icon" aria-hidden="true"></span>
@@ -52,6 +58,34 @@ const navLinks = [
   </div>
 </header>
 
+<script>
+  // Up-T LPへの導線(ヘッダー・記事内・トップバナー・フッター)の共通クリック計測。
+  // 既存の計測関数(Layout.astro)を使い、遷移には干渉しない。値は固定ID。
+  document.addEventListener("click", (e) => {
+    const w = window as unknown as { sokunobankTrackEvent?: (n: string, p: Record<string, unknown>) => void };
+    const target = e.target as Element | null;
+    const el = target?.closest<HTMLElement>("[data-promo]");
+    try {
+      if (el) {
+        w.sokunobankTrackEvent?.("promo_click", { promo: el.dataset.promo, placement: el.dataset.placement });
+        return;
+      }
+      // A8広告ボタン(UptAdButton)のクリック。LPは専用ハンドラー(回答つき)で計測するため除外する
+      if (document.documentElement.dataset.uptLp) return;
+      const ad = target?.closest<HTMLElement>("[data-upt-ad]");
+      if (ad && target?.closest("a")) {
+        w.sokunobankTrackEvent?.("upt_ad_click", {
+          ad_id: ad.dataset.uptAd,
+          ad_type: ad.dataset.adType,
+          ad_position: ad.dataset.adPosition,
+        });
+      }
+    } catch {
+      // no-op
+    }
+  });
+</script>
+
 <style>
   .site-header {
     position: sticky;
@@ -65,6 +99,7 @@ const navLinks = [
     display: flex;
     align-items: center;
     justify-content: space-between;
+    gap: 0.75rem;
     height: 64px;
   }
 
@@ -124,7 +159,54 @@ const navLinks = [
     display: none;
   }
 
+  /* 常時表示のCTA(ヘッダーはスクロールしても追従する)。広告LPへの導線のためPRを併記する */
+  .header-cta {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    min-height: 44px;
+    padding: 0 0.9rem;
+    border-radius: var(--radius-md);
+    background: var(--color-accent-dark);
+    color: #fff;
+    font-size: 0.85rem;
+    font-weight: 700;
+    text-decoration: none;
+    white-space: nowrap;
+    flex: none;
+  }
+  .header-cta:hover {
+    filter: brightness(0.92);
+  }
+  .header-cta:focus-visible {
+    outline: 2px solid var(--color-text);
+    outline-offset: 2px;
+  }
+  .header-cta-short {
+    display: none;
+  }
+  .header-cta-pr {
+    padding: 0 0.3rem;
+    border: 1px solid rgba(255, 255, 255, 0.8);
+    border-radius: var(--radius-sm);
+    font-size: 0.62rem;
+    letter-spacing: 0.04em;
+    line-height: 1.5;
+  }
+
   @media (max-width: 860px) {
+    .header-cta {
+      margin-left: auto;
+      margin-right: 0.5rem;
+      padding: 0 0.6rem;
+      font-size: 0.8rem;
+    }
+    .header-cta-full {
+      display: none;
+    }
+    .header-cta-short {
+      display: inline;
+    }
     .nav-desktop {
       display: none;
     }
