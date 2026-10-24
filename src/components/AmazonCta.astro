@@ -1,0 +1,55 @@
+---
+import { getAmazonCtas } from "../data/amazonLinks";
+
+// ファーストビュー用のAmazonテキストリンク。確認済みリンクが未登録なら何も出力しない。
+// 価格・画像・評価は表示しない(Creators API利用可能になるまで。CLAUDE.mdのAmazonアソシエイト連携ルール参照)。
+interface Props {
+  pageKey: string;
+}
+const { pageKey } = Astro.props;
+const ctas = getAmazonCtas(pageKey);
+---
+
+{
+  ctas.length > 0 && (
+    <aside class="amazon-cta" aria-label="Amazonで購入する">
+      <span class="badge">PR</span>
+      <ul>
+        {ctas.map((c) => (
+          <li>
+            <a href={c.link.url} target="_blank" rel="sponsored noopener">
+              {c.label}
+            </a>
+          </li>
+        ))}
+      </ul>
+      <p class="note">価格・在庫・配達日はAmazonの商品ページで最新をご確認ください。</p>
+    </aside>
+  )
+}
+
+<style>
+  .amazon-cta {
+    border: 1px solid var(--color-border);
+    background: var(--color-bg-soft);
+    border-radius: var(--radius-md);
+    padding: 12px 16px;
+    margin: 16px 0;
+  }
+  .amazon-cta ul {
+    list-style: none;
+    margin: 8px 0 0;
+    padding: 0;
+  }
+  .amazon-cta a {
+    display: inline-block;
+    min-height: 44px;
+    line-height: 44px;
+    font-weight: 600;
+  }
+  .note {
+    margin: 4px 0 0;
+    font-size: 0.8125rem;
+    color: var(--color-text-muted);
+  }
+</style>
