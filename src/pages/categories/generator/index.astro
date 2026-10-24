@@ -74,6 +74,25 @@ const pageJsonLd = {
 
     <UrgentProductsSection slug={c.slug} apiPath={c.apiPath} />
 
+    <section id="products" class="products-section">
+      <h2 class="products-heading">商品比較・絞り込み</h2>
+
+      <details class="filter-toggle" open>
+        <summary class="filter-toggle-summary">条件を絞り込む</summary>
+        <div class="filter-toggle-body">
+          <CommerceFilterPanel slug={c.slug} sortOptions={c.sortOptions} hideDelivery />
+        </div>
+      </details>
+
+      <p class="intro">{c.intro}</p>
+
+      <ProductGrid slug={c.slug} apiPath={c.apiPath} variant="generator" />
+
+      <Disclaimer text={c.deliveryNote} />
+    </section>
+
+    <AmazonSearchSection />
+
     <FoldSection label="発電機とポータブル電源の違い(比較表)">
       <TypeComparison />
     </FoldSection>
@@ -93,25 +112,6 @@ const pageJsonLd = {
     <FoldSection label="用途別に選ぶ(防災・家庭・工事・キャンプ・車中泊)">
       <UsageCards />
     </FoldSection>
-
-    <section id="products" class="products-section">
-      <h2 class="products-heading">商品比較・絞り込み</h2>
-
-      <details class="filter-toggle" open>
-        <summary class="filter-toggle-summary">条件を絞り込む</summary>
-        <div class="filter-toggle-body">
-          <CommerceFilterPanel slug={c.slug} sortOptions={c.sortOptions} hideDelivery />
-        </div>
-      </details>
-
-      <p class="intro">{c.intro}</p>
-
-      <ProductGrid slug={c.slug} apiPath={c.apiPath} variant="generator" />
-
-      <Disclaimer text={c.deliveryNote} />
-    </section>
-
-    <AmazonSearchSection />
 
     {
       c.popularBrands && c.popularBrands.length > 0 && (
