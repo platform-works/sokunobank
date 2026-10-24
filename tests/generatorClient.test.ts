@@ -166,3 +166,17 @@ describe("車中泊ではエンジン式を選べない", () => {
     expect(r.unknown).toBe(1);
   });
 });
+
+describe("機器の一覧からの必要容量", () => {
+  it("消費電力×台数×時間を合計し、10単位に切り上げる", async () => {
+    const { estimateItems } = await import("../src/lib/commerce/generatorContent");
+    // 30W×1×12h + 10W×2×6h = 360 + 120
+    expect(estimateItems([{ watts: 30, qty: 1, hours: 12 }, { watts: 10, qty: 2, hours: 6 }])).toEqual({ wh: 480, w: 50 });
+    expect(estimateItems([{ watts: 33, qty: 1, hours: 1 }])).toEqual({ wh: 40, w: 40 });
+  });
+  it("0以下・不正な値は0として扱う", async () => {
+    const { estimateItems } = await import("../src/lib/commerce/generatorContent");
+    expect(estimateItems([])).toEqual({ wh: 0, w: 0 });
+    expect(estimateItems([{ watts: Number.NaN, qty: 1, hours: 1 }, { watts: -5, qty: 1, hours: 1 }, { watts: 100, qty: 0, hours: 5 }])).toEqual({ wh: 0, w: 0 });
+  });
+});

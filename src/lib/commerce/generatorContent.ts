@@ -190,12 +190,45 @@ export const environments: Environment[] = [
   },
 ];
 
+/**
+ * 用途ごとの「おすすめ容量」に使う環境(environments の id)。用途だけを選んだ人に、出典確認済みの消費電力から
+ * 計算した必要容量の目安を提示する。工事・業務用は、使う機器(電動工具・業務機器)の消費電力に公的な目安値を
+ * 確認できていないため、一律のおすすめ容量は出さない(空配列)。
+ */
+export const useCaseEnvironments: Record<UseCase["id"], string[]> = {
+  disaster: ["blackout-min", "blackout-fridge"],
+  home: ["blackout-min", "blackout-fridge"],
+  camp: ["camp-tent"],
+  vehicle: ["vehicle-summer", "vehicle-winter"],
+  work: [],
+};
+
 export interface EnvironmentEstimate {
   /** 必要容量の目安(Wh)。10Wh単位に切り上げ */
   wh: number;
   /** 同時に使う機器の合計出力の目安(W)。10W単位に切り上げ */
   w: number;
   lines: { label: string; watts: number; qty: number; hours: number }[];
+}
+
+export interface CalcItem {
+  watts: number;
+  qty: number;
+  hours: number;
+}
+
+/** 機器の一覧から必要容量(Wh)・合計出力(W)の目安を計算する。10単位に切り上げ。不正・0以下の値は0として扱う */
+export function estimateItems(items: CalcItem[]): { wh: number; w: number } {
+  const pos = (n: number) => (Number.isFinite(n) && n > 0 ? n : 0);
+  let wh = 0;
+  let w = 0;
+  for (const it of items) {
+    const watts = pos(it.watts);
+    const qty = pos(it.qty);
+    wh += watts * qty * pos(it.hours);
+    w += watts * qty;
+  }
+  return { wh: Math.ceil(wh / 10) * 10, w: Math.ceil(w / 10) * 10 };
 }
 
 /** 環境の必要容量・合計出力の目安。消費電力が未確認(null)の機器は計算に含めない */
