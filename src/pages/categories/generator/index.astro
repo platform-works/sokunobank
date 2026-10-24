@@ -20,6 +20,7 @@ import UrgentProductsSection from "../../../components/commerce/generator/Urgent
 import PowerGuideSection from "../../../components/commerce/generator/PowerGuideSection.astro";
 import UsageCards from "../../../components/commerce/generator/UsageCards.astro";
 import FoldSection from "../../../components/commerce/generator/FoldSection.astro";
+import LandingBanner from "../../../components/commerce/generator/LandingBanner.astro";
 import StepSelector from "../../../components/commerce/generator/StepSelector.astro";
 import GeneratorRuntime from "../../../components/commerce/generator/GeneratorRuntime.astro";
 import TypeComparison from "../../../components/commerce/generator/TypeComparison.astro";
@@ -66,6 +67,8 @@ const pageJsonLd = {
     <GeneratorRuntime />
 
     <GeneratorHero h1={c.h1} subheadline={c.subheadline} deliveryNote={c.deliveryNote} pcBannerHtml={c.ads?.pcBannerHtml} />
+
+    <LandingBanner />
 
     <StepSelector />
 

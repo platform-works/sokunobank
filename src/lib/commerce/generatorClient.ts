@@ -224,6 +224,7 @@ export function buildTrackParams(p: TrackableProduct, sel: Selection) {
     // 計測には送らない(常にundefined)。
     delivery_days: undefined,
     shop_name: p.storeName || undefined,
+    ...landingTrackParams(),
   };
 }
 
@@ -300,10 +301,87 @@ export function getSelection(): Selection {
   return selection;
 }
 
+// ---- 誘導元(広告・外部リンクなど)の情報 ----------------------------------------
+// 条件付きURLで開かれたとき(例: ?brand=jackery&use=disaster)の条件と、utm_*を覚えておき、商品クリック等の計測に添える。
+// 広告の識別子(gclid等)は送らない。utm_*はURLに付いているものだけ。
+
+export interface Landing {
+  /** 絞り込みに使われたクエリ(use/type/brand/cap/power/budgetのみ、正規化した並び) */
+  filters: string;
+  utm: Record<string, string>;
+}
+
+const FILTER_KEYS = ["use", "type", "brand", "cap", "power", "budget"];
+const UTM_KEYS = ["utm_source", "utm_medium", "utm_campaign", "utm_term", "utm_content"];
+
+/** URLのクエリから誘導元の情報を作る。絞り込みの条件もutm_*も無ければnull */
+export function landingFromParams(params: URLSearchParams): Landing | null {
+  const valid = selectionFromParams(params);
+  const filters = new URLSearchParams();
+  for (const k of FILTER_KEYS) {
+    const v = params.get(k);
+    if (v === null) continue;
+    // 実際に有効と解釈された条件だけ残す(不正な値は計測にも含めない)
+    const recognized =
+      (k === "use" && valid.useCase) || (k === "type" && valid.type) || (k === "brand" && valid.brand) ||
+      (k === "cap" && valid.capacity) || (k === "power" && valid.power) || (k === "budget" && valid.budget);
+    if (recognized) filters.set(k, v);
+  }
+  const utm: Record<string, string> = {};
+  for (const k of UTM_KEYS) {
+    const v = params.get(k);
+    if (v) utm[k] = v.slice(0, 100);
+  }
+  if (filters.toString() === "" && Object.keys(utm).length === 0) return null;
+  return { filters: filters.toString(), utm };
+}
+
+let landing: Landing | null = null;
+export function getLanding(): Landing | null {
+  return landing;
+}
+export function setLanding(l: Landing | null): void {
+  landing = l;
+}
+
+/** 計測に添える誘導元のパラメータ(無ければ空) */
+export function landingTrackParams(): Record<string, string> {
+  if (!landing) return {};
+  const out: Record<string, string> = { ...landing.utm };
+  if (landing.filters) out.landing_filters = landing.filters;
+  return out;
+}
+
+// 直近の商品取得に使ったブランドID。ブランドが変わったとき(商品の取り直しが必要なとき)だけ再取得を促す
+let fetchedBrandId: string | null | undefined = undefined;
+
 export function setSelection(patch: Partial<Selection>): void {
   selection = mergeSelection(selection, patch);
   document.dispatchEvent(new CustomEvent("generator:selection-change", { detail: { selection } }));
-  document.dispatchEvent(new CustomEvent("commerce:rerender", { detail: { slug: SLUG } }));
+  // ブランドは取得にも使う(追加候補を集めるため)。取得済みのブランドと違うときだけ取り直す
+  const nowBrand = selection.brand?.id ?? null;
+  if (fetchedBrandId !== undefined && fetchedBrandId !== nowBrand) {
+    document.dispatchEvent(new CustomEvent("commerce:reload", { detail: { slug: SLUG } }));
+  } else {
+    document.dispatchEvent(new CustomEvent("commerce:rerender", { detail: { slug: SLUG } }));
+  }
+}
+
+/** 取得APIに添えるブランド指定(取得した時点のブランドを記録する) */
+export function brandFetchParam(): string | null {
+  const id = selection.brand?.id ?? null;
+  fetchedBrandId = id;
+  return id;
+}
+
+/** 条件をすべて解除する。URLのクエリも消す(再読み込みで条件が復活しないように) */
+export function clearSelection(): void {
+  setSelection({ useCase: null, type: null, capacity: null, power: null, budget: null, brand: null });
+  try {
+    if (window.location.search) window.history.replaceState(null, "", window.location.pathname + window.location.hash);
+  } catch {
+    // URLの書き換えができない環境でも、解除自体は有効
+  }
 }
 
 export function trackFilterUse(filterName: string, filterValue?: string): void {
@@ -315,6 +393,7 @@ export function trackFilterUse(filterName: string, filterValue?: string): void {
     filter_value: filterValue,
     use_case: selection.useCase ?? undefined,
     page_path: window.location.pathname,
+    ...landingTrackParams(),
   });
 }
 
@@ -419,6 +498,15 @@ function updateFilterNote(root: HTMLElement, shown: number, total: number, unkno
     text += `商品名から該当の値を確認できない${unknown}件は、推測で分類せず表示していません。絞り込みを解除すると表示されます。`;
   }
   note.textContent = text;
+  const reset = document.createElement("button");
+  reset.type = "button";
+  reset.className = "btn btn-secondary gen-filter-reset";
+  reset.textContent = "条件をすべて解除";
+  reset.addEventListener("click", () => {
+    trackFilterUse("reset", "条件をすべて解除");
+    clearSelection();
+  });
+  note.append(" ", reset);
 }
 
 export function registerGeneratorExtension(): void {
@@ -428,6 +516,11 @@ export function registerGeneratorExtension(): void {
   let lastAll: GridProduct[] = [];
   w.sokunobankCardExtensions[SLUG] = {
     decorateCard,
+    // 商品取得APIへ添える追加パラメータ(ブランド指定のとき、そのブランドの追加候補を集めてもらう)
+    extraParams: () => {
+      const id = brandFetchParam();
+      return id ? { brand: id } : null;
+    },
     // 2026-10-24: お届け先ごとの配送日は取得しない(取得はお届け先に依存しない)ため、固定の案内にする
     deliveryText: () => DELIVERY_NOTICE,
     trackParams: (p: GridProduct) => buildTrackParams(p, getSelection()),
@@ -465,4 +558,11 @@ export function registerGeneratorExtension(): void {
       );
     },
   };
+}
+
+// ページを開いた時点のURL(?brand=...等)から、初期の絞り込みと誘導元を反映する(ブラウザのみ)
+if (typeof window !== "undefined") {
+  const initial = new URLSearchParams(window.location.search);
+  selection = mergeSelection(selection, selectionFromParams(initial));
+  landing = landingFromParams(initial);
 }

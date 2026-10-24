@@ -276,12 +276,16 @@ const rootId = `generator-urgent-${slug}`;
     }
 
     let latestRequestId = 0;
+    let loadedBrand: string | null = null;
     async function load() {
       const requestId = ++latestRequestId;
       setState("loading");
-      // 取得はお届け先に依存しない(サーバー側でお届け先・到着希望を使わない設定)
+      // 取得はお届け先に依存しない(サーバー側でお届け先・到着希望を使わない設定)。ブランド指定のときは、
+      // そのブランドの追加候補も集めてもらう(商品一覧と同じURLなので、キャッシュも共有される)
       const query = new URLSearchParams();
       query.set("sort", "recommended");
+      loadedBrand = getSelection().brand?.id ?? null;
+      if (loadedBrand) query.set("brand", loadedBrand);
       try {
         const res = await fetch(`${apiPath}?${query.toString()}`);
         const data = await res.json();
@@ -304,6 +308,11 @@ const rootId = `generator-urgent-${slug}`;
     load();
     // STEP選択(種類・容量・出力・用途・予算・ブランド)が変わったら、取得済みの商品から選び直す
     document.addEventListener("generator:selection-change", () => {
+      // ブランドが変わったときは、そのブランドの追加候補を含めて取り直す。それ以外は取得済みの商品から選び直す
+      if ((getSelection().brand?.id ?? null) !== loadedBrand) {
+        load();
+        return;
+      }
       if (allProducts.length > 0) render();
     });
 

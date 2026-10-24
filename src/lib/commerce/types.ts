@@ -164,6 +164,12 @@ export interface CommerceCategoryConfig {
    */
   ignoreDeliveryArea?: boolean;
   /**
+   * 任意(2026-10-24導入、発電機カテゴリーが最初の利用者)。ブランドID → 追加取得の設定。APIのクエリ `brand=<ID>` が
+   * ここに定義されたIDのときだけ、そのブランドの検索語で追加の候補を集めて、共通の商品群へ足す(brandPool.ts参照)。
+   * 未設定、または未定義のIDなら何もしない。
+   */
+  brandSearch?: Record<string, { words: string[]; queries: string[]; targetCount?: number }>;
+  /**
    * 任意(2026-10-24導入、発電機カテゴリーが最初の利用者)。楽天市場の評価・件数を裏側の順位付けに
    * 使う設定。keywordsで楽天の売れ筋(レビュー件数順)を集め、Yahoo!商品と型番+価格帯で照合する。
    * 楽天の認証情報が無い・取得に失敗した場合は何もせずYahoo!のみで動く。未設定なら楽天は呼ばない。

@@ -5,6 +5,7 @@ import { scoreProduct } from "./ranking";
 import type { CommerceCategoryConfig, ScoredProduct, SortKey } from "./types";
 import { buildReviewSignals, fetchRakutenPool } from "../rakuten/signal";
 import { descriptionExcerpt } from "./descriptionExcerpt";
+import { mergeBrandExtras, prioritizeBrand } from "./brandPool";
 
 function descriptionField(raw: string): { description?: string } {
   const d = descriptionExcerpt(raw);
@@ -15,6 +16,58 @@ import type { RakutenProduct } from "../rakuten/types";
 
 // 楽天の照合用商品群のキャッシュ保持期間(6時間)。レビュー件数順の売れ筋は短時間では変わらない
 const RAKUTEN_POOL_TTL_SECONDS = 21600;
+
+/**
+ * ブランド指定時の追加候補(brandPool.ts)。ブランドごとに30分キャッシュする(失敗しても呼び出し側が共通の商品群だけで続行する)。
+ * 楽天の評価との照合は、共通の商品群と同じ方法で行う。
+ */
+async function getBrandExtras(
+  config: CommerceCategoryConfig,
+  brandId: string,
+  appId: string,
+  env: Record<string, string>,
+  cache: Cache | undefined,
+  waitUntil: ((p: Promise<unknown>) => void) | undefined
+): Promise<ScoredProduct[]> {
+  const bs = config.brandSearch?.[brandId];
+  if (!bs) return [];
+  const key = new Request(
+    `https://cache.sokunobank.invalid/brand-extra/${config.slug}/${brandId}?v=${CACHE_SCHEMA_VERSION}${config.rakutenSignal ? "-r1" : ""}`
+  );
+  const hit = cache ? await cache.match(key) : undefined;
+  if (hit) return (await hit.json()) as ScoredProduct[];
+  const { candidates } = await fetchCandidates({
+    appId,
+    queries: bs.queries,
+    requiredKeywords: config.requiredKeywords,
+    excludeKeywords: config.excludeKeywords,
+    longLeadTimeExcludeKeywords: config.longLeadTimeExcludeKeywords,
+    minEstimatedCommission: config.minEstimatedCommission,
+    targetCount: bs.targetCount ?? 100,
+    maxPagesPerQuery: config.maxPagesPerQuery ?? MAX_PAGES_PER_QUERY,
+  });
+  let scored = candidates.map((p) => scoreProduct(p, config.weights, config.revenueScoreReferenceMax));
+  if (config.rakutenSignal) {
+    try {
+      const signals = buildReviewSignals(scored, await getRakutenPool(config, env, cache));
+      scored = scored.map((p) => {
+        const s = signals.get(p.code);
+        return s ? { ...p, reviewSignal: s.score } : p;
+      });
+    } catch {
+      // 楽天側の失敗は表示に影響させない
+    }
+  }
+  if (cache) {
+    const put = cache.put(
+      key,
+      new Response(JSON.stringify(scored), { headers: { "Cache-Control": `public, s-maxage=${CACHE_TTL_SECONDS}` } })
+    );
+    if (waitUntil) waitUntil(put);
+    else await put;
+  }
+  return scored;
+}
 
 async function getRakutenPool(
   config: CommerceCategoryConfig,
@@ -234,7 +287,22 @@ export async function handleProductsRequest(config: CommerceCategoryConfig, cont
     }
   }
 
-  const sorted = sortProducts(deduped, sort).slice(0, config.maxDisplayCount ?? DEFAULT_MAX_DISPLAY_COUNT);
+  // ブランド指定(brand=<ID>)のとき、そのブランドの追加候補を共通の商品群へ足し、返す件数の上限で切るときも
+  // そのブランドの商品が先頭に残るようにする。未定義のIDや追加取得の失敗は無視し、共通の商品群だけで返す。
+  let brandWords: string[] | null = null;
+  const brandParam = params.get("brand");
+  if (brandParam && config.brandSearch && Object.prototype.hasOwnProperty.call(config.brandSearch, brandParam)) {
+    brandWords = config.brandSearch[brandParam].words;
+    try {
+      const extras = await getBrandExtras(config, brandParam, appId, runtimeEnv, cache, context.locals.runtime?.ctx?.waitUntil?.bind(context.locals.runtime.ctx));
+      deduped = mergeBrandExtras(deduped, extras);
+    } catch {
+      // 追加取得に失敗しても、共通の商品群は表示する
+    }
+  }
+  const sortedAll = sortProducts(deduped, sort);
+  const ordered = brandWords ? prioritizeBrand(sortedAll, brandWords) : sortedAll;
+  const sorted = ordered.slice(0, config.maxDisplayCount ?? DEFAULT_MAX_DISPLAY_COUNT);
   return new Response(
     JSON.stringify({
       products: sorted.map((p) => ({

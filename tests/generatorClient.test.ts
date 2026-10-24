@@ -215,3 +215,19 @@ describe("ブランドの絞り込みとURLからの初期選択", () => {
     expect(selectionFromParams(new URLSearchParams(""))).toEqual({});
   });
 });
+
+describe("誘導元の情報", () => {
+  it("有効な絞り込み条件とutm_*だけを誘導元として残し、無ければnull", async () => {
+    const { landingFromParams } = await import("../src/lib/commerce/generatorClient");
+    const l = landingFromParams(new URLSearchParams("brand=jackery&use=disaster&brand2=x&cap=9&utm_source=yahoo&utm_campaign=gen_jackery&gclid=abc"))!;
+    expect(l.filters).toBe("use=disaster&brand=jackery");
+    expect(l.utm).toEqual({ utm_source: "yahoo", utm_campaign: "gen_jackery" });
+    expect(JSON.stringify(l)).not.toContain("abc"); // 広告の識別子(gclid)は保持しない
+    expect(landingFromParams(new URLSearchParams("cap=9&foo=1"))).toBeNull();
+    expect(landingFromParams(new URLSearchParams(""))).toBeNull();
+  });
+  it("utm_*だけの場合も誘導元として扱う(絞り込み条件は空)", async () => {
+    const { landingFromParams } = await import("../src/lib/commerce/generatorClient");
+    expect(landingFromParams(new URLSearchParams("utm_source=x"))).toEqual({ filters: "", utm: { utm_source: "x" } });
+  });
+});

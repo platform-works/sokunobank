@@ -66,6 +66,20 @@ export const generatorConfig: CommerceCategoryConfig = {
   // 2026-10-24: お届け先・到着希望は取得に使わない(都道府県ごとの取得はAPIの回数制限に当たりやすく、候補も減るため)。
   // 配送日・在庫は各商品ページで確認してもらう。
   ignoreDeliveryArea: true,
+  // 2026-10-24: ブランド指定(?brand=<id>)のとき、そのブランドの検索語で追加の候補を集めて共通の商品群へ足す。
+  // wordsは generatorClient.ts の brandOptions と同じ語(表示の絞り込みと一致させる)。ヤマハは事業終了のため含めない。
+  brandSearch: {
+    jackery: { words: ["jackery", "ジャクリ"], queries: ["Jackery ポータブル電源"] },
+    eenour: { words: ["eenour", "イーノウ"], queries: ["EENOUR 発電機", "EENOUR ポータブル電源"] },
+    kareyou: { words: ["kareyou"], queries: ["Kareyou 発電機", "Kareyou ポータブル電源"] },
+    bluetti: { words: ["bluetti", "ブルーティ"], queries: ["BLUETTI ポータブル電源"] },
+    ecoflow: { words: ["ecoflow", "エコフロー"], queries: ["EcoFlow ポータブル電源"] },
+    jesimaik: { words: ["jesimaik"], queries: ["JESIMAIK 発電機", "JESIMAIK ポータブル電源"] },
+    anker: { words: ["anker", "アンカー"], queries: ["Anker ポータブル電源"] },
+    honda: { words: ["honda", "ホンダ"], queries: ["ホンダ 発電機"] },
+    koshin: { words: ["工進", "koshin"], queries: ["工進 発電機", "工進 ポータブル電源"] },
+    dji: { words: ["dji"], queries: ["DJI ポータブル電源"] },
+  },
   // 楽天のレビュー件数が多い売れ筋と、型番+価格帯が一致するYahoo!商品の順位付けに楽天の評価も反映する
   // (裏側のみ。楽天のデータは画面にも出さない)。キーは2語×2頁=最大4回の楽天API呼び出し(6時間キャッシュ)。
   // 商品カードに「AmazonでJAN検索」ボタンを出すため、レスポンスにJANコードを含める(JANがある商品のみ)

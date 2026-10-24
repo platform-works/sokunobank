@@ -1,0 +1,118 @@
+---
+// 誘導元(リスティング広告など)への最適化(2026-10-24導入、ユーザー指示)。条件付きURL(例: ?brand=jackery&use=disaster)で
+// 開かれたときだけ、ブラウザ側で次を行う。サーバー出力(title・meta・h1・canonical・本文)は変えず、SEOには影響しない。
+//   A: 「Jackery・災害・防災で絞り込み中」の帯と、条件を解除するボタン
+//   B: サブ見出しを、選んだ条件に合わせた文に差し替え(解除すると元に戻す)
+//   C: 最初の商品が表示されたら、おすすめ商品の位置まで移動(1回だけ。ページ内リンク指定・既にスクロール済みなら移動しない)
+//   D: 誘導元の計測(絞り込み条件・utm_*)。既存のfilter_useに landing として送り、以降の商品クリック等にも添える
+//   F: 関係の薄い節(比較表・防災・計算ツールなど)を閉じる。PCでも開閉できるよう見出しバーを表示する
+// 条件が無い通常のアクセスでは、何も表示・変更しない。
+---
+
+<div class="landing-banner" data-landing-banner role="status" hidden>
+  <p class="landing-banner-text" data-role="text"></p>
+  <button type="button" class="btn btn-secondary landing-banner-reset" data-role="reset">条件を解除して全商品を見る</button>
+</div>
+
+<script>
+  import { clearSelection, describeSelection, getLanding, getSelection, isFiltering, trackFilterUse } from "../../../lib/commerce/generatorClient";
+
+  const banner = document.querySelector<HTMLElement>("[data-landing-banner]");
+  const landing = getLanding();
+
+  if (banner && landing) {
+    // D: 誘導元の計測(条件の有無にかかわらず、utm_*か条件が付いたURLで開かれたとき)
+    trackFilterUse("landing", landing.filters || "utm_only");
+
+    if (landing.filters && isFiltering(getSelection())) {
+      const textEl = banner.querySelector<HTMLElement>('[data-role="text"]')!;
+      const resetBtn = banner.querySelector<HTMLButtonElement>('[data-role="reset"]')!;
+      const sub = document.querySelector<HTMLElement>(".generator-hero .subheadline");
+      const originalSub = sub?.textContent ?? "";
+      let folded = false;
+
+      const closeFolds = () => {
+        // F: 関係の薄い節を閉じる。PCは見出しバーが無いため、landing-modeで表示して開き直せるようにする
+        document.documentElement.classList.add("landing-mode");
+        document.querySelectorAll<HTMLDetailsElement>("details.fold").forEach((d) => (d.open = false));
+        folded = true;
+      };
+
+      const refresh = () => {
+        const sel = getSelection();
+        if (!isFiltering(sel)) {
+          banner.hidden = true;
+          if (sub) sub.textContent = originalSub; // B: 元の見出しへ戻す
+          return;
+        }
+        const label = describeSelection(sel).join("・");
+        // A: 帯
+        textEl.textContent = `「${label}」で絞り込んで表示しています。`;
+        banner.hidden = false;
+        // B: サブ見出し
+        if (sub) sub.textContent = `${label}の発電機・ポータブル電源を、レビュー・容量・価格で比べて選べます。`;
+      };
+
+      closeFolds();
+      refresh();
+      document.addEventListener("generator:selection-change", refresh);
+      resetBtn.addEventListener("click", () => {
+        trackFilterUse("reset", "landing_banner");
+        clearSelection();
+      });
+
+      // C: 最初の商品表示後に、おすすめ商品の位置へ(1回だけ)
+      let scrolled = false;
+      document.addEventListener("generator:result", () => {
+        if (scrolled || !folded) return;
+        scrolled = true;
+        if (window.location.hash || window.scrollY > 300) return;
+        document.getElementById("urgent")?.scrollIntoView({ block: "start" });
+      });
+    }
+  }
+</script>
+
+<style is:global>
+  .landing-banner {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.6rem 1rem;
+    margin: 0 0 1rem;
+    padding: 0.7rem 1rem;
+    background: var(--color-accent-soft);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+  }
+  /* 条件付きで開いたときの自動移動で、見出しが固定ヘッダーの下に隠れないようにする */
+  #urgent {
+    scroll-margin-top: 5.5rem;
+  }
+  .landing-banner[hidden] {
+    display: none;
+  }
+  .landing-banner-text {
+    margin: 0;
+    font-size: 0.92rem;
+    font-weight: 700;
+  }
+  /* 条件付きで開いたとき、PCでも折りたたみの見出しバーを表示して、閉じた節を開けるようにする */
+  html.landing-mode details.fold > summary.fold-summary {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    min-height: 48px;
+    margin: 0.75rem 0 0;
+    padding: 0 1rem;
+    border: 1px solid var(--color-accent);
+    border-radius: var(--radius-md);
+    background: var(--color-accent-soft);
+    color: var(--color-accent-dark);
+    font-weight: 700;
+    font-size: 0.92rem;
+    cursor: pointer;
+    list-style: none;
+  }
+</style>
