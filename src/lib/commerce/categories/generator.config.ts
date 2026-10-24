@@ -57,8 +57,11 @@ export const generatorConfig: CommerceCategoryConfig = {
   minEstimatedCommission: 500,
   // 2026-09-30: STEPでの用途・容量・出力の絞り込みは取得済みの商品が母数になるため、他カテゴリーより
   // 多めに集める(実測: 目標100件→最終86件・API2回、目標200件→最終155件・API4回)。
-  candidatesTargetCount: 200,
-  maxDisplayCount: 150,
+  // 2026-10-24: ブランド・用途・予算の絞り込みの母数を増やすため、候補400件・返す300件・1検索語あたり5ページに拡大
+  // (実測は docs/generator-listing-keywords.md の件数確認を参照。Yahoo!APIは1検索語で先頭1,000件まで)。
+  candidatesTargetCount: 400,
+  maxDisplayCount: 300,
+  maxPagesPerQuery: 5,
   // 楽天のレビュー件数が多い売れ筋と、型番+価格帯が一致するYahoo!商品の順位付けに楽天の評価も反映する
   // (裏側のみ。楽天のデータは画面にも出さない)。キーは2語×2頁=最大4回の楽天API呼び出し(6時間キャッシュ)。
   // 商品カードに「AmazonでJAN検索」ボタンを出すため、レスポンスにJANコードを含める(JANがある商品のみ)

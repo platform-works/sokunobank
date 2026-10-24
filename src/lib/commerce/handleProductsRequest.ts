@@ -135,7 +135,7 @@ export async function handleProductsRequest(config: CommerceCategoryConfig, cont
     area: area ?? "",
     delivery: effectiveDeliveryDay !== undefined ? String(effectiveDeliveryDay) : "",
     // 候補件数を個別に設定したカテゴリーだけキャッシュを分離する(他カテゴリーのキャッシュは無効化しない)
-    v: String(CACHE_SCHEMA_VERSION) + (config.candidatesTargetCount ? `-t${config.candidatesTargetCount}` : "") + (config.rakutenSignal ? "-r1" : ""),
+    v: String(CACHE_SCHEMA_VERSION) + (config.candidatesTargetCount ? `-t${config.candidatesTargetCount}` : "") + (config.maxPagesPerQuery ? `-p${config.maxPagesPerQuery}` : "") + (config.rakutenSignal ? "-r1" : ""),
   }).toString();
   const candidatesCacheKey = new Request(candidatesCacheKeyUrl.toString());
   // 通常キャッシュと同じ内容を、Yahoo API障害時のフォールバック専用として長期保持する別キー
@@ -181,7 +181,7 @@ export async function handleProductsRequest(config: CommerceCategoryConfig, cont
         longLeadTimeExcludeKeywords: config.longLeadTimeExcludeKeywords,
         minEstimatedCommission: config.minEstimatedCommission,
         targetCount: config.candidatesTargetCount ?? CANDIDATES_TARGET_COUNT,
-        maxPagesPerQuery: MAX_PAGES_PER_QUERY,
+        maxPagesPerQuery: config.maxPagesPerQuery ?? MAX_PAGES_PER_QUERY,
       });
 
       // 2026-09-27導入(ValueCommerce LinkSwitch): 以前はここでbuildAffiliateUrl()により

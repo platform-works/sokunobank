@@ -155,3 +155,29 @@ STEP1の「用途」も、URLの `use=` で選んだ状態にできる(用途の
 
 Anker は全用途で0件。ホンダ・工進・JESIMAIK の工事/キャンプ/車中泊、EENOUR のキャンプ/車中泊(エンジン式は車中泊で自動除外・キャンプは商品名に用途語が無い)、
 Kareyou の車中泊(エンジン式)などは0〜2件。これらのキーワードは、**用途を付けずブランドのみ**のURLに誘導する。
+
+## 取得件数の拡大後の該当件数(2026-10-24、東京都宛て)
+
+商品APIの取得を、1検索語あたり5ページ・候補400件・返す件数300件に拡大した(従来は3ページ・200件・150件)。
+拡大後、東京都宛てで277件が返る(従来は150件)。実測した該当件数は次のとおり(従来 → 拡大後)。
+
+| 条件 | 従来 → 拡大後 | 条件 | 従来 → 拡大後 |
+|---|---|---|---|
+| ブランド jackery | 34 → 56 | 用途 disaster | 108 → 178 |
+| ブランド bluetti | 15 → 31 | 用途 camp | 36 → 68 |
+| ブランド ecoflow | 12 → 25 | 用途 vehicle | 27 → 65 |
+| ブランド eenour | 18 → 22 | 用途 home | 31 → 55 |
+| ブランド kareyou | 16 → 22 | 用途 work | 17 → 21 |
+| ブランド anker | 6 → 20 | type=gasoline | 37 → 56 |
+| ブランド dji / honda / koshin | 5 → 9 / 5 → 7 / 5 → 7 | type=cassette | 9 → 14 |
+| portable&cap=0(〜500Wh) | 3 → 8 | portable&cap=2 / cap=3 | 31 → 57 / 15 → 44 |
+| jesimaik | 7 → 7 | power=3(1,500W以上) | 31 → 50 |
+
+用途×ブランドで3件以上になった主な組み合わせ(拡大後): jackery×disaster 48、bluetti×vehicle 22、bluetti×camp 21、bluetti×disaster 20、
+jackery×camp 18、eenour×disaster 17、ecoflow×disaster 15、kareyou×disaster 15、jackery×vehicle 14、ecoflow×vehicle 10、
+eenour×home 9、kareyou×work 8、ecoflow×home 8、ecoflow×camp 6、dji×disaster 7、koshin×disaster 6、dji×vehicle 5、jackery×home 5、
+dji×home 4、honda×home 4、eenour×work 4、kareyou×camp 4、jesimaik×disaster 4。
+Anker は拡大後も用途語が商品名に無く、用途付きは0〜3件のため、ブランドのみ(20件)のURLを使う。
+
+**注意**: お届け先によって件数は変わる。取得は、そのお届け先に2日以内で届く商品に絞られるため、熊本県(43)では84件だった(東京都は277件)。
+入稿前の件数確認は、東京都宛て(お届け先を選んだ状態)で行い、お届け先が未指定のときは、全国の取得結果ではなく、条件なしの取得が使われる点に注意する。
