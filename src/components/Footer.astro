@@ -7,6 +7,11 @@ const year = new Date().getFullYear();
 // 事業用の連絡先。個人の本名・普段使いのメールアドレスは記載しない。
 const contactEmail = "dmsales29@gmail.com";
 
+// 公式の配布ソース(テキストリンク形式A)を一字一句そのまま保持する。https://developer.yahoo.co.jp/attribution/
+const yahooCreditHtml = `<!-- Begin Yahoo! JAPAN Web Services Attribution Snippet -->
+<span style="margin:15px 15px 15px 15px"><a href="https://developer.yahoo.co.jp/sitemap/">Webサービス by Yahoo! JAPAN</a></span>
+<!-- End Yahoo! JAPAN Web Services Attribution Snippet -->`;
+
 const linkGroups = [
   {
     title: "サイト",
@@ -65,6 +70,9 @@ const linkGroups = [
 
   <div class="container footer-bottom">
     <p>&copy; {year} SOKUNOBANK</p>
+    <!-- Yahoo!デベロッパーネットワークのクレジット表示。規約上、HTMLソースの改変・CSSでの色/サイズ変更は禁止。
+         Astroが属性を付与しないよう set:html でそのまま出力する。 -->
+    <div class="yahoo-credit" set:html={yahooCreditHtml} />
   </div>
 </footer>
 
