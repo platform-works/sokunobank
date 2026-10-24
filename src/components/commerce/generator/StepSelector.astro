@@ -4,7 +4,6 @@
 // 推測で分類しない(詳細は src/lib/commerce/generatorClient.ts / extractSpecs.ts)。
 // 用途は商品の属性ではないため商品の絞り込みには使わず、用途別の注意表示と計測(use_case)にのみ使う。
 import EnvironmentGuide from "./EnvironmentGuide.astro";
-import { prefectures } from "../../../lib/commerce/prefectures";
 import { appliances, environments, estimateEnvironment, useCaseEnvironments, useCases } from "../../../lib/commerce/generatorContent";
 import { brandOptions, budgetBands, capacityBands, powerBands, typeLabels } from "../../../lib/commerce/generatorClient";
 
@@ -37,13 +36,6 @@ const useCaseReco = Object.fromEntries(
 <section class="step-selector" id="step" aria-labelledby="step-heading">
   <div class="step-head">
     <h2 id="step-heading">用途・容量・予算から、買う商品を絞り込む</h2>
-    <label class="step-area">
-      <span>お届け先</span>
-      <select data-role="area" aria-label="お届け先の都道府県">
-        <option value="">選択してください</option>
-        {prefectures.map((p) => <option value={p.code}>{p.name}</option>)}
-      </select>
-    </label>
   </div>
 
   <div class="step-row">
@@ -136,9 +128,9 @@ const useCaseReco = Object.fromEntries(
   </div>
 
   <div class="step-row step-go-row">
-    <p class="step-label"><span class="step-no">STEP6</span>最短配送の商品を見る</p>
+    <p class="step-label"><span class="step-no">STEP6</span>条件に合う商品を見る</p>
     <a class="btn btn-primary btn-lg step-go" href="#products" data-role="go">
-      条件に合う最短配送の商品を見る <span data-role="count"></span>
+      条件に合う商品を見る <span data-role="count"></span>
     </a>
   </div>
 </section>
@@ -153,8 +145,6 @@ const useCaseReco = Object.fromEntries(
 <script>
   import { estimateItems } from "../../../lib/commerce/generatorContent";
   import {
-    AREA_STORAGE_KEY,
-    SLUG,
     brandOptions,
     budgetBands,
     capacityBands,
@@ -391,7 +381,6 @@ const useCaseReco = Object.fromEntries(
     const engineNoteEl = root.querySelector<HTMLElement>('[data-role="engine-note"]');
     const vehicleNoteEl = root.querySelector<HTMLElement>('[data-role="vehicle-note"]');
     const countEl = root.querySelector<HTMLElement>('[data-role="count"]');
-    const areaSelect = root.querySelector<HTMLSelectElement>('[data-role="area"]');
     const goLink = root.querySelector<HTMLAnchorElement>('[data-role="go"]');
 
     function render() {
@@ -478,31 +467,6 @@ const useCaseReco = Object.fromEntries(
       const parts = [sel.type, sel.capacity?.label, sel.power?.label, sel.budget?.label].filter(Boolean);
       trackFilterUse("step_confirm", parts.length > 0 ? parts.join(" / ") : "条件なし");
     });
-
-    // お届け先: 商品一覧の絞り込みパネルと同じlocalStorageキー・同じ操作で連動させる。
-    // パネルのselectに値を入れてchangeを発火し、「商品を探す」を押すのと同じ経路で再取得するため、
-    // 取得・計測(filter_use)の経路は増やさない(二重計測を避ける)。
-    if (areaSelect) {
-      try {
-        const saved = window.localStorage.getItem(AREA_STORAGE_KEY);
-        if (saved) areaSelect.value = saved;
-      } catch {
-        // localStorageが使えない環境でも致命的にしない
-      }
-      areaSelect.addEventListener("change", () => {
-        const panelArea = document.querySelector<HTMLSelectElement>(`#commerce-filter-${SLUG} [data-role="area"]`);
-        const panelSubmit = document.querySelector<HTMLButtonElement>(`#commerce-filter-${SLUG} [data-role="submit"]`);
-        if (panelArea && panelSubmit) {
-          panelArea.value = areaSelect.value;
-          panelArea.dispatchEvent(new Event("change"));
-          panelSubmit.click();
-        }
-      });
-      document.addEventListener("commerce:filter-change", (event) => {
-        const d = (event as CustomEvent).detail as { slug: string; params?: { area?: string } };
-        if (d.slug === SLUG && areaSelect.value !== (d.params?.area ?? "")) areaSelect.value = d.params?.area ?? "";
-      });
-    }
   }
 </script>
 

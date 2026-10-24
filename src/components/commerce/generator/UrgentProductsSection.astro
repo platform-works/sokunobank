@@ -37,7 +37,7 @@ const rootId = `generator-urgent-${slug}`;
   // 取得済みの商品のうち、STEP選択(種類・容量・出力・用途)に合うものから、Yahoo!ショッピングの
   // レビュー評価・件数(件数補正済み)が最も高い1件を表示する。納期・報酬額は選定に使わない
   // (配送の目安は補足表示のみ)。選択の絞り込みは商品一覧と同じ純関数(filterBySelection)を使う。
-  import { filterBySelection, getSelection, isFiltering, specsOf, typeLabels } from "../../../lib/commerce/generatorClient";
+  import { DELIVERY_NOTICE, filterBySelection, getSelection, isFiltering, specsOf, typeLabels } from "../../../lib/commerce/generatorClient";
   import { adjustedRating, isGotsukuDay, pickByReview } from "../../../lib/commerce/reviewPick";
   import { amazonJanUrl, amazonKeywordUrl } from "../../../lib/commerce/amazonLink";
 
@@ -69,7 +69,6 @@ const rootId = `generator-urgent-${slug}`;
     const w = window as W;
     const getExt = () => (w.sokunobankCardExtensions ? w.sokunobankCardExtensions.generator : undefined);
 
-    let currentArea = "";
     let allProducts: PickProduct[] = [];
 
     function setState(state: "loading" | "empty" | "list") {
@@ -78,14 +77,9 @@ const rootId = `generator-urgent-${slug}`;
       listEl.hidden = state !== "list";
     }
 
-    // 配送の目安(補足)。お届け先が分かるときだけ「東京都宛て:明日お届け対象」形式、分からなければ確認を促す
-    function deliveryNote(p: PickProduct): string {
-      const ext = getExt();
-      const text = ext && ext.deliveryText ? ext.deliveryText(p, { params: { area: currentArea } }) : null;
-      if (text) return text;
-      if (p.deliveryDay === 1) return "明日到着対象";
-      if (p.deliveryDay === 2) return "翌々日到着対象";
-      return "配送日は商品ページでご確認ください";
+    // 配送の目安は取得しない(取得はお届け先に依存しない)ため、固定の案内にする
+    function deliveryNote(_p: PickProduct): string {
+      return DELIVERY_NOTICE;
     }
 
     // 右側の「この商品について」。確認できる事実(商品名から読み取れる容量・出力、レビュー、価格、配送の目安、ストア)と、
@@ -106,7 +100,7 @@ const rootId = `generator-urgent-${slug}`;
       facts.push(["価格", `${p.price.toLocaleString()}円`]);
       facts.push(["レビュー", `Yahoo!ショッピング ${p.reviewRate.toFixed(2)}(${p.reviewCount.toLocaleString()}件)`]);
       if (p.storeName) facts.push(["販売ストア", p.storeName]);
-      facts.push(["配送の目安", deliveryNote(p)]);
+      facts.push(["配送・在庫", deliveryNote(p)]);
       const dl = document.createElement("dl");
       dl.className = "urgent-facts";
       for (const [k, v] of facts) {
@@ -158,7 +152,7 @@ const rootId = `generator-urgent-${slug}`;
         if (w.sokunobankDebounceClick && w.sokunobankTrackOutboundClick) {
           w.sokunobankDebounceClick(a, () => {
             const ext = getExt();
-            const extra = ext && ext.trackParams ? ext.trackParams(p, { params: { area: currentArea } }) : null;
+            const extra = ext && ext.trackParams ? ext.trackParams(p, { params: {} }) : null;
             w.sokunobankTrackOutboundClick(
               Object.assign(
                 {
@@ -282,22 +276,11 @@ const rootId = `generator-urgent-${slug}`;
     }
 
     let latestRequestId = 0;
-    async function load(areaOverride?: string) {
+    async function load() {
       const requestId = ++latestRequestId;
       setState("loading");
-      let area = "";
-      if (areaOverride !== undefined) {
-        area = areaOverride;
-      } else {
-        try {
-          area = window.localStorage.getItem(`sokunobank:commerce:${slug}:area`) || "";
-        } catch {
-          // no-op
-        }
-      }
-      currentArea = area;
+      // 取得はお届け先に依存しない(サーバー側でお届け先・到着希望を使わない設定)
       const query = new URLSearchParams();
-      if (area) query.set("area", area);
       query.set("sort", "recommended");
       try {
         const res = await fetch(`${apiPath}?${query.toString()}`);
@@ -319,13 +302,7 @@ const rootId = `generator-urgent-${slug}`;
     }
 
     load();
-    // お届け先が変わったら再取得、STEP選択(種類・容量・出力・用途)が変わったら取得済みの商品から選び直す
-    document.addEventListener("commerce:filter-change", (event) => {
-      const detail = (event as CustomEvent).detail;
-      if (!detail || detail.slug !== slug) return;
-      const nextArea = (detail.params && detail.params.area) || "";
-      if (nextArea !== currentArea) load(nextArea);
-    });
+    // STEP選択(種類・容量・出力・用途・予算・ブランド)が変わったら、取得済みの商品から選び直す
     document.addEventListener("generator:selection-change", () => {
       if (allProducts.length > 0) render();
     });

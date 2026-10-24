@@ -112,8 +112,8 @@ export async function handleProductsRequest(config: CommerceCategoryConfig, cont
   const url = new URL(request.url);
   const params = url.searchParams;
 
-  const area = validateArea(params.get("area"));
-  const delivery = validateDelivery(params.get("delivery"));
+  const area = config.ignoreDeliveryArea ? undefined : validateArea(params.get("area"));
+  const delivery = config.ignoreDeliveryArea ? undefined : validateDelivery(params.get("delivery"));
   const sort = validateSort(config, params.get("sort"));
 
   // お届け先(都道府県)が分かっているのに到着希望が未指定だと、Yahoo APIは配送日情報

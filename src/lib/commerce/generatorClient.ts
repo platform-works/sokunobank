@@ -9,6 +9,9 @@ import { useCases } from "./generatorContent";
 import { amazonJanUrl } from "./amazonLink";
 
 export const SLUG = "generator";
+
+/** 商品カード等の配送欄に出す案内。配送日・在庫は商品ページで確認してもらう */
+export const DELIVERY_NOTICE = "配送日・在庫は商品ページでご確認ください";
 export const AREA_STORAGE_KEY = `sokunobank:commerce:${SLUG}:area`;
 
 export type ProductType = "portable" | "gasoline" | "cassette";
@@ -217,7 +220,9 @@ export function buildTrackParams(p: TrackableProduct, sel: Selection) {
     use_case: sel.useCase ?? undefined,
     capacity_wh: s.capacityWh ?? undefined,
     power_w: s.ratedPowerW ?? undefined,
-    delivery_days: p.deliveryDay ?? undefined,
+    // 2026-10-24: 取得はお届け先に依存せず、配送日(deliveryDay)はお届け先なしの値で、実際の配送日を表さないため、
+    // 計測には送らない(常にundefined)。
+    delivery_days: undefined,
     shop_name: p.storeName || undefined,
   };
 }
@@ -423,7 +428,8 @@ export function registerGeneratorExtension(): void {
   let lastAll: GridProduct[] = [];
   w.sokunobankCardExtensions[SLUG] = {
     decorateCard,
-    deliveryText: (p: GridProduct, ctx: GridContext) => deliveryText(p.deliveryDay, ctx.params?.area),
+    // 2026-10-24: お届け先ごとの配送日は取得しない(取得はお届け先に依存しない)ため、固定の案内にする
+    deliveryText: () => DELIVERY_NOTICE,
     trackParams: (p: GridProduct) => buildTrackParams(p, getSelection()),
     filterProducts: (products: GridProduct[]) => {
       lastAll = products;

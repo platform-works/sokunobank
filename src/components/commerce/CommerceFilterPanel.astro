@@ -5,14 +5,16 @@ import type { SortOption } from "../../lib/commerce/types";
 interface Props {
   slug: string;
   sortOptions: SortOption[];
+  /** 任意。trueならお届け先・到着希望を表示しない(発電機。取得にも使わない)。既定は表示 */
+  hideDelivery?: boolean;
 }
-const { slug, sortOptions } = Astro.props;
+const { slug, sortOptions, hideDelivery = false } = Astro.props;
 const rootId = `commerce-filter-${slug}`;
 const storageKey = `sokunobank:commerce:${slug}:area`;
 ---
 
 <div class="commerce-filter" id={rootId}>
-  <div class="field">
+  <div class="field" style={hideDelivery ? "display:none" : undefined}>
     <label for={`${rootId}-area`}>お届け先</label>
     <select id={`${rootId}-area`} data-role="area">
       <option value="">お届け先を選択してください</option>
@@ -20,7 +22,7 @@ const storageKey = `sokunobank:commerce:${slug}:area`;
     </select>
   </div>
 
-  <div class="field">
+  <div class="field" style={hideDelivery ? "display:none" : undefined}>
     <label for={`${rootId}-delivery`}>到着希望</label>
     <select id={`${rootId}-delivery`} data-role="delivery">
       <option value="">指定なし</option>
