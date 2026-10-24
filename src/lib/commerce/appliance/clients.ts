@@ -2,12 +2,14 @@
 // 1ページにはカテゴリーが1つだけなので、ページを開いたときに使う1つだけが作られ、URLの条件(?brand=...等)もそのときに反映される。
 import { createApplianceClient, type ApplianceClient } from "./createApplianceClient";
 import { generatorProfile } from "./profiles/generator";
+import { monitorProfile } from "./profiles/monitor";
 import { riceCookerProfile } from "./profiles/riceCooker";
 import type { ApplianceProfile } from "./types";
 
 const profiles: Record<string, ApplianceProfile> = {
   generator: generatorProfile,
   "rice-cooker": riceCookerProfile,
+  monitor: monitorProfile,
 };
 
 const clients = new Map<string, ApplianceClient>();
