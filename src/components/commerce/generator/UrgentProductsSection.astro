@@ -1,9 +1,9 @@
 ---
-// 「とにかく急ぎの方」セクション(2026-09-28導入)。発電機カテゴリー専用。
-// 既存のAPI(/api/generator/products/)をそのまま使い、取得済みの先頭数件を
-// 「配送・出力」を優先した簡易カードで表示する。ProductGrid.astro(全商品一覧、既存・未変更)とは
-// 別のクライアントスクリプトで、同じAPIエンドポイントに対して独立してfetchする
-// (商品取得ロジック・Yahoo APIの呼び出し方は一切変更していない)。
+// 「選んだ条件のおすすめ商品」セクション(2026-09-28導入、2026-10-24にレビュー優先へ変更)。発電機カテゴリー専用。
+// 既存のAPI(/api/generator/products/)をそのまま使い、取得済みの商品から、STEP選択に合うもののうち
+// Yahoo!ショッピングのレビュー評価・件数が最も高い1件を表示する(選定ロジックは lib/commerce/reviewPick.ts)。
+// ProductGrid.astro(全商品一覧、既存・未変更)とは別のクライアントスクリプトで、同じAPIエンドポイントに
+// 対して独立してfetchする(商品取得ロジック・Yahoo APIの呼び出し方は一切変更していない)。
 interface Props {
   slug: string;
   apiPath: string;
@@ -14,10 +14,16 @@ const rootId = `generator-urgent-${slug}`;
 
 <section class="urgent-section" id="urgent">
   <div class="urgent-heading">
-    <h2>お届け先に早く届く商品</h2>
-    <p>上でお届け先を選ぶと、その宛先へ最短で届く対象の発電機・ポータブル電源を表示します。</p>
+    <h2>選んだ条件のおすすめ商品</h2>
+    <p>
+      上で選んだ種類・容量・出力・用途に合う商品のうち、Yahoo!ショッピングのレビュー評価と件数が高い商品を表示します。評価は件数が少ないほど割り引いて比べています。
+    </p>
+    <p class="urgent-points">
+      毎月5・15・25日の「5のつく日」は、PayPayポイントが5倍になる特典の対象日です(付与条件・上限はYahoo!ショッピングの案内でご確認ください)。
+      <strong data-gotsuku-today hidden>本日は5のつく日です。</strong>
+    </p>
   </div>
-  <div class="urgent-grid" id={rootId} data-api-path={apiPath}>
+  <div class="urgent-grid" id={rootId} data-urgent-root data-slug={slug} data-api-path={apiPath}>
     <p class="urgent-state urgent-loading" data-role="loading">商品情報を取得しています…</p>
     <p class="urgent-state urgent-empty" data-role="empty" hidden>
       現在ピックアップできる商品がありません。下の商品一覧からお探しください。
@@ -26,61 +32,59 @@ const rootId = `generator-urgent-${slug}`;
   </div>
 </section>
 
-<script define:vars={{ rootId, slug }}>
-  (function () {
-    const root = document.getElementById(rootId);
-    if (!root) return;
-    const apiPath = root.dataset.apiPath;
-    const loadingEl = root.querySelector('[data-role="loading"]');
-    const emptyEl = root.querySelector('[data-role="empty"]');
-    const listEl = root.querySelector('[data-role="list"]');
-    const MAX_ITEMS = 4;
+<script>
+  // 「選んだ条件のおすすめ商品」(2026-10-24、ユーザー指示で納期優先からレビュー優先に変更)。
+  // 取得済みの商品のうち、STEP選択(種類・容量・出力・用途)に合うものから、Yahoo!ショッピングの
+  // レビュー評価・件数(件数補正済み)が最も高い1件を表示する。納期・報酬額は選定に使わない
+  // (配送の目安は補足表示のみ)。選択の絞り込みは商品一覧と同じ純関数(filterBySelection)を使う。
+  import { filterBySelection, getSelection, isFiltering } from "../../../lib/commerce/generatorClient";
+  import { adjustedRating, isGotsukuDay, pickByReview } from "../../../lib/commerce/reviewPick";
 
-    function deliveryLabel(day) {
-      // 当日到着(day=0)は現実的に成立しづらいため約束しない。取得できない場合は
-      // 存在しない日付を作らず、確認を促す文言にフォールバックする(架空の配送日を作らない)。
-      if (day === 1) return "明日到着対象";
-      if (day === 2) return "翌々日到着対象";
-      return "配送日は商品ページでご確認ください";
-    }
+  interface PickProduct {
+    name: string;
+    image: string;
+    price: number;
+    brand: string | null;
+    productUrl: string;
+    deliveryDay: number | null;
+    reviewRate: number;
+    reviewCount: number;
+    storeName?: string;
+  }
 
-    // 商品名から出力表記を抜き出す(extractPowerSpec.tsと同じロジックをクライアント用に複製)。
-    // ビルド時にモジュールをそのままブラウザへ出せないため、同等のロジックをここに持たせている。
-    function extractPowerSpec(name) {
-      const patterns = [
-        /定格出力\s*([0-9.]+\s*(?:kVA|kW|W))/i,
-        /定格\s*([0-9.]+\s*(?:kVA|kW|W))/i,
-        /出力\s*([0-9.]+\s*(?:kVA|kW|W))/i,
-        /([0-9.]+\s*kVA)/i,
-        /([0-9]{3,5}\s*W)(?!h)/i,
-      ];
-      for (const pattern of patterns) {
-        const m = name.match(pattern);
-        if (m && m[1]) return m[1].replace(/\s+/g, "");
-      }
-      return null;
-    }
+  const root = document.querySelector<HTMLElement>("[data-urgent-root]");
+  if (root) {
+    const slug = root.dataset.slug || "";
+    const apiPath = root.dataset.apiPath || "";
+    const loadingEl = root.querySelector<HTMLElement>('[data-role="loading"]')!;
+    const emptyEl = root.querySelector<HTMLElement>('[data-role="empty"]')!;
+    const listEl = root.querySelector<HTMLElement>('[data-role="list"]')!;
+    const MAX_ITEMS = 1;
 
-    function setState(state) {
+    type W = Window & { sokunobankCardExtensions?: Record<string, any>; sokunobankDebounceClick?: any; sokunobankTrackOutboundClick?: any };
+    const w = window as W;
+    const getExt = () => (w.sokunobankCardExtensions ? w.sokunobankCardExtensions.generator : undefined);
+
+    let currentArea = "";
+    let allProducts: PickProduct[] = [];
+
+    function setState(state: "loading" | "empty" | "list") {
       loadingEl.hidden = state !== "loading";
       emptyEl.hidden = state !== "empty";
       listEl.hidden = state !== "list";
     }
 
-    // 2026-09-30: 商品一覧と同じ拡張(generatorClient.ts、GeneratorRuntime.astroが登録)を使い、
-    // 「東京都宛て:明日お届け対象」形式の配送表示とGA4パラメータの追加を行う。
-    // 拡張が未登録のタイミングでは従来の表示にフォールバックする。
-    let currentArea = "";
-    function getExt() {
-      return window.sokunobankCardExtensions ? window.sokunobankCardExtensions.generator : undefined;
-    }
-    function deliveryLabelFor(p) {
+    // 配送の目安(補足)。お届け先が分かるときだけ「東京都宛て:明日お届け対象」形式、分からなければ確認を促す
+    function deliveryNote(p: PickProduct): string {
       const ext = getExt();
       const text = ext && ext.deliveryText ? ext.deliveryText(p, { params: { area: currentArea } }) : null;
-      return text || deliveryLabel(p.deliveryDay);
+      if (text) return text;
+      if (p.deliveryDay === 1) return "明日到着対象";
+      if (p.deliveryDay === 2) return "翌々日到着対象";
+      return "配送日は商品ページでご確認ください";
     }
 
-    function createCard(p, index) {
+    function createCard(p: PickProduct, index: number) {
       const li = document.createElement("li");
       li.className = "urgent-card";
 
@@ -90,15 +94,12 @@ const rootId = `generator-urgent-${slug}`;
       a.target = "_blank";
       a.rel = "sponsored noopener";
       a.addEventListener("click", () => {
-        // 既存のoutbound_product_click計測をそのまま使う(二重計測を避けるため、
-        // このセクション専用の別イベントは発火しない。GA4側でproduct_name等から
-        // 「急ぎセクション経由か」は判別しづらいが、それを理由に新イベントを増やすと
-        // 既存の計測設計(1クリック=1outbound_product_click)と重複するため見送った)。
-        if (window.sokunobankDebounceClick && window.sokunobankTrackOutboundClick) {
-          window.sokunobankDebounceClick(a, () => {
+        // 既存のoutbound_product_click計測をそのまま使う(新イベントは作らない)
+        if (w.sokunobankDebounceClick && w.sokunobankTrackOutboundClick) {
+          w.sokunobankDebounceClick(a, () => {
             const ext = getExt();
             const extra = ext && ext.trackParams ? ext.trackParams(p, { params: { area: currentArea } }) : null;
-            window.sokunobankTrackOutboundClick(
+            w.sokunobankTrackOutboundClick(
               Object.assign(
                 {
                   destination: "yahoo_shopping",
@@ -106,12 +107,10 @@ const rootId = `generator-urgent-${slug}`;
                   brand: p.brand || undefined,
                   product_name: p.name || undefined,
                   price: p.price,
-                  delivery_label: deliveryLabel(p.deliveryDay),
+                  delivery_label: deliveryNote(p),
                   page_path: window.location.pathname,
                   link_url: a.href,
-                  // カード全体が1つの<a>のため、a.textContentだと画像alt以外の全テキストが
-                  // 混ざってしまう。CTA文言(視認上のリンクラベルに相当するもの)に固定する。
-                  link_text: "Yahoo!ショッピングで納期を確認",
+                  link_text: "Yahoo!ショッピングで確認",
                   position: index,
                 },
                 extra || {}
@@ -123,7 +122,7 @@ const rootId = `generator-urgent-${slug}`;
 
       const badge = document.createElement("span");
       badge.className = "urgent-card-badge";
-      badge.textContent = deliveryLabelFor(p);
+      badge.textContent = "レビュー評価が高い";
       a.appendChild(badge);
 
       const img = document.createElement("img");
@@ -140,30 +139,49 @@ const rootId = `generator-urgent-${slug}`;
       name.textContent = p.name;
       a.appendChild(name);
 
-      const power = extractPowerSpec(p.name);
-      if (power) {
-        const powerEl = document.createElement("p");
-        powerEl.className = "urgent-card-power";
-        powerEl.textContent = `出力目安 ${power}`;
-        a.appendChild(powerEl);
-      }
+      const review = document.createElement("p");
+      review.className = "urgent-card-review";
+      review.textContent = `Yahoo!ショッピングのレビュー ${p.reviewRate.toFixed(2)}(${p.reviewCount.toLocaleString()}件)`;
+      review.title = `件数補正後の評価 ${adjustedRating(p.reviewRate, p.reviewCount).toFixed(2)}`;
+      a.appendChild(review);
 
       const price = document.createElement("p");
       price.className = "urgent-card-price";
       price.textContent = `${p.price.toLocaleString()}円`;
       a.appendChild(price);
 
+      const note = document.createElement("p");
+      note.className = "urgent-card-delivery";
+      note.textContent = deliveryNote(p);
+      a.appendChild(note);
+
       const cta = document.createElement("span");
       cta.className = "urgent-card-cta";
-      cta.textContent = "Yahoo!ショッピングで納期を確認 →";
+      cta.textContent = "Yahoo!ショッピングで確認 →";
       a.appendChild(cta);
 
       li.appendChild(a);
       return li;
     }
 
+    function render() {
+      const sel = getSelection();
+      const { visible } = filterBySelection(allProducts, sel);
+      const picks = pickByReview(visible, MAX_ITEMS);
+      if (picks.length === 0) {
+        emptyEl.textContent = isFiltering(sel)
+          ? "選んだ条件に合い、レビューが十分にある商品を、取得済みの商品の中から見つけられませんでした。下の商品一覧もご確認ください。"
+          : "現在ピックアップできる商品がありません。下の商品一覧からお探しください。";
+        setState("empty");
+        return;
+      }
+      listEl.innerHTML = "";
+      picks.forEach((p, i) => listEl.appendChild(createCard(p, i)));
+      setState("list");
+    }
+
     let latestRequestId = 0;
-    async function load(areaOverride) {
+    async function load(areaOverride?: string) {
       const requestId = ++latestRequestId;
       setState("loading");
       let area = "";
@@ -185,26 +203,36 @@ const rootId = `generator-urgent-${slug}`;
         const data = await res.json();
         if (requestId !== latestRequestId) return;
         if (data.error || !data.products || data.products.length === 0) {
+          allProducts = [];
+          emptyEl.textContent = "現在ピックアップできる商品がありません。下の商品一覧からお探しください。";
           setState("empty");
           return;
         }
-        listEl.innerHTML = "";
-        data.products.slice(0, MAX_ITEMS).forEach((p, i) => listEl.appendChild(createCard(p, i)));
-        setState("list");
+        allProducts = data.products;
+        render();
       } catch {
         if (requestId !== latestRequestId) return;
+        allProducts = [];
         setState("empty");
       }
     }
 
     load();
-    // お届け先が変更されたとき(上のSTEP選択、または商品一覧の絞り込みパネル)に再取得する。
+    // お届け先が変わったら再取得、STEP選択(種類・容量・出力・用途)が変わったら取得済みの商品から選び直す
     document.addEventListener("commerce:filter-change", (event) => {
-      if (!event.detail || event.detail.slug !== slug) return;
-      const nextArea = (event.detail.params && event.detail.params.area) || "";
+      const detail = (event as CustomEvent).detail;
+      if (!detail || detail.slug !== slug) return;
+      const nextArea = (detail.params && detail.params.area) || "";
       if (nextArea !== currentArea) load(nextArea);
     });
-  })();
+    document.addEventListener("generator:selection-change", () => {
+      if (allProducts.length > 0) render();
+    });
+
+    // 「5のつく日」(5・15・25日)の当日だけ、案内に強調表示を出す
+    const gotsuku = document.querySelector<HTMLElement>("[data-gotsuku-today]");
+    if (gotsuku && isGotsukuDay()) gotsuku.hidden = false;
+  }
 </script>
 
 <style is:global>
@@ -284,16 +312,24 @@ const rootId = `generator-urgent-${slug}`;
     -webkit-box-orient: vertical;
     overflow: hidden;
   }
-  .urgent-card-power {
-    font-size: 0.78rem;
+  .urgent-card-review {
+    font-size: 0.8rem;
     color: var(--color-accent-dark);
     font-weight: 600;
     margin: 0 0 0.2rem;
   }
+  .urgent-card-delivery {
+    font-size: 0.78rem;
+    color: var(--color-text-muted);
+    margin: 0 0 0.6rem;
+  }
+  .urgent-points {
+    font-size: 0.82rem;
+  }
   .urgent-card-price {
     font-size: 1rem;
     font-weight: 700;
-    margin: 0 0 0.6rem;
+    margin: 0 0 0.2rem;
   }
   .urgent-card-cta {
     margin-top: auto;
