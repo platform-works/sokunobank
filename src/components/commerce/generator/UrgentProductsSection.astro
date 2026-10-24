@@ -37,9 +37,9 @@ const rootId = `generator-urgent-${slug}`;
   // 取得済みの商品のうち、STEP選択(種類・容量・出力・用途)に合うものから、Yahoo!ショッピングの
   // レビュー評価・件数(件数補正済み)が最も高い1件を表示する。納期・報酬額は選定に使わない
   // (配送の目安は補足表示のみ)。選択の絞り込みは商品一覧と同じ純関数(filterBySelection)を使う。
-  import { filterBySelection, getSelection, isFiltering } from "../../../lib/commerce/generatorClient";
+  import { filterBySelection, getSelection, isFiltering, specsOf, typeLabels } from "../../../lib/commerce/generatorClient";
   import { adjustedRating, isGotsukuDay, pickByReview } from "../../../lib/commerce/reviewPick";
-  import { amazonJanUrl } from "../../../lib/commerce/amazonLink";
+  import { amazonJanUrl, amazonKeywordUrl } from "../../../lib/commerce/amazonLink";
 
   interface PickProduct {
     name: string;
@@ -52,6 +52,7 @@ const rootId = `generator-urgent-${slug}`;
     reviewCount: number;
     reviewSignal?: number;
     janCode?: string;
+    description?: string;
     storeName?: string;
   }
 
@@ -87,9 +88,59 @@ const rootId = `generator-urgent-${slug}`;
       return "配送日は商品ページでご確認ください";
     }
 
+    // 右側の「この商品について」。確認できる事実(商品名から読み取れる容量・出力、レビュー、価格、配送の目安、ストア)と、
+    // 出品者の商品説明(抜粋。文章として読めるものがある場合のみ)を出す。説明は出品者の記載でサイトは保証しない。
+    function createDetail(p: PickProduct) {
+      const d = document.createElement("div");
+      d.className = "urgent-detail";
+      const h = document.createElement("h3");
+      h.textContent = "この商品について";
+      d.appendChild(h);
+
+      const s = specsOf(p);
+      const facts: [string, string][] = [];
+      if (s.productType) facts.push(["種類", s.productType === "portable" ? "ポータブル電源(バッテリー式)" : s.productType === "gasoline" ? "ガソリン発電機" : "カセットガス発電機"]);
+      if (p.brand) facts.push(["ブランド", p.brand]);
+      if (s.capacityWh !== null) facts.push(["容量", `${s.capacityWh.toLocaleString("en-US")}Wh`]);
+      if (s.outputLabel !== null) facts.push(["定格出力", s.outputLabel]);
+      facts.push(["価格", `${p.price.toLocaleString()}円`]);
+      facts.push(["レビュー", `Yahoo!ショッピング ${p.reviewRate.toFixed(2)}(${p.reviewCount.toLocaleString()}件)`]);
+      if (p.storeName) facts.push(["販売ストア", p.storeName]);
+      facts.push(["配送の目安", deliveryNote(p)]);
+      const dl = document.createElement("dl");
+      dl.className = "urgent-facts";
+      for (const [k, v] of facts) {
+        const dt = document.createElement("dt");
+        dt.textContent = k;
+        const dd = document.createElement("dd");
+        dd.textContent = v;
+        dl.append(dt, dd);
+      }
+      d.appendChild(dl);
+
+      if (p.description) {
+        const desc = document.createElement("p");
+        desc.className = "urgent-desc";
+        desc.textContent = p.description;
+        const cap = document.createElement("p");
+        cap.className = "urgent-desc-caption";
+        cap.textContent = "出品者の商品説明より(抜粋)";
+        d.append(cap, desc);
+      }
+      const note = document.createElement("p");
+      note.className = "urgent-detail-note";
+      note.textContent = "容量・出力は商品名の表記から読み取った値です。在庫・配送・仕様の詳細は商品ページで確認してください。";
+      d.appendChild(note);
+      return d;
+    }
+
     function createCard(p: PickProduct, index: number) {
+      // PCは「左:商品カード(画像大きめ)/右:商品の説明」の2列、スマホは縦並び
       const li = document.createElement("li");
-      li.className = "urgent-card";
+      li.className = "urgent-feature";
+      const main = document.createElement("div");
+      main.className = "urgent-card";
+      li.appendChild(main);
 
       const a = document.createElement("a");
       a.className = "urgent-card-link";
@@ -163,10 +214,17 @@ const rootId = `generator-urgent-${slug}`;
       cta.textContent = "Yahoo!ショッピングで確認 →";
       a.appendChild(cta);
 
-      li.appendChild(a);
+      main.appendChild(a);
 
-      // Yahoo!ボタンの下に「AmazonでJAN検索」(JANがある商品のみ。カード全体が1つの<a>のため、リンクの外に置く)
-      const amazonUrl = amazonJanUrl(p.janCode);
+      // Yahoo!ボタンの下にAmazonへのリンク(カード全体が1つの<a>のため、リンクの外に置く)。
+      // JANがあれば「AmazonでJAN検索」、無ければブランド名+種類での検索。どちらも検索結果ページへのリンクのみ
+      const productType = specsOf(p).productType;
+      const typeWord = productType === "portable" ? typeLabels.portable : productType ? "発電機" : "";
+      const janUrl = amazonJanUrl(p.janCode);
+      const keywordUrl = !janUrl && p.brand && typeWord ? amazonKeywordUrl(`${p.brand} ${typeWord}`) : null;
+      const amazonUrl = janUrl || keywordUrl;
+      const amazonKind = janUrl ? "amazon_jan" : "amazon_keyword";
+      const amazonLabel = janUrl ? "AmazonでJAN検索" : `Amazonで${p.brand}の${typeWord}を探す`;
       if (amazonUrl) {
         const wrap = document.createElement("div");
         wrap.className = "urgent-amazon";
@@ -175,16 +233,16 @@ const rootId = `generator-urgent-${slug}`;
         am.href = amazonUrl;
         am.target = "_blank";
         am.rel = "sponsored noopener";
-        am.textContent = "AmazonでJAN検索 →";
+        am.textContent = `${amazonLabel} →`;
         am.addEventListener("click", () => {
           if (w.sokunobankDebounceClick) {
             w.sokunobankDebounceClick(am, () => {
               (window as any).sokunobankTrackEvent?.("generator_usage_outbound", {
                 category: slug,
-                value: "amazon_jan",
-                link_type: "amazon_jan",
+                value: amazonKind,
+                link_type: amazonKind,
                 link_url: am.href,
-                link_text: "AmazonでJAN検索",
+                link_text: amazonLabel,
                 page_path: window.location.pathname,
               });
             });
@@ -192,10 +250,12 @@ const rootId = `generator-urgent-${slug}`;
         });
         const note = document.createElement("p");
         note.className = "urgent-amazon-note";
-        note.textContent = "PR・同じ商品の出品は保証されません";
+        note.textContent = janUrl ? "PR・同じ商品の出品は保証されません" : "PR・同じ商品の出品は保証されません(ブランドでの検索結果です)";
         wrap.append(am, note);
-        li.appendChild(wrap);
+        main.appendChild(wrap);
       }
+
+      li.appendChild(createDetail(p));
       return li;
     }
 
@@ -294,9 +354,55 @@ const rootId = `generator-urgent-${slug}`;
     list-style: none;
     margin: 0;
     padding: 0;
+    display: block;
+  }
+  /* PC: 左に商品カード(画像大きめ)、右に商品の説明。1件だけ表示するため、カードを横に引き伸ばさない */
+  .urgent-feature {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-    gap: 1rem;
+    grid-template-columns: minmax(300px, 380px) 1fr;
+    gap: 1.5rem;
+    align-items: start;
+  }
+  .urgent-detail {
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-lg);
+    background: var(--color-bg-soft);
+    padding: 1.1rem 1.3rem;
+  }
+  .urgent-detail h3 {
+    margin: 0 0 0.7rem;
+    font-size: 1.05rem;
+  }
+  .urgent-facts {
+    display: grid;
+    grid-template-columns: max-content 1fr;
+    gap: 0.35rem 1rem;
+    margin: 0 0 0.9rem;
+    font-size: 0.9rem;
+  }
+  .urgent-facts dt {
+    color: var(--color-text-muted);
+    font-weight: 600;
+  }
+  .urgent-facts dd {
+    margin: 0;
+    overflow-wrap: anywhere;
+  }
+  .urgent-desc-caption {
+    margin: 0 0 0.2rem;
+    font-size: 0.78rem;
+    font-weight: 700;
+    color: var(--color-text-muted);
+  }
+  .urgent-desc {
+    margin: 0 0 0.8rem;
+    font-size: 0.9rem;
+    line-height: 1.7;
+  }
+  .urgent-detail-note {
+    margin: 0;
+    font-size: 0.76rem;
+    color: var(--color-text-muted);
   }
   .urgent-list[hidden] {
     display: none;
@@ -330,7 +436,7 @@ const rootId = `generator-urgent-${slug}`;
   }
   .urgent-card-image {
     width: 100%;
-    height: 140px;
+    height: 300px;
     object-fit: contain;
     background: var(--color-bg-soft);
     border-radius: var(--radius-sm);
@@ -394,15 +500,12 @@ const rootId = `generator-urgent-${slug}`;
   }
 
   @media (max-width: 720px) {
-    .urgent-list {
-      grid-auto-flow: column;
-      grid-auto-columns: minmax(180px, 70%);
-      overflow-x: auto;
-      scroll-snap-type: x mandatory;
-      padding-bottom: 0.4rem;
+    .urgent-feature {
+      grid-template-columns: 1fr;
+      gap: 1rem;
     }
-    .urgent-card {
-      scroll-snap-align: start;
+    .urgent-card-image {
+      height: 200px;
     }
   }
 </style>

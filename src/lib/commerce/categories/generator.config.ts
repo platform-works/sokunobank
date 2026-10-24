@@ -63,6 +63,8 @@ export const generatorConfig: CommerceCategoryConfig = {
   // (裏側のみ。楽天のデータは画面にも出さない)。キーは2語×2頁=最大4回の楽天API呼び出し(6時間キャッシュ)。
   // 商品カードに「AmazonでJAN検索」ボタンを出すため、レスポンスにJANコードを含める(JANがある商品のみ)
   amazonJanLink: true,
+  // おすすめ商品に出品者の商品説明(抜粋)を載せる
+  showDescription: true,
   rakutenSignal: { keywords: ["インバーター発電機", "ポータブル電源"], pagesPerKeyword: 2 },
   seoSections: [
     {

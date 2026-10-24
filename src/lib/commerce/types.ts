@@ -162,6 +162,11 @@ export interface CommerceCategoryConfig {
    * Amazonの価格・評価・在庫は取得・表示しない。未設定ならJANは返さない。
    */
   amazonJanLink?: boolean;
+  /**
+   * 任意(2026-10-24導入、発電機カテゴリーが最初の利用者)。trueなら、APIレスポンスに商品説明の抜粋
+   * (descriptionExcerpt、140字まで・文章として読めるものだけ)を含める。出品者の記載で、サイトは保証しない。
+   */
+  showDescription?: boolean;
   seoSections: { heading: string; body: string[] }[];
   faq: CommerceFaqItem[];
   /** 任意。ValueCommerce等の広告タグ(PC/スマホ)。無ければ何も表示しない */

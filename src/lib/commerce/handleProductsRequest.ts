@@ -4,6 +4,12 @@ import { fetchCandidates } from "./fetchCandidates";
 import { scoreProduct } from "./ranking";
 import type { CommerceCategoryConfig, ScoredProduct, SortKey } from "./types";
 import { buildReviewSignals, fetchRakutenPool } from "../rakuten/signal";
+import { descriptionExcerpt } from "./descriptionExcerpt";
+
+function descriptionField(raw: string): { description?: string } {
+  const d = descriptionExcerpt(raw);
+  return d ? { description: d } : {};
+}
 import type { RakutenEnv } from "../rakuten/client";
 import type { RakutenProduct } from "../rakuten/types";
 
@@ -247,6 +253,8 @@ export async function handleProductsRequest(config: CommerceCategoryConfig, cont
         ...(p.reviewSignal !== undefined ? { reviewSignal: p.reviewSignal } : {}),
         // AmazonのJAN検索リンク用(設定したカテゴリーのみ、JANがある商品のみ)
         ...(config.amazonJanLink && p.janCode ? { janCode: p.janCode } : {}),
+        // 商品説明の抜粋(設定したカテゴリーのみ、文章として読めるものがある商品のみ)
+        ...(config.showDescription ? descriptionField(p.descriptionText) : {}),
       })),
       count: sorted.length,
       generatedAt: new Date().toISOString(),

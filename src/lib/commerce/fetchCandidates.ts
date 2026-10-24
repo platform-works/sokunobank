@@ -124,7 +124,8 @@ function normalizeHit(hit: YahooHit): RankableProduct | null {
     code: hit.code,
     janCode: hit.janCode && hit.janCode.trim() !== "" ? hit.janCode : null,
     name: hit.name,
-    descriptionText: `${hit.headLine ?? ""} ${hit.description ?? ""}`,
+    // キャッチコピーと説明文は改行で区切る(商品説明の抜粋で、キャッチコピーの羅列と本文を行で分けるため)
+    descriptionText: `${hit.headLine ?? ""}\n${hit.description ?? ""}`,
     url: hit.url,
     image: hit.image?.medium ?? hit.image?.small ?? "",
     price: hit.price ?? 0,

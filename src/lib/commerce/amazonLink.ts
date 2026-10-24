@@ -9,6 +9,13 @@ export function isValidJan(jan: string | null | undefined): jan is string {
   return typeof jan === "string" && /^(\d{8}|\d{13})$/.test(jan);
 }
 
+/** キーワード検索のAmazon検索結果URL(JANが無い商品の代替。ブランド名など商品を特定しすぎない語を渡す)。空ならnull */
+export function amazonKeywordUrl(keyword: string | null | undefined): string | null {
+  const k = (keyword ?? "").trim();
+  if (k === "") return null;
+  return `https://www.amazon.co.jp/s?k=${encodeURIComponent(k)}&tag=${AMAZON_TAG}`;
+}
+
 /** JAN検索のAmazon検索結果URL。JANが無効ならnull(ボタンを出さない) */
 export function amazonJanUrl(jan: string | null | undefined): string | null {
   if (!isValidJan(jan)) return null;
