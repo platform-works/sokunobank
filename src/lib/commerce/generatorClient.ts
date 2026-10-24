@@ -20,6 +20,13 @@ export interface Range {
   label: string;
 }
 
+export interface BrandOption {
+  id: string;
+  label: string;
+  /** 商品名またはブランド名(Yahoo!のbrand.name)に含まれる語(大文字小文字を区別しない) */
+  words: string[];
+}
+
 export interface Selection {
   useCase: string | null;
   type: ProductType | null;
@@ -27,6 +34,8 @@ export interface Selection {
   power: Range | null;
   /** 予算(円)。価格は全商品で取得できるため、判定不能による除外は起きない */
   budget: Range | null;
+  /** ブランド。商品名・ブランド名に該当語が含まれる商品だけを残す(該当しない=そのブランドではない、と判定できる) */
+  brand: BrandOption | null;
 }
 
 // 帯は閉区間(境界の値は両隣の帯に含まれる)。「500Wh以下」「1,000Wh以上」といった
@@ -53,6 +62,28 @@ export const budgetBands: Range[] = [
   { min: 120000, max: 180000, label: "12〜18万円" },
   { min: 180000, max: null, label: "18万円以上" },
 ];
+
+// ブランドの絞り込み選択肢(2026-10-24)。取得済み150件でブランド名・商品名に現れた件数の多い順(Jackery34・EENOUR18・
+// Kareyou16・BLUETTI15・EcoFlow12・JESIMAIK7・Anker6・ホンダ5・工進5・DJI5)。語はカタカナ表記も含める。
+// ヤマハは事業終了のため載せない。ブランドは商品名から確実に判定できるため、判定不能(unknown)は発生しない。
+export const brandOptions: BrandOption[] = [
+  { id: "jackery", label: "Jackery", words: ["jackery", "ジャクリ"] },
+  { id: "eenour", label: "EENOUR", words: ["eenour", "イーノウ"] },
+  { id: "kareyou", label: "Kareyou", words: ["kareyou"] },
+  { id: "bluetti", label: "BLUETTI", words: ["bluetti", "ブルーティ"] },
+  { id: "ecoflow", label: "EcoFlow", words: ["ecoflow", "エコフロー"] },
+  { id: "jesimaik", label: "JESIMAIK", words: ["jesimaik"] },
+  { id: "anker", label: "Anker", words: ["anker", "アンカー"] },
+  { id: "honda", label: "Honda", words: ["honda", "ホンダ"] },
+  { id: "koshin", label: "工進", words: ["工進", "koshin"] },
+  { id: "dji", label: "DJI", words: ["dji"] },
+];
+
+export function matchesBrand(product: { name: string; brand?: string | null }, brand: BrandOption | null): boolean {
+  if (brand === null) return true;
+  const text = `${product.name} ${product.brand ?? ""}`.toLowerCase();
+  return brand.words.some((w) => text.includes(w.toLowerCase()));
+}
 
 export const typeLabels: Record<ProductType, string> = {
   portable: "ポータブル電源",
@@ -93,19 +124,20 @@ export function specsOf(product: { name: string }): ExtractedSpecs {
 }
 
 export function isFiltering(sel: Selection): boolean {
-  return sel.useCase !== null || sel.type !== null || sel.capacity !== null || sel.power !== null || (sel.budget ?? null) !== null;
+  return sel.useCase !== null || sel.type !== null || sel.capacity !== null || sel.power !== null || (sel.budget ?? null) !== null || (sel.brand ?? null) !== null;
 }
 
 /**
  * 選択条件で絞り込む。商品名から該当の値を確認できない商品は推測で分類せず、絞り込み中は
  * 表示しない(unknownとして件数だけ返し、画面に注記する)。
  */
-export function filterBySelection<T extends { name: string; price?: number }>(products: T[], sel: Selection): { visible: T[]; unknown: number } {
+export function filterBySelection<T extends { name: string; price?: number; brand?: string | null }>(products: T[], sel: Selection): { visible: T[]; unknown: number } {
   if (!isFiltering(sel)) return { visible: products, unknown: 0 };
   const visible: T[] = [];
   let unknown = 0;
   for (const p of products) {
     if (!matchesUseCase(p.name, sel.useCase)) continue;
+    if (!matchesBrand(p, sel.brand ?? null)) continue;
     const s = specsOf(p);
     let ok = true;
     let missing = false;
@@ -141,7 +173,7 @@ export function filterBySelection<T extends { name: string; price?: number }>(pr
 }
 
 /** 用途・種類だけで絞った商品のうち、商品名から容量(Wh)・出力(W)を確認できたものの最小/最大(0件時の案内用) */
-export function availableRanges<T extends { name: string; price?: number }>(products: T[], sel: Selection) {
+export function availableRanges<T extends { name: string; price?: number; brand?: string | null }>(products: T[], sel: Selection) {
   const base = filterBySelection(products, Object.assign({}, sel, { capacity: null, power: null, budget: null })).visible;
   const prices = base.map((p) => p.price).filter((v): v is number => typeof v === "number" && v > 0);
   const caps = base.map((p) => specsOf(p).capacityWh).filter((v): v is number => v !== null);
@@ -197,12 +229,39 @@ export function describeSelection(sel: Selection): string[] {
   if (sel.capacity) parts.push(sel.capacity.label);
   if (sel.power) parts.push(sel.power.label);
   if (sel.budget) parts.push(`予算${sel.budget.label}`);
+  if (sel.brand) parts.push(sel.brand.label);
   return parts;
 }
 
 // ---- 選択状態(ページ内で共有) -------------------------------------------------
 
-let selection: Selection = { useCase: null, type: null, capacity: null, power: null, budget: null };
+let selection: Selection = { useCase: null, type: null, capacity: null, power: null, budget: null, brand: null };
+
+/**
+ * URLのクエリから初期の絞り込みを作る(リスティング広告などから、条件を選んだ状態でページを開くため)。
+ * 対応: use(用途id)・type(portable/gasoline/cassette)・brand(brandOptionsのid)・cap/power/budget(帯の番号、0始まり)。
+ * 不正な値は無視する。ページのcanonicalはクエリを含まないため、検索エンジンには同一ページとして扱われる。
+ */
+export function selectionFromParams(params: URLSearchParams): Partial<Selection> {
+  const out: Partial<Selection> = {};
+  const use = params.get("use");
+  if (use && useCases.some((u) => u.id === use)) out.useCase = use;
+  const type = params.get("type");
+  if (type && Object.prototype.hasOwnProperty.call(typeLabels, type)) out.type = type as ProductType;
+  const brand = brandOptions.find((b) => b.id === params.get("brand"));
+  if (brand) out.brand = brand;
+  const band = (key: string, bands: Range[]): Range | null => {
+    const v = params.get(key);
+    return v !== null && /^\d+$/.test(v) ? (bands[Number(v)] ?? null) : null;
+  };
+  const cap = band("cap", capacityBands);
+  if (cap) out.capacity = cap;
+  const power = band("power", powerBands);
+  if (power) out.power = power;
+  const budget = band("budget", budgetBands);
+  if (budget) out.budget = budget;
+  return out;
+}
 
 export function isEngineType(t: ProductType | null): boolean {
   return t === "gasoline" || t === "cassette";

@@ -6,7 +6,7 @@
 import EnvironmentGuide from "./EnvironmentGuide.astro";
 import { prefectures } from "../../../lib/commerce/prefectures";
 import { appliances, environments, estimateEnvironment, useCaseEnvironments, useCases } from "../../../lib/commerce/generatorContent";
-import { budgetBands, capacityBands, powerBands, typeLabels } from "../../../lib/commerce/generatorClient";
+import { brandOptions, budgetBands, capacityBands, powerBands, typeLabels } from "../../../lib/commerce/generatorClient";
 
 const types = Object.entries(typeLabels) as [string, string][];
 const useCaseHints = Object.fromEntries(useCases.filter((u) => u.note).map((u) => [u.id, u.note]));
@@ -121,8 +121,22 @@ const useCaseReco = Object.fromEntries(
     <p class="step-note">予算は商品の表示価格(円)で絞り込みます。送料・ポイント還元は含みません。</p>
   </div>
 
+  <div class="step-row">
+    <p class="step-label"><span class="step-no">STEP5</span>ブランドを選ぶ(任意)</p>
+    <div class="step-options" role="group" aria-label="ブランド">
+      {
+        brandOptions.map((b) => (
+          <button type="button" class="step-option" aria-pressed="false" data-kind="brand" data-value={b.id} data-label={b.label}>
+            {b.label}
+          </button>
+        ))
+      }
+    </div>
+    <p class="step-note">ブランドは、商品名・ブランド名の表記で絞り込みます。</p>
+  </div>
+
   <div class="step-row step-go-row">
-    <p class="step-label"><span class="step-no">STEP5</span>最短配送の商品を見る</p>
+    <p class="step-label"><span class="step-no">STEP6</span>最短配送の商品を見る</p>
     <a class="btn btn-primary btn-lg step-go" href="#products" data-role="go">
       条件に合う最短配送の商品を見る <span data-role="count"></span>
     </a>
@@ -141,10 +155,12 @@ const useCaseReco = Object.fromEntries(
   import {
     AREA_STORAGE_KEY,
     SLUG,
+    brandOptions,
     budgetBands,
     capacityBands,
     powerBands,
     getSelection,
+    selectionFromParams,
     isEngineBlocked,
     isEngineType,
     setSelection,
@@ -389,6 +405,7 @@ const useCaseReco = Object.fromEntries(
         else if (kind === "capacity") pressed = sel.capacity !== null && sel.capacity.label === capacityBands[Number(value)].label;
         else if (kind === "power") pressed = sel.power !== null && sel.power.label === powerBands[Number(value)].label;
         else if (kind === "budget") pressed = sel.budget !== null && sel.budget.label === budgetBands[Number(value)].label;
+        else if (kind === "brand") pressed = sel.brand !== null && sel.brand.id === value;
         b.setAttribute("aria-pressed", String(pressed));
         // エンジン式には容量(Wh)の表記がないため、容量ボタンは選べなくする(選ぶと必ず0件になるため)
         if (kind === "capacity") b.disabled = isEngineType(sel.type);
@@ -426,6 +443,9 @@ const useCaseReco = Object.fromEntries(
       } else if (kind === "power") {
         setSelection({ power: pressed ? null : powerBands[Number(value)] });
         trackFilterUse("power_band", pressed ? undefined : label);
+      } else if (kind === "brand") {
+        setSelection({ brand: pressed ? null : (brandOptions.find((b) => b.id === value) ?? null) });
+        trackFilterUse("brand", pressed ? undefined : label);
       } else if (kind === "budget") {
         setSelection({ budget: pressed ? null : budgetBands[Number(value)] });
         trackFilterUse("budget", pressed ? undefined : label);
@@ -443,6 +463,10 @@ const useCaseReco = Object.fromEntries(
 
     document.addEventListener("generator:selection-change", render);
     render();
+
+    // リスティング広告などからのリンク(?brand=jackery&type=portable 等)で、条件を選んだ状態にする
+    const fromUrl = selectionFromParams(new URLSearchParams(window.location.search));
+    if (Object.keys(fromUrl).length > 0) setSelection(fromUrl);
 
     document.addEventListener("generator:result", (event) => {
       const d = (event as CustomEvent).detail as { shown: number; filtering: boolean };

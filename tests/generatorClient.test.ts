@@ -9,7 +9,7 @@ import {
   type Selection,
 } from "../src/lib/commerce/generatorClient";
 
-const none: Selection = { useCase: null, type: null, capacity: null, power: null, budget: null };
+const none: Selection = { useCase: null, type: null, capacity: null, power: null, budget: null, brand: null };
 const mk = (name: string) => ({ name, deliveryDay: 1, storeName: "店" });
 
 describe("generatorClient", () => {
@@ -178,5 +178,40 @@ describe("機器の一覧からの必要容量", () => {
     const { estimateItems } = await import("../src/lib/commerce/generatorContent");
     expect(estimateItems([])).toEqual({ wh: 0, w: 0 });
     expect(estimateItems([{ watts: Number.NaN, qty: 1, hours: 1 }, { watts: -5, qty: 1, hours: 1 }, { watts: 100, qty: 0, hours: 5 }])).toEqual({ wh: 0, w: 0 });
+  });
+});
+
+describe("ブランドの絞り込みとURLからの初期選択", () => {
+  it("商品名またはブランド名に該当語があるものだけを残す(大文字小文字・カタカナ表記を区別しない)", async () => {
+    const { brandOptions } = await import("../src/lib/commerce/generatorClient");
+    const jackery = brandOptions.find((b) => b.id === "jackery")!;
+    const items = [
+      { name: "Jackery ポータブル電源 1000", brand: "Jackery" },
+      { name: "ポータブル電源 ジャクリ 240", brand: null },
+      { name: "EENOUR 発電機 3000W", brand: "EENOUR" },
+      { name: "ポータブル電源 ホンダ互換", brand: "ホンダ" },
+    ];
+    const r = filterBySelection(items, { ...none, brand: jackery });
+    expect(r.visible.map((p) => p.name)).toEqual(["Jackery ポータブル電源 1000", "ポータブル電源 ジャクリ 240"]);
+    expect(r.unknown).toBe(0);
+    const honda = brandOptions.find((b) => b.id === "honda")!;
+    expect(filterBySelection(items, { ...none, brand: honda }).visible).toHaveLength(1);
+  });
+  it("ブランドだけの選択でも絞り込み中と判定し、説明に出る", async () => {
+    const { isFiltering, describeSelection, brandOptions } = await import("../src/lib/commerce/generatorClient");
+    const sel = { ...none, brand: brandOptions[0] };
+    expect(isFiltering(sel)).toBe(true);
+    expect(describeSelection(sel)).toEqual(["Jackery"]);
+  });
+  it("URLのクエリから初期の絞り込みを作り、不正な値は無視する", async () => {
+    const { selectionFromParams, capacityBands, budgetBands } = await import("../src/lib/commerce/generatorClient");
+    const r = selectionFromParams(new URLSearchParams("brand=bluetti&type=portable&use=camp&cap=1&budget=2"));
+    expect(r.brand?.id).toBe("bluetti");
+    expect(r.type).toBe("portable");
+    expect(r.useCase).toBe("camp");
+    expect(r.capacity).toEqual(capacityBands[1]);
+    expect(r.budget).toEqual(budgetBands[2]);
+    expect(selectionFromParams(new URLSearchParams("brand=unknown&type=__proto__&use=x&cap=9&power=-1&budget=abc"))).toEqual({});
+    expect(selectionFromParams(new URLSearchParams(""))).toEqual({});
   });
 });
