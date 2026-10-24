@@ -1,23 +1,27 @@
 ---
-// 「選んだ条件のおすすめ商品」セクション(2026-09-28導入、2026-10-24にレビュー優先へ変更)。発電機カテゴリー専用。
-// 既存のAPI(/api/generator/products/)をそのまま使い、取得済みの商品から、STEP選択に合うもののうち
+// 「選んだ条件のおすすめ商品」セクション(2026-09-28導入、2026-10-24にレビュー優先へ変更、同日にカテゴリー共通化)。
+// カテゴリーの商品取得API(apiPath)をそのまま使い、取得済みの商品から、STEP選択に合うもののうち
 // Yahoo!ショッピングのレビュー評価・件数が最も高い1件を表示する(選定ロジックは lib/commerce/reviewPick.ts)。
 // ProductGrid.astro(全商品一覧、既存・未変更)とは別のクライアントスクリプトで、同じAPIエンドポイントに
 // 対して独立してfetchする(商品取得ロジック・Yahoo APIの呼び出し方は一切変更していない)。
 interface Props {
   slug: string;
   apiPath: string;
+  /** 見出し下の説明。未指定なら発電機ページの文言 */
+  intro?: string;
 }
-const { slug, apiPath } = Astro.props;
+const {
+  slug,
+  apiPath,
+  intro = "上で選んだ種類・容量・出力・用途に合う商品のうち、レビュー評価と件数が高い商品を表示します。Yahoo!ショッピングのレビューを基本に、同じ型番で価格帯の近い商品は他の通販サイトの評価も参考にしています。評価は件数が少ないほど割り引いて比べています(カードに表示する評価はYahoo!ショッピングのものです)。",
+} = Astro.props;
 const rootId = `generator-urgent-${slug}`;
 ---
 
 <section class="urgent-section" id="urgent">
   <div class="urgent-heading">
     <h2>選んだ条件のおすすめ商品</h2>
-    <p>
-      上で選んだ種類・容量・出力・用途に合う商品のうち、レビュー評価と件数が高い商品を表示します。Yahoo!ショッピングのレビューを基本に、同じ型番で価格帯の近い商品は他の通販サイトの評価も参考にしています。評価は件数が少ないほど割り引いて比べています(カードに表示する評価はYahoo!ショッピングのものです)。
-    </p>
+    <p>{intro}</p>
     <p class="urgent-points">
       急がない場合は、気になる商品をYahoo!ショッピングのカートに入れておき、毎月5・15・25日の「5のつく日」に購入するのがおすすめです。5のつく日は、PayPayポイントが5倍になる特典の対象日です(付与条件・上限はYahoo!ショッピングの案内でご確認ください)。カートに入れても価格・在庫は確保されず、変動や売り切れもあります。すぐに必要な場合は、Amazonでも購入できます(在庫・配達日はAmazonの表示でご確認ください)。
       <strong data-gotsuku-today hidden>本日は5のつく日です。</strong>
@@ -37,7 +41,8 @@ const rootId = `generator-urgent-${slug}`;
   // 取得済みの商品のうち、STEP選択(種類・容量・出力・用途)に合うものから、Yahoo!ショッピングの
   // レビュー評価・件数(件数補正済み)が最も高い1件を表示する。納期・報酬額は選定に使わない
   // (配送の目安は補足表示のみ)。選択の絞り込みは商品一覧と同じ純関数(filterBySelection)を使う。
-  import { DELIVERY_NOTICE, filterBySelection, getSelection, isFiltering, specsOf, typeLabels } from "../../../lib/commerce/generatorClient";
+  import { getApplianceClient } from "../../../lib/commerce/appliance/clients";
+  import { DELIVERY_NOTICE } from "../../../lib/commerce/appliance/createApplianceClient";
   import { adjustedRating, isGotsukuDay, pickByReview } from "../../../lib/commerce/reviewPick";
   import { amazonJanUrl, amazonKeywordUrl } from "../../../lib/commerce/amazonLink";
 
@@ -60,6 +65,8 @@ const rootId = `generator-urgent-${slug}`;
   if (root) {
     const slug = root.dataset.slug || "";
     const apiPath = root.dataset.apiPath || "";
+    const client = getApplianceClient(slug);
+    const { filterBySelection, getSelection, isFiltering, specsOf, profile } = client;
     const loadingEl = root.querySelector<HTMLElement>('[data-role="loading"]')!;
     const emptyEl = root.querySelector<HTMLElement>('[data-role="empty"]')!;
     const listEl = root.querySelector<HTMLElement>('[data-role="list"]')!;
@@ -67,7 +74,7 @@ const rootId = `generator-urgent-${slug}`;
 
     type W = Window & { sokunobankCardExtensions?: Record<string, any>; sokunobankDebounceClick?: any; sokunobankTrackOutboundClick?: any };
     const w = window as W;
-    const getExt = () => (w.sokunobankCardExtensions ? w.sokunobankCardExtensions.generator : undefined);
+    const getExt = () => (w.sokunobankCardExtensions ? w.sokunobankCardExtensions[slug] : undefined);
 
     let allProducts: PickProduct[] = [];
 
@@ -93,10 +100,9 @@ const rootId = `generator-urgent-${slug}`;
 
       const s = specsOf(p);
       const facts: [string, string][] = [];
-      if (s.productType) facts.push(["種類", s.productType === "portable" ? "ポータブル電源(バッテリー式)" : s.productType === "gasoline" ? "ガソリン発電機" : "カセットガス発電機"]);
+      if (s.productType) facts.push(["種類", profile.typeFactLabels?.[s.productType] ?? profile.typeLabels[s.productType] ?? s.productType]);
       if (p.brand) facts.push(["ブランド", p.brand]);
-      if (s.capacityWh !== null) facts.push(["容量", `${s.capacityWh.toLocaleString("en-US")}Wh`]);
-      if (s.outputLabel !== null) facts.push(["定格出力", s.outputLabel]);
+      facts.push(...profile.specFacts(s));
       facts.push(["価格", `${p.price.toLocaleString()}円`]);
       facts.push(["レビュー", `Yahoo!ショッピング ${p.reviewRate.toFixed(2)}(${p.reviewCount.toLocaleString()}件)`]);
       if (p.storeName) facts.push(["販売ストア", p.storeName]);
@@ -129,7 +135,7 @@ const rootId = `generator-urgent-${slug}`;
       d.appendChild(tip);
       const note = document.createElement("p");
       note.className = "urgent-detail-note";
-      note.textContent = "容量・出力は商品名の表記から読み取った値です。在庫・配送・仕様の詳細は商品ページで確認してください。";
+      note.textContent = profile.text.detailNote;
       d.appendChild(note);
       return d;
     }
@@ -219,7 +225,7 @@ const rootId = `generator-urgent-${slug}`;
       // Yahoo!ボタンの下にAmazonへのリンク(カード全体が1つの<a>のため、リンクの外に置く)。
       // JANがあれば「AmazonでJAN検索」、無ければブランド名+種類での検索。どちらも検索結果ページへのリンクのみ
       const productType = specsOf(p).productType;
-      const typeWord = productType === "portable" ? typeLabels.portable : productType ? "発電機" : "";
+      const typeWord = profile.amazonTypeWord(productType);
       const janUrl = amazonJanUrl(p.janCode);
       const keywordUrl = !janUrl && p.brand && typeWord ? amazonKeywordUrl(`${p.brand} ${typeWord}`) : null;
       const amazonUrl = janUrl || keywordUrl;
@@ -307,7 +313,7 @@ const rootId = `generator-urgent-${slug}`;
 
     load();
     // STEP選択(種類・容量・出力・用途・予算・ブランド)が変わったら、取得済みの商品から選び直す
-    document.addEventListener("generator:selection-change", () => {
+    document.addEventListener(client.EVENT_CHANGE, () => {
       // ブランドが変わったときは、そのブランドの追加候補を含めて取り直す。それ以外は取得済みの商品から選び直す
       if ((getSelection().brand?.id ?? null) !== loadedBrand) {
         load();

@@ -1,12 +1,19 @@
 ---
-// 発電機カテゴリーの商品カード拡張(ブランド・容量Wh・定格出力W・お届け先付き配送表示・GA4パラメータ)を
-// ProductGrid.astro の拡張ポイント(variant="generator")へ登録する。ページに1回だけ置く。
-// 登録処理本体は src/lib/commerce/generatorClient.ts(テスト済みの純関数を含む)。
+// 商品カード拡張(ブランド・容量・定格出力など・配送の固定案内・GA4パラメータ)を
+// ProductGrid.astro の拡張ポイント(variant=slug)へ登録する。ページに1回だけ置く(2026-10-24にカテゴリー共通化)。
+// 登録処理本体は src/lib/commerce/appliance/createApplianceClient.ts(テスト済みの純関数を含む)。
+interface Props {
+  slug: string;
+}
+const { slug } = Astro.props;
 ---
 
+<div data-appliance-runtime={slug} hidden></div>
+
 <script>
-  import { registerGeneratorExtension } from "../../../lib/commerce/generatorClient";
-  registerGeneratorExtension();
+  import { getApplianceClient } from "../../../lib/commerce/appliance/clients";
+  const el = document.querySelector<HTMLElement>("[data-appliance-runtime]");
+  if (el) getApplianceClient(el.dataset.applianceRuntime ?? "").registerExtension();
 </script>
 
 <style is:global>

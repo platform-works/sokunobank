@@ -1,48 +1,37 @@
 ---
-// 「何を買うか決める」ステップ選択(2026-09-30導入)。用途 → タイプ → 容量/出力 → 商品一覧。
-// 商品名から容量(Wh)・定格出力(W)・タイプを確認できた商品だけを絞り込み、確認できない商品は
-// 推測で分類しない(詳細は src/lib/commerce/generatorClient.ts / extractSpecs.ts)。
-// 用途は商品の属性ではないため商品の絞り込みには使わず、用途別の注意表示と計測(use_case)にのみ使う。
-import EnvironmentGuide from "./EnvironmentGuide.astro";
-import { appliances, environments, estimateEnvironment, useCaseEnvironments, useCases } from "../../../lib/commerce/generatorContent";
-import { brandOptions, budgetBands, capacityBands, powerBands, typeLabels } from "../../../lib/commerce/generatorClient";
+// 「何を買うか決める」ステップ選択(2026-09-30導入、2026-10-24にカテゴリー共通化)。
+// 用途 → 種類 → 容量/出力 → 予算 → ブランド → 商品一覧。カテゴリー固有の値と文言は
+// src/lib/commerce/appliance/profiles/<slug>.ts(ApplianceProfile)から受け取り、絞り込みの処理は
+// 共通エンジン(createApplianceClient.ts)が行う。商品名から確認できない商品は推測で分類しない。
+// 用途は商品の属性ではないため、商品名に用途を示す語が明記された商品だけを対象にする。
+import { getApplianceProfile } from "../../../lib/commerce/appliance/clients";
 
-const types = Object.entries(typeLabels) as [string, string][];
-const useCaseHints = Object.fromEntries(useCases.filter((u) => u.note).map((u) => [u.id, u.note]));
-// 「使いたい電子機器から計算する」用の機器一覧(消費電力は出典確認済みの値。スマートフォン等は未確認なので入力式)と、
-// 用途ごとの初期選択(その用途の最初のおすすめ環境の機器・時間・台数)
-const applianceRows = appliances.map((a) => ({ id: a.id, label: a.label, watts: a.watts, note: a.note, hours: a.defaultHours }));
-const usePreset = Object.fromEntries(
-  useCases.map((u) => {
-    const env = environments.find((e) => e.id === useCaseEnvironments[u.id][0]);
-    return [u.id, Object.fromEntries((env?.items ?? []).map((i) => [i.applianceId, { qty: i.qty, hours: i.hours }]))];
-  })
-);
-// 用途だけを選んだ人へ提示する「おすすめ容量」(出典確認済みの消費電力から計算した目安)
-const useCaseReco = Object.fromEntries(
-  useCases.map((u) => [
-    u.id,
-    useCaseEnvironments[u.id]
-      .map((id) => environments.find((e) => e.id === id))
-      .filter((e): e is NonNullable<typeof e> => !!e)
-      .map((e) => {
-        const est = estimateEnvironment(e);
-        return { id: e.id, label: e.label, desc: e.description, wh: est.wh, w: est.w, type: e.type, caveat: e.caveat ?? "" };
-      }),
-  ])
-);
+interface Props {
+  slug: string;
+  heading?: string;
+}
+const { slug, heading = "用途・容量・予算から、買う商品を絞り込む" } = Astro.props;
+const profile = getApplianceProfile(slug);
+const types = Object.entries(profile.typeLabels);
+const hasPower = profile.powerBands.length > 0;
+// STEPの番号は、実際に出す行の順に振る
+let stepCount = 0;
+const stepNo = () => `STEP${++stepCount}`;
+const noteTypes = profile.notes.filter((n) => n.row === "type");
+const noteSpecs = profile.notes.filter((n) => n.row === "spec");
+const noteClass = (v: string) => (v === "hint" ? "step-hint" : "step-note");
 ---
 
-<section class="step-selector" id="step" aria-labelledby="step-heading">
+<section class="step-selector" id="step" aria-labelledby="step-heading" data-slug={slug}>
   <div class="step-head">
-    <h2 id="step-heading">用途・容量・予算から、買う商品を絞り込む</h2>
+    <h2 id="step-heading">{heading}</h2>
   </div>
 
   <div class="step-row">
-    <p class="step-label"><span class="step-no">STEP1</span>用途を選ぶ</p>
+    <p class="step-label"><span class="step-no">{stepNo()}</span>{profile.text.stepUseCase}</p>
     <div class="step-options" role="group" aria-label="用途">
       {
-        useCases.map((u) => (
+        profile.useCases.map((u) => (
           <button type="button" class="step-option" aria-pressed="false" data-kind="usecase" data-value={u.id} data-label={u.label}>
             {u.label}
           </button>
@@ -53,57 +42,58 @@ const useCaseReco = Object.fromEntries(
     <div class="step-reco" data-role="usecase-reco" aria-live="polite" hidden></div>
   </div>
 
-  <div class="step-row">
-    <p class="step-label"><span class="step-no">STEP2</span>種類を選ぶ</p>
-    <div class="step-options" role="group" aria-label="種類">
-      {
-        types.map(([value, label]) => (
-          <button type="button" class="step-option" aria-pressed="false" data-kind="type" data-value={value} data-label={label}>
-            {label}
-          </button>
-        ))
-      }
-    </div>
-    <p class="step-note" data-role="engine-note" hidden>
-      エンジン式(ガソリン・カセットガス)の発電機は、屋外の風通しの良い場所で使ってください。屋内・自動車内・テント内で使うと、一酸化炭素(CO)中毒など屋内と同等以上の危険があります(NITE・消費者庁)。
-    </p>
-    <p class="step-hint" data-role="vehicle-note" hidden>
-      車中泊では、車内でエンジン式発電機を使えないため、ガソリン・カセットガス式は選べません。バッテリー式のポータブル電源だけを表示します(NITE・消費者庁)。
-    </p>
-  </div>
+  {
+    types.length > 0 && (
+      <div class="step-row">
+        <p class="step-label"><span class="step-no">{stepNo()}</span>{profile.text.stepType}</p>
+        <div class="step-options" role="group" aria-label="種類">
+          {types.map(([value, label]) => (
+            <button type="button" class="step-option" aria-pressed="false" data-kind="type" data-value={value} data-label={label}>
+              {label}
+            </button>
+          ))}
+        </div>
+        {noteTypes.map((n) => (
+          <p class={noteClass(n.variant)} data-note-id={n.id} hidden>{n.text}</p>
+        ))}
+      </div>
+    )
+  }
 
   <div class="step-row">
-    <p class="step-label"><span class="step-no">STEP3</span>容量(Wh)・出力(W)を選ぶ</p>
-    <div class="step-options" role="group" aria-label="バッテリー容量">
-      <span class="step-group-label">容量</span>
+    <p class="step-label"><span class="step-no">{stepNo()}</span>{profile.text.stepSpec}</p>
+    <div class="step-options" role="group" aria-label={profile.text.capacityGroupAria}>
+      {hasPower && <span class="step-group-label">{profile.text.capacityGroupLabel}</span>}
       {
-        capacityBands.map((b, i) => (
+        profile.capacityBands.map((b, i) => (
           <button type="button" class="step-option" aria-pressed="false" data-kind="capacity" data-value={String(i)} data-label={b.label}>
             {b.label}
           </button>
         ))
       }
     </div>
-    <div class="step-options" role="group" aria-label="定格出力">
-      <span class="step-group-label">出力</span>
-      {
-        powerBands.map((b, i) => (
-          <button type="button" class="step-option" aria-pressed="false" data-kind="power" data-value={String(i)} data-label={b.label}>
-            {b.label}
-          </button>
-        ))
-      }
-    </div>
-    <p class="step-note" data-role="capacity-note" hidden>発電機(エンジン式)には容量(Wh)の表記がないため、出力(W)で選びます。出力がkVA表記の商品は、W換算せず絞り込みの対象外です。</p>
-    <p class="step-note">用途は商品名の表記(防災・車中泊など)、容量・出力は商品名に明記された値だけで絞り込みます。「何Wh必要?」は<a href="#capacity">下の計算ツール</a>で目安を出せます。</p>
-    <EnvironmentGuide />
+    {
+      hasPower && (
+        <div class="step-options" role="group" aria-label={profile.text.powerGroupAria}>
+          <span class="step-group-label">{profile.text.powerGroupLabel}</span>
+          {profile.powerBands.map((b, i) => (
+            <button type="button" class="step-option" aria-pressed="false" data-kind="power" data-value={String(i)} data-label={b.label}>
+              {b.label}
+            </button>
+          ))}
+        </div>
+      )
+    }
+    {noteSpecs.map((n) => <p class={noteClass(n.variant)} data-note-id={n.id} hidden>{n.text}</p>)}
+    <p class="step-note" set:html={profile.text.specRowNote} />
+    <slot name="spec-extra" />
   </div>
 
   <div class="step-row">
-    <p class="step-label"><span class="step-no">STEP4</span>予算を選ぶ</p>
+    <p class="step-label"><span class="step-no">{stepNo()}</span>{profile.text.stepBudget}</p>
     <div class="step-options" role="group" aria-label="予算">
       {
-        budgetBands.map((b, i) => (
+        profile.budgetBands.map((b, i) => (
           <button type="button" class="step-option" aria-pressed="false" data-kind="budget" data-value={String(i)} data-label={b.label}>
             {b.label}
           </button>
@@ -114,10 +104,10 @@ const useCaseReco = Object.fromEntries(
   </div>
 
   <div class="step-row">
-    <p class="step-label"><span class="step-no">STEP5</span>ブランドを選ぶ(任意)</p>
+    <p class="step-label"><span class="step-no">{stepNo()}</span>{profile.text.stepBrand}</p>
     <div class="step-options" role="group" aria-label="ブランド">
       {
-        brandOptions.map((b) => (
+        profile.brandOptions.map((b) => (
           <button type="button" class="step-option" aria-pressed="false" data-kind="brand" data-value={b.id} data-label={b.label}>
             {b.label}
           </button>
@@ -128,260 +118,50 @@ const useCaseReco = Object.fromEntries(
   </div>
 
   <div class="step-row step-go-row">
-    <p class="step-label"><span class="step-no">STEP6</span>条件に合う商品を見る</p>
+    <p class="step-label"><span class="step-no">{stepNo()}</span>条件に合う商品を見る</p>
     <a class="btn btn-primary btn-lg step-go" href="#products" data-role="go">
       条件に合う商品を見る <span data-role="count"></span>
     </a>
   </div>
 </section>
 
-<script define:vars={{ useCaseHints, useCaseReco, applianceRows, usePreset }}>
-  window.__generatorUseCaseHints = useCaseHints;
-  window.__generatorUseCaseReco = useCaseReco;
-  window.__generatorApplianceRows = applianceRows;
-  window.__generatorUsePreset = usePreset;
-</script>
-
 <script>
-  import { estimateItems } from "../../../lib/commerce/generatorContent";
-  import {
-    brandOptions,
-    budgetBands,
-    capacityBands,
-    powerBands,
-    getSelection,
-    selectionFromParams,
-    isEngineBlocked,
-    isEngineType,
-    setSelection,
-    trackFilterUse,
-  } from "../../../lib/commerce/generatorClient";
+  import { getApplianceClient } from "../../../lib/commerce/appliance/clients";
 
   const root = document.getElementById("step");
   if (root) {
-    const hints = (window as unknown as { __generatorUseCaseHints?: Record<string, string> }).__generatorUseCaseHints ?? {};
+    const client = getApplianceClient(root.dataset.slug ?? "");
+    const profile = client.profile;
+    const hints = Object.fromEntries(profile.useCases.filter((u) => u.note).map((u) => [u.id, u.note as string]));
     const buttons = Array.from(root.querySelectorAll<HTMLButtonElement>(".step-option"));
-    const capNoteEl = root.querySelector<HTMLElement>('[data-role="capacity-note"]');
     const hintEl = root.querySelector<HTMLElement>('[data-role="usecase-hint"]');
     const recoEl = root.querySelector<HTMLElement>('[data-role="usecase-reco"]');
-    type Reco = { id: string; label: string; desc: string; wh: number; w: number; type: "portable" | null; caveat: string };
-    const recoMap = (window as unknown as { __generatorUseCaseReco?: Record<string, Reco[]> }).__generatorUseCaseReco ?? {};
-    type Row = { id: string; label: string; watts: number | null; note: string; hours: number };
-    const gw = window as unknown as { __generatorApplianceRows?: Row[]; __generatorUsePreset?: Record<string, Record<string, { qty: number; hours: number }>> };
-    const rowDefs = gw.__generatorApplianceRows ?? [];
-    const presetMap = gw.__generatorUsePreset ?? {};
+    const noteEls = Array.from(root.querySelectorAll<HTMLElement>("[data-note-id]"));
+    const countEl = root.querySelector<HTMLElement>('[data-role="count"]');
+    const goLink = root.querySelector<HTMLAnchorElement>('[data-role="go"]');
+    const { setSelection, trackFilterUse, getSelection } = client;
 
-    function numInput(value: string | number, label: string, step: string, width: string): HTMLInputElement {
-      const i = document.createElement("input");
-      i.type = "number";
-      i.min = "0";
-      i.step = step;
-      i.inputMode = "decimal";
-      i.value = String(value);
-      i.setAttribute("aria-label", label);
-      i.className = "step-calc-num";
-      i.style.width = width;
-      return i;
-    }
+    const extraApi = {
+      setSelection,
+      trackFilterUse,
+      scrollToProducts: () => document.getElementById("products")?.scrollIntoView({ behavior: "smooth", block: "start" }),
+    };
 
-    // 用途 → 使いたい電子機器 → 必要容量。機器にチェックを入れると、必要容量(Wh)と合計出力(W)の目安をその場で出す。
-    // 消費電力は出典確認済みの値(スマートフォン等、確認できないものは入力式)。「その他の機器」は自由入力
-    // (工事・業務用の電動工具など、公的な目安値が無い機器はここで自分の機器のW数を入れてもらう)。
-    function buildCalc(useCase: string): HTMLElement {
-      const preset = presetMap[useCase] ?? {};
-      const box = document.createElement("div");
-      box.className = "step-calc";
-      const h = document.createElement("p");
-      h.className = "step-reco-title";
-      h.textContent = "使いたい電子機器から、必要容量を計算する";
-      const lead = document.createElement("p");
-      lead.className = "step-reco-note";
-      lead.textContent = "使う機器にチェックを入れてください。消費電力・使用時間・台数は変更できます(初期値は目安です)。";
-      box.append(h, lead);
-
-      type Line = { check: HTMLInputElement; watts: HTMLInputElement; qty: HTMLInputElement; hours: HTMLInputElement };
-      const lines: Line[] = [];
-      const list = document.createElement("div");
-      list.className = "step-calc-rows";
-
-      const addRow = (label: string, noteText: string, wattsInit: string, qtyInit: number, hoursInit: number, checked: boolean, custom: HTMLInputElement | null) => {
-        const row = document.createElement("div");
-        row.className = "step-calc-row";
-        const check = document.createElement("input");
-        check.type = "checkbox";
-        check.checked = checked;
-        check.setAttribute("aria-label", `${label}を使う`);
-        const name = document.createElement("span");
-        name.className = "step-calc-name";
-        if (custom) name.appendChild(custom);
-        else name.textContent = label;
-        if (noteText) {
-          const n = document.createElement("small");
-          n.textContent = noteText;
-          name.appendChild(n);
-        }
-        const watts = numInput(wattsInit, `${label}の消費電力(W)`, "1", "5rem");
-        const qty = numInput(qtyInit, `${label}の台数`, "1", "3.5rem");
-        const hours = numInput(hoursInit, `${label}の使用時間(h)`, "0.1", "4rem");
-        const wl = document.createElement("span");
-        wl.className = "step-calc-unit";
-        wl.append("W ", watts);
-        const ql = document.createElement("span");
-        ql.className = "step-calc-unit";
-        ql.append("台 ", qty);
-        const hl = document.createElement("span");
-        hl.className = "step-calc-unit";
-        hl.append("時間 ", hours);
-        row.append(check, name, wl, ql, hl);
-        list.appendChild(row);
-        lines.push({ check, watts, qty, hours });
-      };
-
-      for (const d of rowDefs) {
-        const p = preset[d.id];
-        addRow(d.label, d.note, d.watts === null ? "" : String(d.watts), p ? p.qty : 1, p ? p.hours : d.hours, !!p && d.watts !== null, null);
-      }
-      const customName = document.createElement("input");
-      customName.type = "text";
-      customName.placeholder = "その他の機器(例:電動工具)";
-      customName.className = "step-calc-text";
-      customName.setAttribute("aria-label", "その他の機器の名前");
-      addRow("その他の機器", "消費電力は銘板・取扱説明書で確認", "", 1, 1, false, customName);
-      box.appendChild(list);
-
-      const result = document.createElement("div");
-      result.className = "step-calc-result";
-      result.setAttribute("aria-live", "polite");
-      const out = document.createElement("p");
-      out.className = "step-calc-out";
-      const apply = document.createElement("button");
-      apply.type = "button";
-      apply.className = "btn btn-primary step-calc-apply";
-      const caution = document.createElement("p");
-      caution.className = "step-reco-note";
-      caution.textContent = "あくまで目安です。変換ロス等のため、表示されているバッテリー容量のすべてを使えるわけではありません。余裕を持った容量・出力の機種を選んでください。";
-      // エンジン式の発電機には容量(Wh)の表記がないため、出力(W)で絞り込むボタンも用意する
-      const applyW = document.createElement("button");
-      applyW.type = "button";
-      applyW.className = "btn btn-secondary step-calc-apply-w";
-      const btns = document.createElement("div");
-      btns.className = "step-calc-buttons";
-      btns.append(apply, applyW);
-      result.append(out, btns, caution);
-      box.appendChild(result);
-
-      let whNow = 0;
-      let wNow = 0;
-      const update = () => {
-        const items = lines
-          .filter((l) => l.check.checked)
-          .map((l) => ({ watts: Number(l.watts.value), qty: Number(l.qty.value), hours: Number(l.hours.value) }));
-        const r = estimateItems(items);
-        whNow = r.wh;
-        wNow = r.w;
-        if (r.wh <= 0) {
-          out.textContent = "機器にチェックを入れると、必要容量の目安が表示されます。";
-          apply.hidden = true;
-          applyW.hidden = true;
-          return;
-        }
-        const band = capacityBands.find((b) => r.wh >= b.min && (b.max === null || r.wh <= b.max));
-        out.textContent = `必要容量の目安 約${r.wh.toLocaleString("ja-JP")}Wh${band ? `(${band.label}の帯)` : ""} / 同時に使う合計出力の目安 約${r.w.toLocaleString("ja-JP")}W`;
-        apply.textContent = `約${r.wh.toLocaleString("ja-JP")}Wh以上の商品を見る`;
-        apply.hidden = false;
-        applyW.textContent = `出力 約${r.w.toLocaleString("ja-JP")}W以上の商品を見る`;
-        applyW.hidden = false;
-      };
-      list.addEventListener("input", update);
-      list.addEventListener("change", update);
-      // その他の機器は、W数を入れたら自動でチェックを入れる
-      const custom = lines[lines.length - 1];
-      custom.watts.addEventListener("input", () => {
-        custom.check.checked = Number(custom.watts.value) > 0;
-        update();
-      });
-      apply.addEventListener("click", () => {
-        if (whNow <= 0) return;
-        setSelection({
-          type: isEngineBlocked(useCase) ? "portable" : null,
-          capacity: { min: whNow, max: null, label: `${whNow.toLocaleString("ja-JP")}Wh以上(計算結果)` },
-        });
-        trackFilterUse("usecase_calc", `${whNow}Wh`);
-        document.getElementById("products")?.scrollIntoView({ behavior: "smooth", block: "start" });
-      });
-      applyW.addEventListener("click", () => {
-        if (wNow <= 0) return;
-        setSelection({ power: { min: wNow, max: null, label: `${wNow.toLocaleString("ja-JP")}W以上(計算結果)` } });
-        trackFilterUse("usecase_calc_power", `${wNow}W`);
-        document.getElementById("products")?.scrollIntoView({ behavior: "smooth", block: "start" });
-      });
-      update();
-      return box;
-    }
-
-    // 用途だけを選んだ人に、その用途のおすすめ容量(目安)を提示する。選ぶと容量・種類の絞り込みに反映する。
-    // 工事・業務用は、使う機器で必要な出力が大きく変わるため、一律のおすすめ容量は出さず案内だけにする。
-    let recoFor: string | null | undefined;
-    function renderReco(useCase: string | null) {
-      if (!recoEl || recoFor === useCase) return; // 用途が変わったときだけ作り直す(他の選択変更では触らない)
-      recoFor = useCase;
+    // 用途だけを選んだ人に、その用途の追加表示(おすすめ容量・計算ツールなど。カテゴリーごとに定義)を出す。
+    // 用途が変わったときだけ作り直す(他の選択変更では触らない)
+    let extraFor: string | null | undefined;
+    function renderExtra(useCase: string | null) {
+      if (!recoEl || extraFor === useCase) return;
+      extraFor = useCase;
       recoEl.textContent = "";
-      if (!useCase) {
+      const extra = useCase && profile.useCaseExtra ? profile.useCaseExtra(useCase, extraApi) : null;
+      if (!extra) {
         recoEl.hidden = true;
         return;
       }
-      const list = recoMap[useCase] ?? [];
-      const title = document.createElement("p");
-      title.className = "step-reco-title";
-      if (list.length === 0) {
-        title.textContent = "この用途のおすすめ容量";
-        const msg = document.createElement("p");
-        msg.className = "step-reco-note";
-        msg.textContent =
-          "電動工具や業務機器は機器によって必要な出力が大きく変わるため、おすすめ容量を一律にはお出しできません。使う機器の銘板・取扱説明書で消費電力(W)を確認し、下の計算ツールで必要な容量・出力の目安を出してください。";
-        recoEl.append(title, msg, buildCalc(useCase));
-        recoEl.hidden = false;
-        return;
-      }
-      title.textContent = "この用途のおすすめ容量(目安)";
-      recoEl.appendChild(title);
-      const ul = document.createElement("ul");
-      ul.className = "step-reco-list";
-      for (const r of list) {
-        const li = document.createElement("li");
-        const head = document.createElement("strong");
-        head.textContent = `${r.label}:約${r.wh.toLocaleString("ja-JP")}Wh以上・出力約${r.w.toLocaleString("ja-JP")}W以上`;
-        const desc = document.createElement("span");
-        desc.className = "step-reco-desc";
-        desc.textContent = r.desc + (r.caveat ? " " + r.caveat : "");
-        const btn = document.createElement("button");
-        btn.type = "button";
-        btn.className = "btn btn-secondary step-reco-apply";
-        btn.textContent = `約${r.wh.toLocaleString("ja-JP")}Wh以上の商品を見る`;
-        btn.addEventListener("click", () => {
-          setSelection({
-            type: r.type === "portable" ? "portable" : null,
-            capacity: { min: r.wh, max: null, label: `${r.wh.toLocaleString("ja-JP")}Wh以上(${r.label})` },
-          });
-          trackFilterUse("usecase_reco", r.label);
-          document.getElementById("products")?.scrollIntoView({ behavior: "smooth", block: "start" });
-        });
-        li.append(head, desc, btn);
-        ul.appendChild(li);
-      }
-      recoEl.appendChild(ul);
-      const note = document.createElement("p");
-      note.className = "step-reco-note";
-      note.textContent =
-        "消費電力は電力会社・メーカー公表の目安、使用時間と台数はこのページの想定例です。実際は機器・季節・使い方で変わるため、余裕を持った容量・出力を選んでください。";
-      recoEl.appendChild(note);
-      recoEl.appendChild(buildCalc(useCase));
+      recoEl.appendChild(extra);
       recoEl.hidden = false;
     }
-    const engineNoteEl = root.querySelector<HTMLElement>('[data-role="engine-note"]');
-    const vehicleNoteEl = root.querySelector<HTMLElement>('[data-role="vehicle-note"]');
-    const countEl = root.querySelector<HTMLElement>('[data-role="count"]');
-    const goLink = root.querySelector<HTMLAnchorElement>('[data-role="go"]');
 
     function render() {
       const sel = getSelection();
@@ -391,21 +171,21 @@ const useCaseReco = Object.fromEntries(
         let pressed = false;
         if (kind === "usecase") pressed = sel.useCase === value;
         else if (kind === "type") pressed = sel.type === value;
-        else if (kind === "capacity") pressed = sel.capacity !== null && sel.capacity.label === capacityBands[Number(value)].label;
-        else if (kind === "power") pressed = sel.power !== null && sel.power.label === powerBands[Number(value)].label;
-        else if (kind === "budget") pressed = sel.budget !== null && sel.budget.label === budgetBands[Number(value)].label;
+        else if (kind === "capacity") pressed = sel.capacity !== null && sel.capacity.label === profile.capacityBands[Number(value)].label;
+        else if (kind === "power") pressed = sel.power !== null && sel.power.label === profile.powerBands[Number(value)].label;
+        else if (kind === "budget") pressed = sel.budget !== null && sel.budget.label === profile.budgetBands[Number(value)].label;
         else if (kind === "brand") pressed = sel.brand !== null && sel.brand.id === value;
         b.setAttribute("aria-pressed", String(pressed));
-        // エンジン式には容量(Wh)の表記がないため、容量ボタンは選べなくする(選ぶと必ず0件になるため)
-        if (kind === "capacity") b.disabled = isEngineType(sel.type);
-        // 車中泊(車内)では、エンジン式(ガソリン・カセットガス)を選べなくする
-        if (kind === "type") b.disabled = isEngineBlocked(sel.useCase) && (value === "gasoline" || value === "cassette");
+        // 容量を商品名から確認できない種類(発電機のエンジン式)では、容量ボタンを選べなくする(選ぶと必ず0件になるため)
+        if (kind === "capacity") b.disabled = client.isNoCapacityType(sel.type);
+        // 用途によって選べない種類(発電機の車中泊でのエンジン式)は選べなくする
+        if (kind === "type") b.disabled = client.isTypeBlocked(sel.useCase, value);
       }
-      if (vehicleNoteEl) vehicleNoteEl.hidden = !isEngineBlocked(sel.useCase);
-      // エンジン式を選んでいる間は、屋外での使用を促す注意を出す(車中泊の注意と重複する間は出さない)
-      if (engineNoteEl) engineNoteEl.hidden = !isEngineType(sel.type);
-      if (capNoteEl) capNoteEl.hidden = !isEngineType(sel.type);
-      renderReco(sel.useCase);
+      for (const el of noteEls) {
+        const note = profile.notes.find((n) => n.id === el.dataset.noteId);
+        el.hidden = !note || !note.when(sel);
+      }
+      renderExtra(sel.useCase);
       if (hintEl) {
         const text = sel.useCase ? hints[sel.useCase] : undefined;
         hintEl.hidden = !text;
@@ -424,19 +204,19 @@ const useCaseReco = Object.fromEntries(
         setSelection({ useCase: pressed ? null : value });
         trackFilterUse("use_case", pressed ? undefined : label);
       } else if (kind === "type") {
-        setSelection({ type: pressed ? null : (value as "portable" | "gasoline" | "cassette") });
+        setSelection({ type: pressed ? null : value });
         trackFilterUse("product_type", pressed ? undefined : label);
       } else if (kind === "capacity") {
-        setSelection({ capacity: pressed ? null : capacityBands[Number(value)] });
+        setSelection({ capacity: pressed ? null : profile.capacityBands[Number(value)] });
         trackFilterUse("capacity_band", pressed ? undefined : label);
       } else if (kind === "power") {
-        setSelection({ power: pressed ? null : powerBands[Number(value)] });
+        setSelection({ power: pressed ? null : profile.powerBands[Number(value)] });
         trackFilterUse("power_band", pressed ? undefined : label);
       } else if (kind === "brand") {
-        setSelection({ brand: pressed ? null : (brandOptions.find((b) => b.id === value) ?? null) });
+        setSelection({ brand: pressed ? null : (profile.brandOptions.find((b) => b.id === value) ?? null) });
         trackFilterUse("brand", pressed ? undefined : label);
       } else if (kind === "budget") {
-        setSelection({ budget: pressed ? null : budgetBands[Number(value)] });
+        setSelection({ budget: pressed ? null : profile.budgetBands[Number(value)] });
         trackFilterUse("budget", pressed ? undefined : label);
       }
     });
@@ -450,14 +230,14 @@ const useCaseReco = Object.fromEntries(
       trackFilterUse("use_case", el.dataset.label ?? id);
     });
 
-    document.addEventListener("generator:selection-change", render);
+    document.addEventListener(client.EVENT_CHANGE, render);
     render();
 
     // リスティング広告などからのリンク(?brand=jackery&type=portable 等)で、条件を選んだ状態にする
-    const fromUrl = selectionFromParams(new URLSearchParams(window.location.search));
+    const fromUrl = client.selectionFromParams(new URLSearchParams(window.location.search));
     if (Object.keys(fromUrl).length > 0) setSelection(fromUrl);
 
-    document.addEventListener("generator:result", (event) => {
+    document.addEventListener(client.EVENT_RESULT, (event) => {
       const d = (event as CustomEvent).detail as { shown: number; filtering: boolean };
       if (countEl) countEl.textContent = d.filtering ? `(該当${d.shown}件)` : "";
     });

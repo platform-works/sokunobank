@@ -7,20 +7,26 @@
 //   D: 誘導元の計測(絞り込み条件・utm_*)。既存のfilter_useに landing として送り、以降の商品クリック等にも添える
 //   F: 関係の薄い節(比較表・防災・計算ツールなど)を閉じる。PCでも開閉できるよう見出しバーを表示する
 // 条件が無い通常のアクセスでは、何も表示・変更しない。
+interface Props {
+  slug: string;
+}
+const { slug } = Astro.props;
 ---
 
-<div class="landing-banner" data-landing-banner role="status" hidden>
+<div class="landing-banner" data-landing-banner data-slug={slug} role="status" hidden>
   <p class="landing-banner-text" data-role="text"></p>
   <button type="button" class="btn btn-secondary landing-banner-reset" data-role="reset">条件を解除して全商品を見る</button>
 </div>
 
 <script>
-  import { clearSelection, describeSelection, getLanding, getSelection, isFiltering, trackFilterUse } from "../../../lib/commerce/generatorClient";
+  import { getApplianceClient } from "../../../lib/commerce/appliance/clients";
 
   const banner = document.querySelector<HTMLElement>("[data-landing-banner]");
-  const landing = getLanding();
+  const client = banner ? getApplianceClient(banner.dataset.slug ?? "") : null;
+  const landing = client ? client.getLanding() : null;
 
-  if (banner && landing) {
+  if (banner && client && landing) {
+    const { clearSelection, describeSelection, getSelection, isFiltering, trackFilterUse } = client;
     // D: 誘導元の計測(条件の有無にかかわらず、utm_*か条件が付いたURLで開かれたとき)
     trackFilterUse("landing", landing.filters || "utm_only");
 
@@ -50,12 +56,12 @@
         textEl.textContent = `「${label}」で絞り込んで表示しています。`;
         banner.hidden = false;
         // B: サブ見出し
-        if (sub) sub.textContent = `${label}の発電機・ポータブル電源を、レビュー・容量・価格で比べて選べます。`;
+        if (sub) sub.textContent = client.profile.text.landingSubheadline(label);
       };
 
       closeFolds();
       refresh();
-      document.addEventListener("generator:selection-change", refresh);
+      document.addEventListener(client.EVENT_CHANGE, refresh);
       resetBtn.addEventListener("click", () => {
         trackFilterUse("reset", "landing_banner");
         clearSelection();
@@ -63,7 +69,7 @@
 
       // C: 最初の商品表示後に、おすすめ商品の位置へ(1回だけ)
       let scrolled = false;
-      document.addEventListener("generator:result", () => {
+      document.addEventListener(client.EVENT_RESULT, () => {
         if (scrolled || !folded) return;
         scrolled = true;
         if (window.location.hash || window.scrollY > 300) return;

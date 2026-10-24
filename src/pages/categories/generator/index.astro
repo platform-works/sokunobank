@@ -22,6 +22,7 @@ import UsageCards from "../../../components/commerce/generator/UsageCards.astro"
 import FoldSection from "../../../components/commerce/generator/FoldSection.astro";
 import LandingBanner from "../../../components/commerce/generator/LandingBanner.astro";
 import StepSelector from "../../../components/commerce/generator/StepSelector.astro";
+import EnvironmentGuide from "../../../components/commerce/generator/EnvironmentGuide.astro";
 import GeneratorRuntime from "../../../components/commerce/generator/GeneratorRuntime.astro";
 import TypeComparison from "../../../components/commerce/generator/TypeComparison.astro";
 import DisasterGuide from "../../../components/commerce/generator/DisasterGuide.astro";
@@ -64,13 +65,15 @@ const pageJsonLd = {
   <Breadcrumbs items={[{ label: "ホーム", href: "/" }, { label: "カテゴリー一覧", href: "/categories/" }, { label: c.name }]} />
 
   <div class="container">
-    <GeneratorRuntime />
+    <GeneratorRuntime slug={c.slug} />
 
     <GeneratorHero h1={c.h1} subheadline={c.subheadline} deliveryNote={c.deliveryNote} pcBannerHtml={c.ads?.pcBannerHtml} />
 
-    <LandingBanner />
+    <LandingBanner slug={c.slug} />
 
-    <StepSelector />
+    <StepSelector slug={c.slug}>
+      <EnvironmentGuide slot="spec-extra" />
+    </StepSelector>
 
     <UrgentProductsSection slug={c.slug} apiPath={c.apiPath} />
 
