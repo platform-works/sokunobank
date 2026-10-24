@@ -13,6 +13,13 @@ export const MIN_REVIEW_COUNT = 3;
 export interface Reviewable {
   reviewRate: number;
   reviewCount: number;
+  /** サーバーが楽天のレビューと照合して算出した合算の補正後評価(あれば、こちらを順位に使う) */
+  reviewSignal?: number;
+}
+
+/** 順位付けに使う評価。reviewSignalがあればそれ、なければYahoo!のレビューを件数補正した値 */
+export function rankingScore(p: Reviewable): number {
+  return p.reviewSignal !== undefined ? p.reviewSignal : adjustedRating(p.reviewRate, p.reviewCount);
 }
 
 /** 件数補正後の評価平均(1〜5)。件数0は事前平均を返す */
@@ -29,7 +36,7 @@ export function adjustedRating(rate: number, count: number): number {
 export function pickByReview<T extends Reviewable>(products: T[], limit: number): T[] {
   return products
     .filter((p) => p.reviewCount >= MIN_REVIEW_COUNT && p.reviewRate > 0)
-    .map((p) => ({ p, score: adjustedRating(p.reviewRate, p.reviewCount) }))
+    .map((p) => ({ p, score: rankingScore(p) }))
     .sort((a, b) => b.score - a.score || b.p.reviewCount - a.p.reviewCount)
     .slice(0, limit)
     .map((x) => x.p);

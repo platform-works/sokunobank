@@ -16,7 +16,7 @@ const rootId = `generator-urgent-${slug}`;
   <div class="urgent-heading">
     <h2>選んだ条件のおすすめ商品</h2>
     <p>
-      上で選んだ種類・容量・出力・用途に合う商品のうち、Yahoo!ショッピングのレビュー評価と件数が高い商品を表示します。評価は件数が少ないほど割り引いて比べています。
+      上で選んだ種類・容量・出力・用途に合う商品のうち、レビュー評価と件数が高い商品を表示します。Yahoo!ショッピングのレビューを基本に、同じ型番で価格帯の近い商品は他の通販サイトの評価も参考にしています。評価は件数が少ないほど割り引いて比べています(カードに表示する評価はYahoo!ショッピングのものです)。
     </p>
     <p class="urgent-points">
       毎月5・15・25日の「5のつく日」は、PayPayポイントが5倍になる特典の対象日です(付与条件・上限はYahoo!ショッピングの案内でご確認ください)。
@@ -49,6 +49,7 @@ const rootId = `generator-urgent-${slug}`;
     deliveryDay: number | null;
     reviewRate: number;
     reviewCount: number;
+    reviewSignal?: number;
     storeName?: string;
   }
 

@@ -3,6 +3,32 @@ import { isValidPrefectureCode } from "./prefectures";
 import { fetchCandidates } from "./fetchCandidates";
 import { scoreProduct } from "./ranking";
 import type { CommerceCategoryConfig, ScoredProduct, SortKey } from "./types";
+import { buildReviewSignals, fetchRakutenPool } from "../rakuten/signal";
+import type { RakutenEnv } from "../rakuten/client";
+import type { RakutenProduct } from "../rakuten/types";
+
+// 楽天の照合用商品群のキャッシュ保持期間(6時間)。レビュー件数順の売れ筋は短時間では変わらない
+const RAKUTEN_POOL_TTL_SECONDS = 21600;
+
+async function getRakutenPool(
+  config: CommerceCategoryConfig,
+  env: RakutenEnv,
+  cache: Cache | undefined
+): Promise<RakutenProduct[]> {
+  if (!config.rakutenSignal || !env.RAKUTEN_APPLICATION_ID || !env.RAKUTEN_ACCESS_KEY) return [];
+  // 認証情報を含まない合成URLをキーにする
+  const key = new Request(`https://cache.sokunobank.invalid/rakuten-pool/${config.slug}?v=1`);
+  const hit = cache ? await cache.match(key) : undefined;
+  if (hit) return (await hit.json()) as RakutenProduct[];
+  const pool = await fetchRakutenPool(env, config.rakutenSignal.keywords, config.rakutenSignal.pagesPerKeyword);
+  if (cache && pool.length > 0) {
+    await cache.put(
+      key,
+      new Response(JSON.stringify(pool), { headers: { "Cache-Control": `public, s-maxage=${RAKUTEN_POOL_TTL_SECONDS}` } })
+    );
+  }
+  return pool;
+}
 
 // 「Yahoo!ショッピング商品ランキング型」カテゴリー共通のAPIハンドラー。
 // カテゴリーごとにコピーしない — src/pages/api/[slug]/products.ts (動的ルート)から
@@ -103,7 +129,7 @@ export async function handleProductsRequest(config: CommerceCategoryConfig, cont
     area: area ?? "",
     delivery: effectiveDeliveryDay !== undefined ? String(effectiveDeliveryDay) : "",
     // 候補件数を個別に設定したカテゴリーだけキャッシュを分離する(他カテゴリーのキャッシュは無効化しない)
-    v: String(CACHE_SCHEMA_VERSION) + (config.candidatesTargetCount ? `-t${config.candidatesTargetCount}` : ""),
+    v: String(CACHE_SCHEMA_VERSION) + (config.candidatesTargetCount ? `-t${config.candidatesTargetCount}` : "") + (config.rakutenSignal ? "-r1" : ""),
   }).toString();
   const candidatesCacheKey = new Request(candidatesCacheKeyUrl.toString());
   // 通常キャッシュと同じ内容を、Yahoo API障害時のフォールバック専用として長期保持する別キー
@@ -160,6 +186,22 @@ export async function handleProductsRequest(config: CommerceCategoryConfig, cont
       // (LinkSwitch変換後のURLを保存・キャッシュしないことが重要)。
       deduped = candidates.map((p) => scoreProduct(p, config.weights, config.revenueScoreReferenceMax));
 
+      // 楽天のレビューを裏側の順位付けに使う設定のカテゴリーだけ(2026-10-24導入)。失敗してもYahoo!の
+      // 表示は維持する(例外は握りつぶし、reviewSignalが付かないだけにする)。楽天の商品群は別キャッシュで
+      // 6時間保持し、お届け先ごとのキャッシュミスのたびに楽天APIを呼ばないようにする。
+      if (config.rakutenSignal) {
+        try {
+          const pool = await getRakutenPool(config, runtimeEnv, cache);
+          const signals = buildReviewSignals(deduped, pool);
+          deduped = deduped.map((p) => {
+            const s = signals.get(p.code);
+            return s ? { ...p, reviewSignal: s.score } : p;
+          });
+        } catch {
+          // 楽天側の失敗はYahoo!の表示に影響させない
+        }
+      }
+
       if (cache) {
         const candidatesResponse = new Response(JSON.stringify(deduped), {
           headers: { "Cache-Control": `public, s-maxage=${CACHE_TTL_SECONDS}` },
@@ -201,6 +243,8 @@ export async function handleProductsRequest(config: CommerceCategoryConfig, cont
         storeIsBestSeller: p.storeIsBestSeller,
         deliveryDay: p.deliveryDay,
         productUrl: p.productUrl,
+        // 楽天と照合できた商品だけ(順位付け専用の合算評価。楽天のデータ自体は含めない)
+        ...(p.reviewSignal !== undefined ? { reviewSignal: p.reviewSignal } : {}),
       })),
       count: sorted.length,
       generatedAt: new Date().toISOString(),

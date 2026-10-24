@@ -38,6 +38,12 @@ export interface ScoredProduct extends RankableProduct {
   totalScore: number;
   estimatedCommission: number;
   /**
+   * 任意(2026-10-24導入)。楽天市場のレビューと型番+価格帯で照合できたときだけ付く、
+   * 両者を合算した件数補正後の評価(1〜5)。順位付け専用の数値で、楽天のデータ自体は保持・出力しない。
+   * 照合できない商品・楽天の取得失敗時は付かない(Yahoo!のレビューだけで判断する)。
+   */
+  reviewSignal?: number;
+  /**
    * Yahoo!ショッピングの元の商品URL(RankableProduct.urlと同一値)。
    * 2026-09-27にValueCommerce LinkSwitch導入に伴い、ここに事前組み立てした
    * アフィリエイトURLを入れる方式から、元URLをそのまま渡す方式に変更した
@@ -144,6 +150,12 @@ export interface CommerceCategoryConfig {
   candidatesTargetCount?: number;
   /** 任意。1回の応答で返す商品の最大件数。未設定なら既定値(50件) */
   maxDisplayCount?: number;
+  /**
+   * 任意(2026-10-24導入、発電機カテゴリーが最初の利用者)。楽天市場の評価・件数を裏側の順位付けに
+   * 使う設定。keywordsで楽天の売れ筋(レビュー件数順)を集め、Yahoo!商品と型番+価格帯で照合する。
+   * 楽天の認証情報が無い・取得に失敗した場合は何もせずYahoo!のみで動く。未設定なら楽天は呼ばない。
+   */
+  rakutenSignal?: { keywords: string[]; pagesPerKeyword: number };
   seoSections: { heading: string; body: string[] }[];
   faq: CommerceFaqItem[];
   /** 任意。ValueCommerce等の広告タグ(PC/スマホ)。無ければ何も表示しない */
