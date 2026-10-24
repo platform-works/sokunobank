@@ -24,6 +24,8 @@ export interface Selection {
   type: ProductType | null;
   capacity: Range | null;
   power: Range | null;
+  /** 予算(円)。価格は全商品で取得できるため、判定不能による除外は起きない */
+  budget: Range | null;
 }
 
 // 帯は閉区間(境界の値は両隣の帯に含まれる)。「500Wh以下」「1,000Wh以上」といった
@@ -40,6 +42,15 @@ export const powerBands: Range[] = [
   { min: 500, max: 1000, label: "500〜1,000W" },
   { min: 1000, max: 1500, label: "1,000〜1,500W" },
   { min: 1500, max: null, label: "1,500W以上" },
+];
+
+// 予算の帯(税込の表示価格・円)。2026-10-24に取得済みの150件(最安約2.3万円〜最高約42万円、中央値約11万円)の
+// 分布を測り、各帯におおむね同程度(32〜46件)が入るよう区切った。閉区間で、境界の値は両隣の帯に含まれる。
+export const budgetBands: Range[] = [
+  { min: 0, max: 70000, label: "〜7万円" },
+  { min: 70000, max: 120000, label: "7〜12万円" },
+  { min: 120000, max: 180000, label: "12〜18万円" },
+  { min: 180000, max: null, label: "18万円以上" },
 ];
 
 export const typeLabels: Record<ProductType, string> = {
@@ -81,14 +92,14 @@ export function specsOf(product: { name: string }): ExtractedSpecs {
 }
 
 export function isFiltering(sel: Selection): boolean {
-  return sel.useCase !== null || sel.type !== null || sel.capacity !== null || sel.power !== null;
+  return sel.useCase !== null || sel.type !== null || sel.capacity !== null || sel.power !== null || (sel.budget ?? null) !== null;
 }
 
 /**
  * 選択条件で絞り込む。商品名から該当の値を確認できない商品は推測で分類せず、絞り込み中は
  * 表示しない(unknownとして件数だけ返し、画面に注記する)。
  */
-export function filterBySelection<T extends { name: string }>(products: T[], sel: Selection): { visible: T[]; unknown: number } {
+export function filterBySelection<T extends { name: string; price?: number }>(products: T[], sel: Selection): { visible: T[]; unknown: number } {
   if (!isFiltering(sel)) return { visible: products, unknown: 0 };
   const visible: T[] = [];
   let unknown = 0;
@@ -109,6 +120,10 @@ export function filterBySelection<T extends { name: string }>(products: T[], sel
       if (s.ratedPowerW === null) missing = true;
       else if (!inRange(s.ratedPowerW, sel.power)) ok = false;
     }
+    if (sel.budget) {
+      // 価格は全商品で取得できる。万一取れない商品は、予算に合うと推測せず除外する
+      if (typeof p.price !== "number" || !inRange(p.price, sel.budget)) ok = false;
+    }
     if (!ok) continue;
     if (missing) {
       unknown++;
@@ -120,13 +135,15 @@ export function filterBySelection<T extends { name: string }>(products: T[], sel
 }
 
 /** 用途・種類だけで絞った商品のうち、商品名から容量(Wh)・出力(W)を確認できたものの最小/最大(0件時の案内用) */
-export function availableRanges<T extends { name: string }>(products: T[], sel: Selection) {
-  const base = filterBySelection(products, Object.assign({}, sel, { capacity: null, power: null })).visible;
+export function availableRanges<T extends { name: string; price?: number }>(products: T[], sel: Selection) {
+  const base = filterBySelection(products, Object.assign({}, sel, { capacity: null, power: null, budget: null })).visible;
+  const prices = base.map((p) => p.price).filter((v): v is number => typeof v === "number" && v > 0);
   const caps = base.map((p) => specsOf(p).capacityWh).filter((v): v is number => v !== null);
   const pows = base.map((p) => specsOf(p).ratedPowerW).filter((v): v is number => v !== null);
   return {
     capacity: caps.length > 0 ? { min: Math.min(...caps), max: Math.max(...caps) } : null,
     power: pows.length > 0 ? { min: Math.min(...pows), max: Math.max(...pows) } : null,
+    price: prices.length > 0 ? { min: Math.min(...prices), max: Math.max(...prices) } : null,
   };
 }
 
@@ -173,12 +190,13 @@ export function describeSelection(sel: Selection): string[] {
   if (sel.type) parts.push(typeLabels[sel.type]);
   if (sel.capacity) parts.push(sel.capacity.label);
   if (sel.power) parts.push(sel.power.label);
+  if (sel.budget) parts.push(`予算${sel.budget.label}`);
   return parts;
 }
 
 // ---- 選択状態(ページ内で共有) -------------------------------------------------
 
-let selection: Selection = { useCase: null, type: null, capacity: null, power: null };
+let selection: Selection = { useCase: null, type: null, capacity: null, power: null, budget: null };
 
 export function isEngineType(t: ProductType | null): boolean {
   return t === "gasoline" || t === "cassette";
@@ -305,6 +323,9 @@ export function registerGeneratorExtension(): void {
       }
       if (sel.power) {
         text += r.power ? `この条件で出力(W)を確認できた商品は${fmt(r.power.min)}〜${fmt(r.power.max)}Wです。` : "この条件では、商品名から出力(W)を確認できた商品がありません(kVA表記のみの商品はW換算しません)。";
+      }
+      if (sel.budget) {
+        text += r.price ? `この条件で価格を確認できた商品は${fmt(r.price.min)}〜${fmt(r.price.max)}円です。` : "";
       }
       return text + "条件を変えるか、絞り込みを解除してください。";
     },

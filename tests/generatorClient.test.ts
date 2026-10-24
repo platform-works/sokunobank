@@ -9,7 +9,7 @@ import {
   type Selection,
 } from "../src/lib/commerce/generatorClient";
 
-const none: Selection = { useCase: null, type: null, capacity: null, power: null };
+const none: Selection = { useCase: null, type: null, capacity: null, power: null, budget: null };
 const mk = (name: string) => ({ name, deliveryDay: 1, storeName: "店" });
 
 describe("generatorClient", () => {
@@ -94,5 +94,51 @@ describe("0件時の案内用の範囲", () => {
     expect(r.capacity).toEqual({ min: 300, max: 2000 });
     expect(r.power).toEqual({ min: 300, max: 2000 });
     expect(availableRanges([mk("ガソリン 発電機 3.0kVA")], { ...none, type: "gasoline" }).power).toBeNull();
+  });
+});
+
+describe("予算の絞り込み", () => {
+  const priced = (name: string, price?: number) => ({ name, price });
+  it("価格が予算の帯に入る商品だけを残し、境界値は両隣の帯に含まれる", async () => {
+    const { budgetBands } = await import("../src/lib/commerce/generatorClient");
+    const items = [priced("a", 50000), priced("b", 70000), priced("c", 100000), priced("d", 250000)];
+    expect(filterBySelection(items, { ...none, budget: budgetBands[0] }).visible.map((p) => p.name)).toEqual(["a", "b"]);
+    expect(filterBySelection(items, { ...none, budget: budgetBands[1] }).visible.map((p) => p.name)).toEqual(["b", "c"]);
+    expect(filterBySelection(items, { ...none, budget: budgetBands[3] }).visible.map((p) => p.name)).toEqual(["d"]);
+  });
+  it("価格が取れない商品は予算に合うと推測せず除外し、unknown扱いにはしない", async () => {
+    const { budgetBands } = await import("../src/lib/commerce/generatorClient");
+    const r = filterBySelection([priced("x")], { ...none, budget: budgetBands[0] });
+    expect(r).toEqual({ visible: [], unknown: 0 });
+  });
+  it("予算だけでも絞り込み中と判定し、説明と0件時の価格範囲を返す", async () => {
+    const { isFiltering, describeSelection, availableRanges, budgetBands } = await import("../src/lib/commerce/generatorClient");
+    const sel = { ...none, budget: budgetBands[2] };
+    expect(isFiltering(sel)).toBe(true);
+    expect(describeSelection(sel)).toEqual(["予算12〜18万円"]);
+    expect(availableRanges([priced("a", 30000), priced("b", 90000)], sel).price).toEqual({ min: 30000, max: 90000 });
+  });
+});
+
+describe("利用環境の目安", () => {
+  it("出典確認済みの消費電力×想定時間から必要容量・出力を計算する(10単位切り上げ)", async () => {
+    const { environments, estimateEnvironment } = await import("../src/lib/commerce/generatorContent");
+    const byId = (id: string) => environments.find((e) => e.id === id)!;
+    // ルーター30W×12h + LED10W×2×6h = 360 + 120
+    expect(estimateEnvironment(byId("blackout-min"))).toMatchObject({ wh: 480, w: 50 });
+    // 上に冷蔵庫250W×8h = +2000Wh
+    expect(estimateEnvironment(byId("blackout-fridge"))).toMatchObject({ wh: 2480, w: 300 });
+    expect(estimateEnvironment(byId("vehicle-summer"))).toMatchObject({ wh: 460, w: 60 });
+    expect(estimateEnvironment(byId("vehicle-winter"))).toMatchObject({ wh: 860, w: 110 });
+  });
+  it("消費電力が未確認(null)の機器は計算に含めない", async () => {
+    const { estimateEnvironment } = await import("../src/lib/commerce/generatorContent");
+    const env = { id: "x", label: "x", description: "", type: null, items: [{ applianceId: "phone", qty: 1, hours: 2 }] } as never;
+    const phone = { id: "phone", label: "スマホ", watts: null, note: "", source: "", defaultHours: 2 };
+    expect(estimateEnvironment(env, [phone])).toMatchObject({ wh: 0, w: 0, lines: [] });
+  });
+  it("車内・屋内の環境はポータブル電源のみを推奨する", async () => {
+    const { environments } = await import("../src/lib/commerce/generatorContent");
+    expect(environments.every((e) => e.type === "portable")).toBe(true);
   });
 });
