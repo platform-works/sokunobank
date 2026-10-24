@@ -91,14 +91,6 @@ const pageJsonLd = {
       <UsageCards />
     </FoldSection>
 
-    {
-      c.popularBrands && c.popularBrands.length > 0 && (
-        <FoldSection label="ブランドから探す">
-          <PickupBrandSection brands={c.popularBrands} slug={c.slug} />
-        </FoldSection>
-      )
-    }
-
     <section id="products" class="products-section">
       <h2 class="products-heading">商品比較・絞り込み</h2>
 
@@ -117,6 +109,14 @@ const pageJsonLd = {
     </section>
 
     <AmazonSearchSection />
+
+    {
+      c.popularBrands && c.popularBrands.length > 0 && (
+        <FoldSection label="ブランドから探す">
+          <PickupBrandSection brands={c.popularBrands} slug={c.slug} />
+        </FoldSection>
+      )
+    }
 
     {
       c.seoSections.map((section) => (
