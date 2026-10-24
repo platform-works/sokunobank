@@ -45,6 +45,7 @@ const rootId = `generator-urgent-${slug}`;
   import { DELIVERY_NOTICE } from "../../../lib/commerce/appliance/createApplianceClient";
   import { adjustedRating, isGotsukuDay, pickByReview } from "../../../lib/commerce/reviewPick";
   import { amazonJanUrl, amazonKeywordUrl } from "../../../lib/commerce/amazonLink";
+  import { yahooImageUrl } from "../../../lib/commerce/yahooImage";
 
   interface PickProduct {
     name: string;
@@ -187,11 +188,17 @@ const rootId = `generator-urgent-${slug}`;
 
       const img = document.createElement("img");
       img.className = "urgent-card-image";
-      img.src = p.image;
+      // 取得APIの画像(medium=146px)は大きく表示するとぼやけるため、同じ商品の600px版に差し替える。
+      // 読み込めない場合(該当サイズが無い等)は、元の画像へ戻す。
+      img.src = yahooImageUrl(p.image, "l");
+      img.addEventListener("error", () => {
+        if (img.src !== p.image) img.src = p.image;
+      }, { once: true });
       img.alt = p.name;
       img.loading = "lazy";
-      img.width = 160;
-      img.height = 160;
+      img.decoding = "async";
+      img.width = 600;
+      img.height = 600;
       a.appendChild(img);
 
       const name = document.createElement("p");
