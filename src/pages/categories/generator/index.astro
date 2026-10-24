@@ -26,6 +26,7 @@ import TypeComparison from "../../../components/commerce/generator/TypeCompariso
 import DisasterGuide from "../../../components/commerce/generator/DisasterGuide.astro";
 import CapacityCalculator from "../../../components/commerce/generator/CapacityCalculator.astro";
 import AmazonSearchSection from "../../../components/commerce/generator/AmazonSearchSection.astro";
+import RakutenCredit from "../../../components/commerce/generator/RakutenCredit.astro";
 import SafetyNotice from "../../../components/commerce/generator/SafetyNotice.astro";
 import { generatorConfig as c } from "../../../lib/commerce/categories/generator.config";
 import { CONTENT_UPDATED_ON, useCases } from "../../../lib/commerce/generatorContent";
@@ -131,6 +132,8 @@ const pageJsonLd = {
     <SafetyNotice />
 
     <FaqSection items={c.faq} />
+
+    <RakutenCredit />
   </div>
 
   {c.ads?.mobileOverlayHtml && <div set:html={c.ads.mobileOverlayHtml} />}
