@@ -39,6 +39,7 @@ const rootId = `generator-urgent-${slug}`;
   // (配送の目安は補足表示のみ)。選択の絞り込みは商品一覧と同じ純関数(filterBySelection)を使う。
   import { filterBySelection, getSelection, isFiltering } from "../../../lib/commerce/generatorClient";
   import { adjustedRating, isGotsukuDay, pickByReview } from "../../../lib/commerce/reviewPick";
+  import { amazonJanUrl } from "../../../lib/commerce/amazonLink";
 
   interface PickProduct {
     name: string;
@@ -50,6 +51,7 @@ const rootId = `generator-urgent-${slug}`;
     reviewRate: number;
     reviewCount: number;
     reviewSignal?: number;
+    janCode?: string;
     storeName?: string;
   }
 
@@ -162,6 +164,38 @@ const rootId = `generator-urgent-${slug}`;
       a.appendChild(cta);
 
       li.appendChild(a);
+
+      // Yahoo!ボタンの下に「AmazonでJAN検索」(JANがある商品のみ。カード全体が1つの<a>のため、リンクの外に置く)
+      const amazonUrl = amazonJanUrl(p.janCode);
+      if (amazonUrl) {
+        const wrap = document.createElement("div");
+        wrap.className = "urgent-amazon";
+        const am = document.createElement("a");
+        am.className = "btn btn-secondary urgent-amazon-btn";
+        am.href = amazonUrl;
+        am.target = "_blank";
+        am.rel = "sponsored noopener";
+        am.textContent = "AmazonでJAN検索 →";
+        am.addEventListener("click", () => {
+          if (w.sokunobankDebounceClick) {
+            w.sokunobankDebounceClick(am, () => {
+              (window as any).sokunobankTrackEvent?.("generator_usage_outbound", {
+                category: slug,
+                value: "amazon_jan",
+                link_type: "amazon_jan",
+                link_url: am.href,
+                link_text: "AmazonでJAN検索",
+                page_path: window.location.pathname,
+              });
+            });
+          }
+        });
+        const note = document.createElement("p");
+        note.className = "urgent-amazon-note";
+        note.textContent = "PR・同じ商品の出品は保証されません";
+        wrap.append(am, note);
+        li.appendChild(wrap);
+      }
       return li;
     }
 
@@ -323,6 +357,20 @@ const rootId = `generator-urgent-${slug}`;
     font-size: 0.78rem;
     color: var(--color-text-muted);
     margin: 0 0 0.6rem;
+  }
+  .urgent-amazon {
+    padding: 0 1rem 1rem;
+  }
+  .urgent-amazon-btn {
+    width: 100%;
+    height: 40px;
+    font-size: 0.82rem;
+  }
+  .urgent-amazon-note {
+    margin: 0.25rem 0 0;
+    font-size: 0.7rem;
+    color: var(--color-text-muted);
+    text-align: center;
   }
   .urgent-points {
     font-size: 0.82rem;

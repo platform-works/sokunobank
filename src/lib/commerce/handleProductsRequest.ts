@@ -245,6 +245,8 @@ export async function handleProductsRequest(config: CommerceCategoryConfig, cont
         productUrl: p.productUrl,
         // 楽天と照合できた商品だけ(順位付け専用の合算評価。楽天のデータ自体は含めない)
         ...(p.reviewSignal !== undefined ? { reviewSignal: p.reviewSignal } : {}),
+        // AmazonのJAN検索リンク用(設定したカテゴリーのみ、JANがある商品のみ)
+        ...(config.amazonJanLink && p.janCode ? { janCode: p.janCode } : {}),
       })),
       count: sorted.length,
       generatedAt: new Date().toISOString(),

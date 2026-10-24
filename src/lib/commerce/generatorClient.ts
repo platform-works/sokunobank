@@ -6,6 +6,7 @@
 import { extractSpecs, type ExtractedSpecs } from "./extractSpecs";
 import { prefectures } from "./prefectures";
 import { useCases } from "./generatorContent";
+import { amazonJanUrl } from "./amazonLink";
 
 export const SLUG = "generator";
 export const AREA_STORAGE_KEY = `sokunobank:commerce:${SLUG}:area`;
@@ -257,6 +258,7 @@ export function trackFilterUse(filterName: string, filterValue?: string): void {
 
 interface GridProduct {
   name: string;
+  janCode?: string;
   brand: string | null;
   deliveryDay: number | null;
   storeName?: string;
@@ -265,9 +267,51 @@ interface GridContext {
   params?: { area?: string };
 }
 
+/**
+ * Yahoo!ボタンの下に置く「AmazonでJAN検索」ボタン(JANがある商品のみ)。decorateCardの時点ではCTAがまだ
+ * 無いため、ここでは目印(.gen-amazon)付きで追加し、afterRenderでカード末尾(CTAの後)へ移す。
+ * 表記は「JAN検索」とし、同じ商品の出品は保証しない(Amazonの価格・評価・在庫は表示しない)。
+ */
+function createAmazonJanSlot(p: GridProduct): HTMLElement | null {
+  const url = amazonJanUrl(p.janCode);
+  if (!url) return null;
+  const wrap = document.createElement("div");
+  wrap.className = "gen-amazon";
+  const a = document.createElement("a");
+  a.className = "btn btn-secondary gen-amazon-btn";
+  a.href = url;
+  a.target = "_blank";
+  a.rel = "sponsored noopener";
+  a.textContent = "AmazonでJAN検索 →";
+  a.addEventListener("click", () => {
+    const w = window as unknown as {
+      sokunobankDebounceClick?: (el: Element, fn: () => void) => void;
+      sokunobankTrackEvent?: (name: string, params: Record<string, unknown>) => void;
+    };
+    if (!w.sokunobankDebounceClick) return;
+    w.sokunobankDebounceClick(a, () => {
+      w.sokunobankTrackEvent?.("generator_usage_outbound", {
+        category: SLUG,
+        value: "amazon_jan",
+        link_type: "amazon_jan",
+        link_url: a.href,
+        link_text: "AmazonでJAN検索",
+        page_path: window.location.pathname,
+      });
+    });
+  });
+  const note = document.createElement("p");
+  note.className = "gen-amazon-note";
+  note.textContent = "PR・同じ商品の出品は保証されません";
+  wrap.append(a, note);
+  return wrap;
+}
+
 function decorateCard(p: GridProduct, body: HTMLElement): void {
   const anchor = body.querySelector(".product-name");
   if (!anchor) return;
+  const amazon = createAmazonJanSlot(p);
+  if (amazon) body.appendChild(amazon);
   const s = specsOf(p);
   const specParts: string[] = [];
   if (s.capacityWh !== null) specParts.push(`容量 ${s.capacityWh.toLocaleString("en-US")}Wh`);
@@ -346,6 +390,8 @@ export function registerGeneratorExtension(): void {
       return text + "条件を変えるか、絞り込みを解除してください。";
     },
     afterRender: (info: { root: HTMLElement; shown: number; total: number }) => {
+      // Amazonボタンをカード末尾(Yahoo!ボタンの下)へ移す。既に末尾なら何も起きない
+      info.root.querySelectorAll<HTMLElement>(".product-body > .gen-amazon").forEach((el) => el.parentElement?.appendChild(el));
       updateFilterNote(info.root, info.shown, info.total, lastUnknown);
       document.dispatchEvent(
         new CustomEvent("generator:result", {

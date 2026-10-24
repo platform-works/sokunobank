@@ -61,6 +61,8 @@ export const generatorConfig: CommerceCategoryConfig = {
   maxDisplayCount: 150,
   // 楽天のレビュー件数が多い売れ筋と、型番+価格帯が一致するYahoo!商品の順位付けに楽天の評価も反映する
   // (裏側のみ。楽天のデータは画面にも出さない)。キーは2語×2頁=最大4回の楽天API呼び出し(6時間キャッシュ)。
+  // 商品カードに「AmazonでJAN検索」ボタンを出すため、レスポンスにJANコードを含める(JANがある商品のみ)
+  amazonJanLink: true,
   rakutenSignal: { keywords: ["インバーター発電機", "ポータブル電源"], pagesPerKeyword: 2 },
   seoSections: [
     {

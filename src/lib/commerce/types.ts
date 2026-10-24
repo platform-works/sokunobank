@@ -156,6 +156,12 @@ export interface CommerceCategoryConfig {
    * 楽天の認証情報が無い・取得に失敗した場合は何もせずYahoo!のみで動く。未設定なら楽天は呼ばない。
    */
   rakutenSignal?: { keywords: string[]; pagesPerKeyword: number };
+  /**
+   * 任意(2026-10-24導入、発電機カテゴリーが最初の利用者)。trueなら、APIレスポンスに商品のJANコードを含め、
+   * 商品カードのYahoo!ボタンの下に「AmazonでJAN検索」ボタンを出せるようにする(JANがある商品のみ)。
+   * Amazonの価格・評価・在庫は取得・表示しない。未設定ならJANは返さない。
+   */
+  amazonJanLink?: boolean;
   seoSections: { heading: string; body: string[] }[];
   faq: CommerceFaqItem[];
   /** 任意。ValueCommerce等の広告タグ(PC/スマホ)。無ければ何も表示しない */
