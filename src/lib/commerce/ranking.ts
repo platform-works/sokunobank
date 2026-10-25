@@ -83,12 +83,18 @@ export function scoreProduct(
     priceMax: priceFilter?.max,
   });
 
+  // 2026-10-25(ユーザー指示): 報酬額は順位付けに使わない。全カテゴリー共通で、設定のweights.revenueは無視し、
+  // 残りの重み(配送・売れやすさの推定・レビュー・ストア)の比率を保ったまま合計1に正規化する。
+  // revenueScore・estimatedCommissionは算出するが、totalScoreには入れない(足切りminEstimatedCommissionは別機能として残す)。
+  // 同日(2026-10-25、ユーザー指示): レビュー評価・件数のスコア(reviewScore)を最優先にする。
+  // 設定の重みのうちレビューだけを、他の重みの合計の2倍(総和の2/3)に引き上げる。他3項目は設定の比率を保つ。
+  const others = weights.delivery + weights.conversionProxy + weights.store;
+  const othersNorm = others > 0 ? others : 1;
+  const REVIEW_SHARE = 2 / 3;
+  const otherShare = (1 - REVIEW_SHARE) / othersNorm;
   const totalScore =
-    dScore * weights.delivery +
-    cvScore * weights.conversionProxy +
-    rScore * weights.review +
-    sScore * weights.store +
-    revScore * weights.revenue;
+    rScore * REVIEW_SHARE +
+    (dScore * weights.delivery + cvScore * weights.conversionProxy + sScore * weights.store) * otherShare;
 
   return {
     ...product,
