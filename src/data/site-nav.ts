@@ -20,6 +20,7 @@ export const popularKeywords: NavLink[] = [
   { label: "プリンター・複合機", href: "/categories/printer/" },
   { label: "ホワイトボード", href: "/categories/whiteboard/" },
   { label: "オフィスデスク・書庫", href: "/categories/office-desk/" },
+  { label: "テレビ", href: "/categories/tv/" },
   { label: "チラシ印刷", href: "/guides/flyer-printing/" },
   { label: "名刺", href: "/guides/business-card-printing/" },
   { label: "封筒", href: "/guides/envelope-printing/" },
@@ -121,6 +122,7 @@ export const commerceCategories: CommerceCategoryLink[] = [
   { name: "プリンター・複合機", href: "/categories/printer/", speedLabel: "配送目安", speedValue: "最短翌日〜翌々日" },
   { name: "ホワイトボード", href: "/categories/whiteboard/", speedLabel: "配送目安", speedValue: "最短翌日〜翌々日" },
   { name: "オフィスデスク・書庫", href: "/categories/office-desk/", speedLabel: "配送目安", speedValue: "最短翌日〜翌々日" },
+  { name: "テレビ", href: "/categories/tv/", speedLabel: "配送目安", speedValue: "商品ページで確認" },
   // 2026-10-24: 炊飯器も配送日の判定をしないため、商品ページでの確認を案内する
   { name: "炊飯器", href: "/categories/rice-cooker/", speedLabel: "配送日", speedValue: "商品ページで確認" },
 ];

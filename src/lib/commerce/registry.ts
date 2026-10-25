@@ -8,6 +8,7 @@ import { shredderConfig } from "./categories/shredder.config";
 import { printerConfig } from "./categories/printer.config";
 import { whiteboardConfig } from "./categories/whiteboard.config";
 import { officeDeskConfig } from "./categories/officeDesk.config";
+import { tvConfig } from "./categories/tv.config";
 import { riceCookerConfig } from "./categories/riceCooker.config";
 
 // 新カテゴリーを追加するときは、ここに1行追加するだけでページ(薄いラッパーファイル経由)と
@@ -23,6 +24,7 @@ const configs: CommerceCategoryConfig[] = [
   printerConfig,
   whiteboardConfig,
   officeDeskConfig,
+  tvConfig,
   riceCookerConfig,
 ];
 

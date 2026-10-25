@@ -315,7 +315,9 @@ export async function handleProductsRequest(config: CommerceCategoryConfig, cont
         reviewCount: p.reviewCount,
         storeName: p.storeName,
         storeIsBestSeller: p.storeIsBestSeller,
-        deliveryDay: p.deliveryDay,
+        // お届け先を使わない取得では、Yahoo!が返す配送日は実際の配送日を表さない(店舗の既定値)ため返さない。
+        // 共通のProductGridが「翌々日到着対象」と誤って表示するのを防ぐ。
+        deliveryDay: config.ignoreDeliveryArea ? null : p.deliveryDay,
         productUrl: p.productUrl,
         // 楽天と照合できた商品だけ(順位付け専用の合算評価。楽天のデータ自体は含めない)
         ...(p.reviewSignal !== undefined ? { reviewSignal: p.reviewSignal } : {}),
