@@ -216,6 +216,14 @@ const rootId = `commerce-grid-${slug}`;
       Object.entries(params || {}).forEach(([key, value]) => {
         if (value !== undefined && value !== "") query.set(key, String(value));
       });
+      // 拡張が追加の取得パラメータ(例: 発電機のブランド指定)を返す場合だけ加える
+      const extraExt = getExt();
+      const extraParams = extraExt && extraExt.extraParams ? extraExt.extraParams() : null;
+      if (extraParams) {
+        Object.entries(extraParams).forEach(([key, value]) => {
+          if (value !== undefined && value !== "") query.set(key, String(value));
+        });
+      }
       try {
         const res = await fetch(`${apiPath}?${query.toString()}`);
         const data = await res.json();
@@ -242,6 +250,11 @@ const rootId = `commerce-grid-${slug}`;
     document.addEventListener("commerce:filter-change", (event) => {
       if (event.detail?.slug !== slug) return;
       load(event.detail.params);
+    });
+    // 拡張ポイント側の取得条件(extraParams)が変わったときの再取得の合図。直前の取得パラメータで取り直す。
+    document.addEventListener("commerce:reload", (event) => {
+      if (event.detail?.slug !== slug) return;
+      load(lastParams);
     });
     // 拡張ポイント側の絞り込み条件が変わったとき、再取得せず取得済みの結果を描画し直す。
     document.addEventListener("commerce:rerender", (event) => {

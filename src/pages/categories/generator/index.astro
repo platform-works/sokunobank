@@ -20,11 +20,15 @@ import UrgentProductsSection from "../../../components/commerce/generator/Urgent
 import PowerGuideSection from "../../../components/commerce/generator/PowerGuideSection.astro";
 import UsageCards from "../../../components/commerce/generator/UsageCards.astro";
 import FoldSection from "../../../components/commerce/generator/FoldSection.astro";
+import LandingBanner from "../../../components/commerce/generator/LandingBanner.astro";
 import StepSelector from "../../../components/commerce/generator/StepSelector.astro";
+import EnvironmentGuide from "../../../components/commerce/generator/EnvironmentGuide.astro";
 import GeneratorRuntime from "../../../components/commerce/generator/GeneratorRuntime.astro";
 import TypeComparison from "../../../components/commerce/generator/TypeComparison.astro";
 import DisasterGuide from "../../../components/commerce/generator/DisasterGuide.astro";
 import CapacityCalculator from "../../../components/commerce/generator/CapacityCalculator.astro";
+import AmazonSearchSection from "../../../components/commerce/generator/AmazonSearchSection.astro";
+import RakutenCredit from "../../../components/commerce/generator/RakutenCredit.astro";
 import SafetyNotice from "../../../components/commerce/generator/SafetyNotice.astro";
 import { generatorConfig as c } from "../../../lib/commerce/categories/generator.config";
 import { CONTENT_UPDATED_ON, useCases } from "../../../lib/commerce/generatorContent";
@@ -61,13 +65,44 @@ const pageJsonLd = {
   <Breadcrumbs items={[{ label: "ホーム", href: "/" }, { label: "カテゴリー一覧", href: "/categories/" }, { label: c.name }]} />
 
   <div class="container">
-    <GeneratorRuntime />
+    <GeneratorRuntime slug={c.slug} />
 
     <GeneratorHero h1={c.h1} subheadline={c.subheadline} deliveryNote={c.deliveryNote} pcBannerHtml={c.ads?.pcBannerHtml} />
 
-    <StepSelector />
+    <LandingBanner slug={c.slug} />
+
+    <StepSelector slug={c.slug}>
+      <EnvironmentGuide slot="spec-extra" />
+    </StepSelector>
 
     <UrgentProductsSection slug={c.slug} apiPath={c.apiPath} />
+
+    <section id="products" class="products-section">
+      <h2 class="products-heading">商品比較・絞り込み</h2>
+
+      <details class="filter-toggle" open>
+        <summary class="filter-toggle-summary">条件を絞り込む</summary>
+        <div class="filter-toggle-body">
+          <CommerceFilterPanel slug={c.slug} sortOptions={c.sortOptions} hideDelivery />
+        </div>
+      </details>
+
+      <p class="intro">{c.intro}</p>
+
+      <ProductGrid slug={c.slug} apiPath={c.apiPath} variant="generator" />
+
+      <Disclaimer text={c.deliveryNote} />
+    </section>
+
+    <AmazonSearchSection />
+
+    {
+      c.popularBrands && c.popularBrands.length > 0 && (
+        <FoldSection label="ブランドから探す">
+          <PickupBrandSection brands={c.popularBrands} slug={c.slug} />
+        </FoldSection>
+      )
+    }
 
     <FoldSection label="発電機とポータブル電源の違い(比較表)">
       <TypeComparison />
@@ -90,31 +125,6 @@ const pageJsonLd = {
     </FoldSection>
 
     {
-      c.popularBrands && c.popularBrands.length > 0 && (
-        <FoldSection label="ブランドから探す">
-          <PickupBrandSection brands={c.popularBrands} slug={c.slug} />
-        </FoldSection>
-      )
-    }
-
-    <section id="products" class="products-section">
-      <h2 class="products-heading">商品比較・絞り込み</h2>
-
-      <details class="filter-toggle" open>
-        <summary class="filter-toggle-summary">条件を絞り込む</summary>
-        <div class="filter-toggle-body">
-          <CommerceFilterPanel slug={c.slug} sortOptions={c.sortOptions} />
-        </div>
-      </details>
-
-      <p class="intro">{c.intro}</p>
-
-      <ProductGrid slug={c.slug} apiPath={c.apiPath} variant="generator" />
-
-      <Disclaimer text={c.deliveryNote} />
-    </section>
-
-    {
       c.seoSections.map((section) => (
         <section class="seo-section">
           <h2>{section.heading}</h2>
@@ -128,6 +138,8 @@ const pageJsonLd = {
     <SafetyNotice />
 
     <FaqSection items={c.faq} />
+
+    <RakutenCredit />
   </div>
 
   {c.ads?.mobileOverlayHtml && <div set:html={c.ads.mobileOverlayHtml} />}

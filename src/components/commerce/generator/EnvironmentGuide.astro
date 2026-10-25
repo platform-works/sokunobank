@@ -1,0 +1,146 @@
+---
+// 「容量がわからない方」向けの利用環境ガイド(2026-10-24導入、ユーザー指示)。STEP3(容量・出力)の中に置く。
+// 環境ごとに、出典確認済みの家電の消費電力(generatorContent.ts の appliances)と、サイトが置いた想定の
+// 使用時間から必要容量(Wh)と合計出力(W)の目安を出し、その容量以上のポータブル電源を絞り込みに反映する。
+// 使用時間・台数は想定例であり、数値は必ず「目安」として表示する(余裕を見る/変換ロスの注意も添える)。
+import { environments, estimateEnvironment } from "../../../lib/commerce/generatorContent";
+import { capacityBands } from "../../../lib/commerce/generatorClient";
+
+const cards = environments.map((env) => {
+  const est = estimateEnvironment(env);
+  const band = capacityBands.find((b) => est.wh >= b.min && (b.max === null || est.wh <= b.max));
+  return { env, est, band: band?.label ?? "" };
+});
+---
+
+<details class="env-guide" id="env-guide">
+  <summary class="env-summary">容量がわからない方は、使う環境から目安を知る</summary>
+  <div class="env-body">
+    <p class="env-lead">
+      使う場面を選ぶと、その環境で必要な容量(Wh)と出力(W)の目安を出し、その容量以上のポータブル電源を下の商品一覧に表示します。
+    </p>
+    <ul class="env-list">
+      {
+        cards.map(({ env, est, band }) => (
+          <li class="env-card" data-env={env.id}>
+            <h3>{env.label}</h3>
+            <p class="env-desc">{env.description}</p>
+            <p class="env-estimate">
+              必要容量の目安 <strong>約{est.wh.toLocaleString("ja-JP")}Wh</strong>
+              {band && <span class="env-band">({band}の帯)</span>}
+              <br />
+              合計出力の目安 <strong>約{est.w.toLocaleString("ja-JP")}W</strong>
+              <span class="env-band">(定格出力がこれ以上の機種を選ぶ)</span>
+            </p>
+            <p class="env-breakdown">
+              {`想定: ${est.lines.map((l) => `${l.label.replace("(1基)", "")}${l.qty > 1 ? ` ${l.qty}台` : ""} ${l.watts}W×${l.hours}時間`).join("、")}`}
+            </p>
+            {env.caveat && <p class="env-caveat">{env.caveat}</p>}
+            <button
+              type="button"
+              class="btn btn-primary env-apply"
+              data-env-id={env.id}
+              data-wh={est.wh}
+              data-type={env.type ?? ""}
+              data-label={env.label}
+            >
+              約{est.wh.toLocaleString("ja-JP")}Wh以上の商品を見る
+            </button>
+          </li>
+        ))
+      }
+    </ul>
+    <p class="env-note">
+      消費電力は電力会社・メーカー公表の目安(下の「家電の消費電力の目安」参照)、使用時間と台数はこのページの想定例です。実際は機器・季節・使い方で変わるため、余裕を持った容量・出力を選んでください。使う機器が決まっている場合は、
+      <a href="#capacity">下の計算ツール</a>で自分の機器から計算できます。工事・業務用など、電動工具や業務機器を使う場合は、機器の銘板・取扱説明書で消費電力を確認してください。
+    </p>
+  </div>
+</details>
+
+<script>
+  import { setSelection, trackFilterUse } from "../../../lib/commerce/generatorClient";
+
+  const root = document.getElementById("env-guide");
+  root?.addEventListener("click", (event) => {
+    const btn = (event.target as HTMLElement).closest<HTMLButtonElement>(".env-apply");
+    if (!btn) return;
+    const wh = Number(btn.dataset.wh);
+    if (!Number.isFinite(wh) || wh <= 0) return;
+    const label = btn.dataset.label ?? "";
+    setSelection({
+      type: btn.dataset.type === "portable" ? "portable" : null,
+      capacity: { min: wh, max: null, label: `${wh.toLocaleString("ja-JP")}Wh以上(${label})` },
+    });
+    trackFilterUse("environment", label);
+    document.getElementById("products")?.scrollIntoView({ behavior: "smooth", block: "start" });
+  });
+</script>
+
+<style>
+  .env-guide {
+    margin: 0.8rem 0 0;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    background: var(--color-bg);
+  }
+  .env-summary {
+    min-height: 44px;
+    display: flex;
+    align-items: center;
+    padding: 0 1rem;
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: var(--color-accent-dark);
+    cursor: pointer;
+  }
+  .env-body {
+    padding: 0 1rem 1rem;
+  }
+  .env-lead,
+  .env-note {
+    margin: 0 0 0.8rem;
+    font-size: 0.82rem;
+    color: var(--color-text-muted);
+  }
+  .env-list {
+    list-style: none;
+    margin: 0 0 0.8rem;
+    padding: 0;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 0.8rem;
+  }
+  .env-card {
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-lg);
+    padding: 0.9rem 1rem;
+    display: flex;
+    flex-direction: column;
+  }
+  .env-card h3 {
+    margin: 0 0 0.3rem;
+    font-size: 0.98rem;
+  }
+  .env-desc {
+    margin: 0 0 0.5rem;
+    font-size: 0.82rem;
+    color: var(--color-text-muted);
+  }
+  .env-estimate {
+    margin: 0 0 0.4rem;
+    font-size: 0.88rem;
+  }
+  .env-band {
+    font-size: 0.76rem;
+    color: var(--color-text-muted);
+  }
+  .env-breakdown,
+  .env-caveat {
+    margin: 0 0 0.4rem;
+    font-size: 0.76rem;
+    color: var(--color-text-muted);
+  }
+  .env-apply {
+    margin-top: auto;
+  }
+</style>

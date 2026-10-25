@@ -9,7 +9,7 @@ import {
   type Selection,
 } from "../src/lib/commerce/generatorClient";
 
-const none: Selection = { useCase: null, type: null, capacity: null, power: null };
+const none: Selection = { useCase: null, type: null, capacity: null, power: null, budget: null, brand: null };
 const mk = (name: string) => ({ name, deliveryDay: 1, storeName: "店" });
 
 describe("generatorClient", () => {
@@ -94,5 +94,140 @@ describe("0件時の案内用の範囲", () => {
     expect(r.capacity).toEqual({ min: 300, max: 2000 });
     expect(r.power).toEqual({ min: 300, max: 2000 });
     expect(availableRanges([mk("ガソリン 発電機 3.0kVA")], { ...none, type: "gasoline" }).power).toBeNull();
+  });
+});
+
+describe("予算の絞り込み", () => {
+  const priced = (name: string, price?: number) => ({ name, price });
+  it("価格が予算の帯に入る商品だけを残し、境界値は両隣の帯に含まれる", async () => {
+    const { budgetBands } = await import("../src/lib/commerce/generatorClient");
+    const items = [priced("a", 50000), priced("b", 70000), priced("c", 100000), priced("d", 250000)];
+    expect(filterBySelection(items, { ...none, budget: budgetBands[0] }).visible.map((p) => p.name)).toEqual(["a", "b"]);
+    expect(filterBySelection(items, { ...none, budget: budgetBands[1] }).visible.map((p) => p.name)).toEqual(["b", "c"]);
+    expect(filterBySelection(items, { ...none, budget: budgetBands[3] }).visible.map((p) => p.name)).toEqual(["d"]);
+  });
+  it("価格が取れない商品は予算に合うと推測せず除外し、unknown扱いにはしない", async () => {
+    const { budgetBands } = await import("../src/lib/commerce/generatorClient");
+    const r = filterBySelection([priced("x")], { ...none, budget: budgetBands[0] });
+    expect(r).toEqual({ visible: [], unknown: 0 });
+  });
+  it("予算だけでも絞り込み中と判定し、説明と0件時の価格範囲を返す", async () => {
+    const { isFiltering, describeSelection, availableRanges, budgetBands } = await import("../src/lib/commerce/generatorClient");
+    const sel = { ...none, budget: budgetBands[2] };
+    expect(isFiltering(sel)).toBe(true);
+    expect(describeSelection(sel)).toEqual(["予算12〜18万円"]);
+    expect(availableRanges([priced("a", 30000), priced("b", 90000)], sel).price).toEqual({ min: 30000, max: 90000 });
+  });
+});
+
+describe("利用環境の目安", () => {
+  it("出典確認済みの消費電力×想定時間から必要容量・出力を計算する(10単位切り上げ)", async () => {
+    const { environments, estimateEnvironment } = await import("../src/lib/commerce/generatorContent");
+    const byId = (id: string) => environments.find((e) => e.id === id)!;
+    // ルーター30W×12h + LED10W×2×6h = 360 + 120
+    expect(estimateEnvironment(byId("blackout-min"))).toMatchObject({ wh: 480, w: 50 });
+    // 上に冷蔵庫250W×8h = +2000Wh
+    expect(estimateEnvironment(byId("blackout-fridge"))).toMatchObject({ wh: 2480, w: 300 });
+    expect(estimateEnvironment(byId("vehicle-summer"))).toMatchObject({ wh: 460, w: 60 });
+    expect(estimateEnvironment(byId("vehicle-winter"))).toMatchObject({ wh: 860, w: 110 });
+  });
+  it("消費電力が未確認(null)の機器は計算に含めない", async () => {
+    const { estimateEnvironment } = await import("../src/lib/commerce/generatorContent");
+    const env = { id: "x", label: "x", description: "", type: null, items: [{ applianceId: "phone", qty: 1, hours: 2 }] } as never;
+    const phone = { id: "phone", label: "スマホ", watts: null, note: "", source: "", defaultHours: 2 };
+    expect(estimateEnvironment(env, [phone])).toMatchObject({ wh: 0, w: 0, lines: [] });
+  });
+  it("車内・屋内の環境はポータブル電源のみを推奨する", async () => {
+    const { environments } = await import("../src/lib/commerce/generatorContent");
+    expect(environments.every((e) => e.type === "portable")).toBe(true);
+  });
+});
+
+describe("車中泊ではエンジン式を選べない", () => {
+  it("車中泊を選ぶと、選択済みのエンジン式は解除され、エンジン式は選択できない", async () => {
+    const { mergeSelection, isEngineBlocked } = await import("../src/lib/commerce/generatorClient");
+    expect(isEngineBlocked("vehicle")).toBe(true);
+    expect(isEngineBlocked("camp")).toBe(false);
+    const withGas = { ...none, type: "gasoline" as const };
+    expect(mergeSelection(withGas, { useCase: "vehicle" }).type).toBeNull();
+    const veh = { ...none, useCase: "vehicle" };
+    expect(mergeSelection(veh, { type: "cassette" }).type).toBeNull();
+    expect(mergeSelection(veh, { type: "portable" }).type).toBe("portable");
+    // キャンプではエンジン式も選べる
+    expect(mergeSelection({ ...none, useCase: "camp" }, { type: "gasoline" }).type).toBe("gasoline");
+  });
+  it("車中泊の絞り込みでは、エンジン式を除外し、種類が確認できない商品は表示しない", () => {
+    const sel = { ...none, useCase: "vehicle" };
+    const portable = { name: "車中泊 ポータブル電源 1000Wh" };
+    const gas = { name: "車中泊 ガソリン インバーター発電機 2000W" };
+    const unknown = { name: "車中泊 電源" };
+    const r = filterBySelection([portable, gas, unknown], sel);
+    expect(r.visible).toEqual([portable]);
+    expect(r.unknown).toBe(1);
+  });
+});
+
+describe("機器の一覧からの必要容量", () => {
+  it("消費電力×台数×時間を合計し、10単位に切り上げる", async () => {
+    const { estimateItems } = await import("../src/lib/commerce/generatorContent");
+    // 30W×1×12h + 10W×2×6h = 360 + 120
+    expect(estimateItems([{ watts: 30, qty: 1, hours: 12 }, { watts: 10, qty: 2, hours: 6 }])).toEqual({ wh: 480, w: 50 });
+    expect(estimateItems([{ watts: 33, qty: 1, hours: 1 }])).toEqual({ wh: 40, w: 40 });
+  });
+  it("0以下・不正な値は0として扱う", async () => {
+    const { estimateItems } = await import("../src/lib/commerce/generatorContent");
+    expect(estimateItems([])).toEqual({ wh: 0, w: 0 });
+    expect(estimateItems([{ watts: Number.NaN, qty: 1, hours: 1 }, { watts: -5, qty: 1, hours: 1 }, { watts: 100, qty: 0, hours: 5 }])).toEqual({ wh: 0, w: 0 });
+  });
+});
+
+describe("ブランドの絞り込みとURLからの初期選択", () => {
+  it("商品名またはブランド名に該当語があるものだけを残す(大文字小文字・カタカナ表記を区別しない)", async () => {
+    const { brandOptions } = await import("../src/lib/commerce/generatorClient");
+    const jackery = brandOptions.find((b) => b.id === "jackery")!;
+    const items = [
+      { name: "Jackery ポータブル電源 1000", brand: "Jackery" },
+      { name: "ポータブル電源 ジャクリ 240", brand: null },
+      { name: "EENOUR 発電機 3000W", brand: "EENOUR" },
+      { name: "ポータブル電源 ホンダ互換", brand: "ホンダ" },
+    ];
+    const r = filterBySelection(items, { ...none, brand: jackery });
+    expect(r.visible.map((p) => p.name)).toEqual(["Jackery ポータブル電源 1000", "ポータブル電源 ジャクリ 240"]);
+    expect(r.unknown).toBe(0);
+    const honda = brandOptions.find((b) => b.id === "honda")!;
+    expect(filterBySelection(items, { ...none, brand: honda }).visible).toHaveLength(1);
+  });
+  it("ブランドだけの選択でも絞り込み中と判定し、説明に出る", async () => {
+    const { isFiltering, describeSelection, brandOptions } = await import("../src/lib/commerce/generatorClient");
+    const sel = { ...none, brand: brandOptions[0] };
+    expect(isFiltering(sel)).toBe(true);
+    expect(describeSelection(sel)).toEqual(["Jackery"]);
+  });
+  it("URLのクエリから初期の絞り込みを作り、不正な値は無視する", async () => {
+    const { selectionFromParams, capacityBands, budgetBands } = await import("../src/lib/commerce/generatorClient");
+    const r = selectionFromParams(new URLSearchParams("brand=bluetti&type=portable&use=camp&cap=1&budget=2"));
+    expect(r.brand?.id).toBe("bluetti");
+    expect(r.type).toBe("portable");
+    expect(r.useCase).toBe("camp");
+    expect(r.capacity).toEqual(capacityBands[1]);
+    expect(r.budget).toEqual(budgetBands[2]);
+    expect(selectionFromParams(new URLSearchParams("brand=unknown&type=__proto__&use=x&cap=9&power=-1&budget=abc"))).toEqual({});
+    expect(selectionFromParams(new URLSearchParams(""))).toEqual({});
+  });
+});
+
+describe("誘導元の情報", () => {
+  it("有効な絞り込み条件とutm_*だけを誘導元として残し、無ければnull", async () => {
+    const { landingFromParams } = await import("../src/lib/commerce/generatorClient");
+    const l = landingFromParams(new URLSearchParams("brand=jackery&use=disaster&brand2=x&cap=9&utm_source=yahoo&utm_campaign=gen_jackery&gclid=abc"))!;
+    expect(l.filters).toBe("use=disaster&brand=jackery");
+    expect(l.utm).toEqual({ utm_source: "yahoo", utm_campaign: "gen_jackery" });
+    expect(JSON.stringify(l)).not.toContain("abc"); // 広告の識別子(gclid)は保持しない
+    expect(landingFromParams(new URLSearchParams("cap=9&foo=1"))).toBeNull();
+    expect(landingFromParams(new URLSearchParams(""))).toBeNull();
+  });
+  it("utm_*だけの場合も誘導元として扱う(絞り込み条件は空)", async () => {
+    const { landingFromParams } = await import("../src/lib/commerce/generatorClient");
+    expect(landingFromParams(new URLSearchParams("utm_source=x"))).toEqual({ filters: "", utm: { utm_source: "x" } });
   });
 });

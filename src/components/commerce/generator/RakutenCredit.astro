@@ -1,0 +1,19 @@
+---
+// 楽天ウェブサービスのクレジット表示(2026-10-24設置)。楽天APIを使うアプリはバッジ表示が必須で、提供されたHTMLを
+// 改変せずそのまま使うこと(https://webservice.rakuten.co.jp/guide/credit)。下の文字列は提供HTMLを一字一句
+// そのまま保持し、set:html で出力する(Astroのテンプレート構文で書き直さない)。楽天APIを使うページ(発電機)だけに置く。
+const attributionSnippet = `<!-- Rakuten Web Services Attribution Snippet FROM HERE -->
+<a href="https://developers.rakuten.com/" target="_blank">Supported by Rakuten Developers</a>
+<!-- Rakuten Web Services Attribution Snippet TO HERE -->`;
+---
+
+<div class="rakuten-credit" set:html={attributionSnippet} />
+
+<style>
+  .rakuten-credit {
+    margin: 1.5rem 0 0;
+    font-size: 0.78rem;
+    color: var(--color-text-muted);
+    text-align: center;
+  }
+</style>

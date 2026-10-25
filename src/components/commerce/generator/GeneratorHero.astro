@@ -11,8 +11,10 @@ interface Props {
   subheadline: string;
   deliveryNote: string;
   pcBannerHtml?: string;
+  /** 最終更新日の表記。未指定なら発電機ページの値 */
+  updatedLabel?: string;
 }
-const { h1, subheadline, deliveryNote, pcBannerHtml } = Astro.props;
+const { h1, subheadline, deliveryNote, pcBannerHtml, updatedLabel = CONTENT_UPDATED_LABEL } = Astro.props;
 ---
 
 <section class="generator-hero">
@@ -21,7 +23,7 @@ const { h1, subheadline, deliveryNote, pcBannerHtml } = Astro.props;
     <p class="subheadline">{subheadline}</p>
     <p class="delivery-note">{deliveryNote}</p>
 
-    <p class="updated">最終更新: {CONTENT_UPDATED_LABEL}</p>
+    <p class="updated">最終更新: {updatedLabel}</p>
   </div>
 
   {

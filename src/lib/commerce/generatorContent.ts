@@ -111,6 +111,141 @@ export const appliances: AppliancePower[] = [
   { id: "kettle", label: "電気ケトル", watts: 1300, note: "1,300W(メーカー1機種の仕様値。機種により異なります)", source: "タイガー魔法瓶(製品仕様)", defaultHours: 0.1 },
 ];
 
+export interface EnvironmentItem {
+  /** appliances の id。消費電力(W)は出典付きの値をそのまま使う */
+  applianceId: string;
+  qty: number;
+  /** この環境での想定使用時間(h)。サイトの想定例であり、出典のある値ではない */
+  hours: number;
+}
+
+export interface Environment {
+  id: string;
+  label: string;
+  description: string;
+  items: EnvironmentItem[];
+  /** 推奨する種類。屋内・車内ではエンジン式を使えない(NITE・消費者庁)ため、該当する環境はportable */
+  type: "portable" | null;
+  /** 含めていない機器など、利用者に伝えるべき但し書き */
+  caveat?: string;
+}
+
+// 「容量がわからない方」向けの利用環境。機器の消費電力は appliances(出典確認済み)の値を使い、
+// 使用時間と台数はサイトが置いた想定例。数値は目安であり、実際は機器・使い方で変わる。
+// スマートフォンの充電は確認できた公的な目安値がないため、どの環境にも含めない。
+export const environments: Environment[] = [
+  {
+    id: "blackout-min",
+    label: "停電の一晩・最低限",
+    description: "Wi-Fiルーターと照明2基だけ。情報収集と最低限の明かりを確保したい場合の想定です。",
+    items: [
+      { applianceId: "router", qty: 1, hours: 12 },
+      { applianceId: "led", qty: 2, hours: 6 },
+    ],
+    type: "portable",
+    caveat: "スマートフォンの充電は、公的な消費電力の目安が確認できないため含めていません。",
+  },
+  {
+    id: "blackout-fridge",
+    label: "停電の一晩・冷蔵庫も動かす",
+    description: "上に冷蔵庫を加えた想定です。冷蔵庫は消費電力が大きく、容量の大半を占めます。",
+    items: [
+      { applianceId: "router", qty: 1, hours: 12 },
+      { applianceId: "led", qty: 2, hours: 6 },
+      { applianceId: "fridge", qty: 1, hours: 8 },
+    ],
+    type: "portable",
+    caveat: "冷蔵庫の消費電力は機種で大きく異なります。銘板で確認してください。",
+  },
+  {
+    id: "camp-tent",
+    label: "キャンプのテント内",
+    description: "テント内で照明と扇風機。テント内ではエンジン式発電機を使えないため、バッテリー式のポータブル電源だけが候補です。",
+    items: [
+      { applianceId: "led", qty: 1, hours: 6 },
+      { applianceId: "fan", qty: 1, hours: 8 },
+    ],
+    type: "portable",
+    caveat: "エンジン式発電機を使う場合は、出入口や窓などの開口部から離れた、屋外の風通しの良い場所で使ってください。テント内での使用は、屋内と同等以上の危険とされています(NITE・消費者庁)。",
+  },
+  {
+    id: "vehicle-summer",
+    label: "夏の車中泊",
+    description: "照明1基と扇風機。バッテリー式のポータブル電源だけが候補です(車内でエンジン式発電機は使えません)。",
+    items: [
+      { applianceId: "led", qty: 1, hours: 6 },
+      { applianceId: "fan", qty: 1, hours: 8 },
+    ],
+    type: "portable",
+  },
+  {
+    id: "vehicle-winter",
+    label: "冬の車中泊",
+    description: "照明1基と電気毛布。電気毛布は設定・使用時間で消費電力が変わります。",
+    items: [
+      { applianceId: "led", qty: 1, hours: 6 },
+      { applianceId: "blanket", qty: 1, hours: 8 },
+    ],
+    type: "portable",
+  },
+];
+
+/**
+ * 用途ごとの「おすすめ容量」に使う環境(environments の id)。用途だけを選んだ人に、出典確認済みの消費電力から
+ * 計算した必要容量の目安を提示する。工事・業務用は、使う機器(電動工具・業務機器)の消費電力に公的な目安値を
+ * 確認できていないため、一律のおすすめ容量は出さない(空配列)。
+ */
+export const useCaseEnvironments: Record<UseCase["id"], string[]> = {
+  disaster: ["blackout-min", "blackout-fridge"],
+  home: ["blackout-min", "blackout-fridge"],
+  camp: ["camp-tent"],
+  vehicle: ["vehicle-summer", "vehicle-winter"],
+  work: [],
+};
+
+export interface EnvironmentEstimate {
+  /** 必要容量の目安(Wh)。10Wh単位に切り上げ */
+  wh: number;
+  /** 同時に使う機器の合計出力の目安(W)。10W単位に切り上げ */
+  w: number;
+  lines: { label: string; watts: number; qty: number; hours: number }[];
+}
+
+export interface CalcItem {
+  watts: number;
+  qty: number;
+  hours: number;
+}
+
+/** 機器の一覧から必要容量(Wh)・合計出力(W)の目安を計算する。10単位に切り上げ。不正・0以下の値は0として扱う */
+export function estimateItems(items: CalcItem[]): { wh: number; w: number } {
+  const pos = (n: number) => (Number.isFinite(n) && n > 0 ? n : 0);
+  let wh = 0;
+  let w = 0;
+  for (const it of items) {
+    const watts = pos(it.watts);
+    const qty = pos(it.qty);
+    wh += watts * qty * pos(it.hours);
+    w += watts * qty;
+  }
+  return { wh: Math.ceil(wh / 10) * 10, w: Math.ceil(w / 10) * 10 };
+}
+
+/** 環境の必要容量・合計出力の目安。消費電力が未確認(null)の機器は計算に含めない */
+export function estimateEnvironment(env: Environment, list: AppliancePower[] = appliances): EnvironmentEstimate {
+  let wh = 0;
+  let w = 0;
+  const lines: EnvironmentEstimate["lines"] = [];
+  for (const it of env.items) {
+    const a = list.find((x) => x.id === it.applianceId);
+    if (!a || a.watts === null) continue;
+    wh += a.watts * it.qty * it.hours;
+    w += a.watts * it.qty;
+    lines.push({ label: a.label, watts: a.watts, qty: it.qty, hours: it.hours });
+  }
+  return { wh: Math.ceil(wh / 10) * 10, w: Math.ceil(w / 10) * 10, lines };
+}
+
 export interface SafetyFact {
   text: string;
   source: string;

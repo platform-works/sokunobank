@@ -173,6 +173,8 @@ export const commerceCategories: CommerceCategoryLink[] = [
   { name: "プリンター・複合機", href: "/categories/printer/", speedLabel: "配送目安", speedValue: "最短翌日〜翌々日" },
   { name: "ホワイトボード", href: "/categories/whiteboard/", speedLabel: "配送目安", speedValue: "最短翌日〜翌々日" },
   { name: "オフィスデスク・書庫", href: "/categories/office-desk/", speedLabel: "配送目安", speedValue: "最短翌日〜翌々日" },
+  // 2026-10-24: 炊飯器も配送日の判定をしないため、商品ページでの確認を案内する
+  { name: "炊飯器", href: "/categories/rice-cooker/", speedLabel: "配送日", speedValue: "商品ページで確認" },
 ];
 
 export interface UpcomingCategory {

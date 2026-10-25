@@ -38,6 +38,12 @@ export interface ScoredProduct extends RankableProduct {
   totalScore: number;
   estimatedCommission: number;
   /**
+   * 任意(2026-10-24導入)。楽天市場のレビューと型番+価格帯で照合できたときだけ付く、
+   * 両者を合算した件数補正後の評価(1〜5)。順位付け専用の数値で、楽天のデータ自体は保持・出力しない。
+   * 照合できない商品・楽天の取得失敗時は付かない(Yahoo!のレビューだけで判断する)。
+   */
+  reviewSignal?: number;
+  /**
    * Yahoo!ショッピングの元の商品URL(RankableProduct.urlと同一値)。
    * 2026-09-27にValueCommerce LinkSwitch導入に伴い、ここに事前組み立てした
    * アフィリエイトURLを入れる方式から、元URLをそのまま渡す方式に変更した
@@ -144,6 +150,42 @@ export interface CommerceCategoryConfig {
   candidatesTargetCount?: number;
   /** 任意。1回の応答で返す商品の最大件数。未設定なら既定値(50件) */
   maxDisplayCount?: number;
+  /**
+   * 任意(2026-10-24導入、発電機カテゴリーが最初の利用者)。1つの検索語あたりに取得するページ数(1ページ=最大100件)。
+   * 未設定なら共通の既定値(3ページ)。Yahoo!APIは1つの検索語で先頭1,000件(10ページ)までしか届かない。
+   * 増やすとAPI呼び出し回数(レート制限:1分30回)と初回の取得時間が増える。
+   */
+  maxPagesPerQuery?: number;
+  /**
+   * 任意(2026-10-24導入、発電機カテゴリーが最初の利用者)。trueなら、お届け先(area)・到着希望(delivery)の
+   * パラメータを無視し、全員が同じ1つの取得・キャッシュを共有する。お届け先ごとの取得は、都道府県の数だけ
+   * キャッシュが分かれてYahoo!APIの回数制限(1分30回)に当たりやすく、候補も「2日以内に届く商品」に減るため。
+   * この場合、商品の配送日(deliveryDay)は取得できない(null)。
+   */
+  ignoreDeliveryArea?: boolean;
+  /**
+   * 任意(2026-10-24導入、発電機カテゴリーが最初の利用者)。ブランドID → 追加取得の設定。APIのクエリ `brand=<ID>` が
+   * ここに定義されたIDのときだけ、そのブランドの検索語で追加の候補を集めて、共通の商品群へ足す(brandPool.ts参照)。
+   * 未設定、または未定義のIDなら何もしない。
+   */
+  brandSearch?: Record<string, { words: string[]; queries: string[]; targetCount?: number }>;
+  /**
+   * 任意(2026-10-24導入、発電機カテゴリーが最初の利用者)。楽天市場の評価・件数を裏側の順位付けに
+   * 使う設定。keywordsで楽天の売れ筋(レビュー件数順)を集め、Yahoo!商品と型番+価格帯で照合する。
+   * 楽天の認証情報が無い・取得に失敗した場合は何もせずYahoo!のみで動く。未設定なら楽天は呼ばない。
+   */
+  rakutenSignal?: { keywords: string[]; pagesPerKeyword: number };
+  /**
+   * 任意(2026-10-24導入、発電機カテゴリーが最初の利用者)。trueなら、APIレスポンスに商品のJANコードを含め、
+   * 商品カードのYahoo!ボタンの下に「AmazonでJAN検索」ボタンを出せるようにする(JANがある商品のみ)。
+   * Amazonの価格・評価・在庫は取得・表示しない。未設定ならJANは返さない。
+   */
+  amazonJanLink?: boolean;
+  /**
+   * 任意(2026-10-24導入、発電機カテゴリーが最初の利用者)。trueなら、APIレスポンスに商品説明の抜粋
+   * (descriptionExcerpt、140字まで・文章として読めるものだけ)を含める。出品者の記載で、サイトは保証しない。
+   */
+  showDescription?: boolean;
   seoSections: { heading: string; body: string[] }[];
   faq: CommerceFaqItem[];
   /** 任意。ValueCommerce等の広告タグ(PC/スマホ)。無ければ何も表示しない */

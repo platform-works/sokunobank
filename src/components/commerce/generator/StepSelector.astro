@@ -1,33 +1,37 @@
 ---
-// 「何を買うか決める」ステップ選択(2026-09-30導入)。用途 → タイプ → 容量/出力 → 商品一覧。
-// 商品名から容量(Wh)・定格出力(W)・タイプを確認できた商品だけを絞り込み、確認できない商品は
-// 推測で分類しない(詳細は src/lib/commerce/generatorClient.ts / extractSpecs.ts)。
-// 用途は商品の属性ではないため商品の絞り込みには使わず、用途別の注意表示と計測(use_case)にのみ使う。
-import { prefectures } from "../../../lib/commerce/prefectures";
-import { useCases } from "../../../lib/commerce/generatorContent";
-import { capacityBands, powerBands, typeLabels } from "../../../lib/commerce/generatorClient";
+// 「何を買うか決める」ステップ選択(2026-09-30導入、2026-10-24にカテゴリー共通化)。
+// 用途 → 種類 → 容量/出力 → 予算 → ブランド → 商品一覧。カテゴリー固有の値と文言は
+// src/lib/commerce/appliance/profiles/<slug>.ts(ApplianceProfile)から受け取り、絞り込みの処理は
+// 共通エンジン(createApplianceClient.ts)が行う。商品名から確認できない商品は推測で分類しない。
+// 用途は商品の属性ではないため、商品名に用途を示す語が明記された商品だけを対象にする。
+import { getApplianceProfile } from "../../../lib/commerce/appliance/clients";
 
-const types = Object.entries(typeLabels) as [string, string][];
-const useCaseHints = Object.fromEntries(useCases.filter((u) => u.note).map((u) => [u.id, u.note]));
+interface Props {
+  slug: string;
+  heading?: string;
+}
+const { slug, heading = "用途・容量・予算から、買う商品を絞り込む" } = Astro.props;
+const profile = getApplianceProfile(slug);
+const types = Object.entries(profile.typeLabels);
+const hasPower = profile.powerBands.length > 0;
+// STEPの番号は、実際に出す行の順に振る
+let stepCount = 0;
+const stepNo = () => `STEP${++stepCount}`;
+const noteTypes = profile.notes.filter((n) => n.row === "type");
+const noteSpecs = profile.notes.filter((n) => n.row === "spec");
+const noteClass = (v: string) => (v === "hint" ? "step-hint" : "step-note");
 ---
 
-<section class="step-selector" id="step" aria-labelledby="step-heading">
+<section class="step-selector" id="step" aria-labelledby="step-heading" data-slug={slug}>
   <div class="step-head">
-    <h2 id="step-heading">用途と容量から、買う商品を絞り込む</h2>
-    <label class="step-area">
-      <span>お届け先</span>
-      <select data-role="area" aria-label="お届け先の都道府県">
-        <option value="">選択してください</option>
-        {prefectures.map((p) => <option value={p.code}>{p.name}</option>)}
-      </select>
-    </label>
+    <h2 id="step-heading">{heading}</h2>
   </div>
 
   <div class="step-row">
-    <p class="step-label"><span class="step-no">STEP1</span>用途を選ぶ</p>
+    <p class="step-label"><span class="step-no">{stepNo()}</span>{profile.text.stepUseCase}</p>
     <div class="step-options" role="group" aria-label="用途">
       {
-        useCases.map((u) => (
+        profile.useCases.map((u) => (
           <button type="button" class="step-option" aria-pressed="false" data-kind="usecase" data-value={u.id} data-label={u.label}>
             {u.label}
           </button>
@@ -35,80 +39,129 @@ const useCaseHints = Object.fromEntries(useCases.filter((u) => u.note).map((u) =
       }
     </div>
     <p class="step-hint" data-role="usecase-hint" hidden></p>
+    <div class="step-reco" data-role="usecase-reco" aria-live="polite" hidden></div>
   </div>
 
-  <div class="step-row">
-    <p class="step-label"><span class="step-no">STEP2</span>種類を選ぶ</p>
-    <div class="step-options" role="group" aria-label="種類">
-      {
-        types.map(([value, label]) => (
-          <button type="button" class="step-option" aria-pressed="false" data-kind="type" data-value={value} data-label={label}>
-            {label}
-          </button>
-        ))
-      }
-    </div>
-  </div>
+  {
+    types.length > 0 && (
+      <div class="step-row">
+        <p class="step-label"><span class="step-no">{stepNo()}</span>{profile.text.stepType}</p>
+        <div class="step-options" role="group" aria-label="種類">
+          {types.map(([value, label]) => (
+            <button type="button" class="step-option" aria-pressed="false" data-kind="type" data-value={value} data-label={label}>
+              {label}
+            </button>
+          ))}
+        </div>
+        {noteTypes.map((n) => (
+          <p class={noteClass(n.variant)} data-note-id={n.id} hidden>{n.text}</p>
+        ))}
+      </div>
+    )
+  }
 
   <div class="step-row">
-    <p class="step-label"><span class="step-no">STEP3</span>容量(Wh)・出力(W)を選ぶ</p>
-    <div class="step-options" role="group" aria-label="バッテリー容量">
-      <span class="step-group-label">容量</span>
+    <p class="step-label"><span class="step-no">{stepNo()}</span>{profile.text.stepSpec}</p>
+    <div class="step-options" role="group" aria-label={profile.text.capacityGroupAria}>
+      {hasPower && <span class="step-group-label">{profile.text.capacityGroupLabel}</span>}
       {
-        capacityBands.map((b, i) => (
+        profile.capacityBands.map((b, i) => (
           <button type="button" class="step-option" aria-pressed="false" data-kind="capacity" data-value={String(i)} data-label={b.label}>
             {b.label}
           </button>
         ))
       }
     </div>
-    <div class="step-options" role="group" aria-label="定格出力">
-      <span class="step-group-label">出力</span>
+    {
+      hasPower && (
+        <div class="step-options" role="group" aria-label={profile.text.powerGroupAria}>
+          <span class="step-group-label">{profile.text.powerGroupLabel}</span>
+          {profile.powerBands.map((b, i) => (
+            <button type="button" class="step-option" aria-pressed="false" data-kind="power" data-value={String(i)} data-label={b.label}>
+              {b.label}
+            </button>
+          ))}
+        </div>
+      )
+    }
+    {noteSpecs.map((n) => <p class={noteClass(n.variant)} data-note-id={n.id} hidden>{n.text}</p>)}
+    <p class="step-note" set:html={profile.text.specRowNote} />
+    <slot name="spec-extra" />
+  </div>
+
+  <div class="step-row">
+    <p class="step-label"><span class="step-no">{stepNo()}</span>{profile.text.stepBudget}</p>
+    <div class="step-options" role="group" aria-label="予算">
       {
-        powerBands.map((b, i) => (
-          <button type="button" class="step-option" aria-pressed="false" data-kind="power" data-value={String(i)} data-label={b.label}>
+        profile.budgetBands.map((b, i) => (
+          <button type="button" class="step-option" aria-pressed="false" data-kind="budget" data-value={String(i)} data-label={b.label}>
             {b.label}
           </button>
         ))
       }
     </div>
-    <p class="step-note" data-role="capacity-note" hidden>発電機(エンジン式)には容量(Wh)の表記がないため、出力(W)で選びます。出力がkVA表記の商品は、W換算せず絞り込みの対象外です。</p>
-    <p class="step-note">用途は商品名の表記(防災・車中泊など)、容量・出力は商品名に明記された値だけで絞り込みます。「何Wh必要?」は<a href="#capacity">下の計算ツール</a>で目安を出せます。</p>
+    <p class="step-note">予算は商品の表示価格(円)で絞り込みます。送料・ポイント還元は含みません。</p>
+  </div>
+
+  <div class="step-row">
+    <p class="step-label"><span class="step-no">{stepNo()}</span>{profile.text.stepBrand}</p>
+    <div class="step-options" role="group" aria-label="ブランド">
+      {
+        profile.brandOptions.map((b) => (
+          <button type="button" class="step-option" aria-pressed="false" data-kind="brand" data-value={b.id} data-label={b.label}>
+            {b.label}
+          </button>
+        ))
+      }
+    </div>
+    <p class="step-note">ブランドは、商品名・ブランド名の表記で絞り込みます。</p>
   </div>
 
   <div class="step-row step-go-row">
-    <p class="step-label"><span class="step-no">STEP4</span>最短配送の商品を見る</p>
+    <p class="step-label"><span class="step-no">{stepNo()}</span>条件に合う商品を見る</p>
     <a class="btn btn-primary btn-lg step-go" href="#products" data-role="go">
-      条件に合う最短配送の商品を見る <span data-role="count"></span>
+      条件に合う商品を見る <span data-role="count"></span>
     </a>
   </div>
 </section>
 
-<script define:vars={{ useCaseHints }}>
-  window.__generatorUseCaseHints = useCaseHints;
-</script>
-
 <script>
-  import {
-    AREA_STORAGE_KEY,
-    SLUG,
-    capacityBands,
-    powerBands,
-    getSelection,
-    isEngineType,
-    setSelection,
-    trackFilterUse,
-  } from "../../../lib/commerce/generatorClient";
+  import { getApplianceClient } from "../../../lib/commerce/appliance/clients";
 
   const root = document.getElementById("step");
   if (root) {
-    const hints = (window as unknown as { __generatorUseCaseHints?: Record<string, string> }).__generatorUseCaseHints ?? {};
+    const client = getApplianceClient(root.dataset.slug ?? "");
+    const profile = client.profile;
+    const hints = Object.fromEntries(profile.useCases.filter((u) => u.note).map((u) => [u.id, u.note as string]));
     const buttons = Array.from(root.querySelectorAll<HTMLButtonElement>(".step-option"));
-    const capNoteEl = root.querySelector<HTMLElement>('[data-role="capacity-note"]');
     const hintEl = root.querySelector<HTMLElement>('[data-role="usecase-hint"]');
+    const recoEl = root.querySelector<HTMLElement>('[data-role="usecase-reco"]');
+    const noteEls = Array.from(root.querySelectorAll<HTMLElement>("[data-note-id]"));
     const countEl = root.querySelector<HTMLElement>('[data-role="count"]');
-    const areaSelect = root.querySelector<HTMLSelectElement>('[data-role="area"]');
     const goLink = root.querySelector<HTMLAnchorElement>('[data-role="go"]');
+    const { setSelection, trackFilterUse, getSelection } = client;
+
+    const extraApi = {
+      setSelection,
+      trackFilterUse,
+      scrollToProducts: () => document.getElementById("products")?.scrollIntoView({ behavior: "smooth", block: "start" }),
+    };
+
+    // 用途だけを選んだ人に、その用途の追加表示(おすすめ容量・計算ツールなど。カテゴリーごとに定義)を出す。
+    // 用途が変わったときだけ作り直す(他の選択変更では触らない)
+    let extraFor: string | null | undefined;
+    function renderExtra(useCase: string | null) {
+      if (!recoEl || extraFor === useCase) return;
+      extraFor = useCase;
+      recoEl.textContent = "";
+      const extra = useCase && profile.useCaseExtra ? profile.useCaseExtra(useCase, extraApi) : null;
+      if (!extra) {
+        recoEl.hidden = true;
+        return;
+      }
+      recoEl.appendChild(extra);
+      recoEl.hidden = false;
+    }
 
     function render() {
       const sel = getSelection();
@@ -118,13 +171,21 @@ const useCaseHints = Object.fromEntries(useCases.filter((u) => u.note).map((u) =
         let pressed = false;
         if (kind === "usecase") pressed = sel.useCase === value;
         else if (kind === "type") pressed = sel.type === value;
-        else if (kind === "capacity") pressed = sel.capacity !== null && sel.capacity.label === capacityBands[Number(value)].label;
-        else if (kind === "power") pressed = sel.power !== null && sel.power.label === powerBands[Number(value)].label;
+        else if (kind === "capacity") pressed = sel.capacity !== null && sel.capacity.label === profile.capacityBands[Number(value)].label;
+        else if (kind === "power") pressed = sel.power !== null && sel.power.label === profile.powerBands[Number(value)].label;
+        else if (kind === "budget") pressed = sel.budget !== null && sel.budget.label === profile.budgetBands[Number(value)].label;
+        else if (kind === "brand") pressed = sel.brand !== null && sel.brand.id === value;
         b.setAttribute("aria-pressed", String(pressed));
-        // エンジン式には容量(Wh)の表記がないため、容量ボタンは選べなくする(選ぶと必ず0件になるため)
-        if (kind === "capacity") b.disabled = isEngineType(sel.type);
+        // 容量を商品名から確認できない種類(発電機のエンジン式)では、容量ボタンを選べなくする(選ぶと必ず0件になるため)
+        if (kind === "capacity") b.disabled = client.isNoCapacityType(sel.type);
+        // 用途によって選べない種類(発電機の車中泊でのエンジン式)は選べなくする
+        if (kind === "type") b.disabled = client.isTypeBlocked(sel.useCase, value);
       }
-      if (capNoteEl) capNoteEl.hidden = !isEngineType(sel.type);
+      for (const el of noteEls) {
+        const note = profile.notes.find((n) => n.id === el.dataset.noteId);
+        el.hidden = !note || !note.when(sel);
+      }
+      renderExtra(sel.useCase);
       if (hintEl) {
         const text = sel.useCase ? hints[sel.useCase] : undefined;
         hintEl.hidden = !text;
@@ -143,14 +204,20 @@ const useCaseHints = Object.fromEntries(useCases.filter((u) => u.note).map((u) =
         setSelection({ useCase: pressed ? null : value });
         trackFilterUse("use_case", pressed ? undefined : label);
       } else if (kind === "type") {
-        setSelection({ type: pressed ? null : (value as "portable" | "gasoline" | "cassette") });
+        setSelection({ type: pressed ? null : value });
         trackFilterUse("product_type", pressed ? undefined : label);
       } else if (kind === "capacity") {
-        setSelection({ capacity: pressed ? null : capacityBands[Number(value)] });
+        setSelection({ capacity: pressed ? null : profile.capacityBands[Number(value)] });
         trackFilterUse("capacity_band", pressed ? undefined : label);
       } else if (kind === "power") {
-        setSelection({ power: pressed ? null : powerBands[Number(value)] });
+        setSelection({ power: pressed ? null : profile.powerBands[Number(value)] });
         trackFilterUse("power_band", pressed ? undefined : label);
+      } else if (kind === "brand") {
+        setSelection({ brand: pressed ? null : (profile.brandOptions.find((b) => b.id === value) ?? null) });
+        trackFilterUse("brand", pressed ? undefined : label);
+      } else if (kind === "budget") {
+        setSelection({ budget: pressed ? null : profile.budgetBands[Number(value)] });
+        trackFilterUse("budget", pressed ? undefined : label);
       }
     });
 
@@ -163,44 +230,23 @@ const useCaseHints = Object.fromEntries(useCases.filter((u) => u.note).map((u) =
       trackFilterUse("use_case", el.dataset.label ?? id);
     });
 
-    document.addEventListener("generator:selection-change", render);
+    document.addEventListener(client.EVENT_CHANGE, render);
     render();
 
-    document.addEventListener("generator:result", (event) => {
+    // リスティング広告などからのリンク(?brand=jackery&type=portable 等)で、条件を選んだ状態にする
+    const fromUrl = client.selectionFromParams(new URLSearchParams(window.location.search));
+    if (Object.keys(fromUrl).length > 0) setSelection(fromUrl);
+
+    document.addEventListener(client.EVENT_RESULT, (event) => {
       const d = (event as CustomEvent).detail as { shown: number; filtering: boolean };
       if (countEl) countEl.textContent = d.filtering ? `(該当${d.shown}件)` : "";
     });
 
     goLink?.addEventListener("click", () => {
       const sel = getSelection();
-      const parts = [sel.type, sel.capacity?.label, sel.power?.label].filter(Boolean);
+      const parts = [sel.type, sel.capacity?.label, sel.power?.label, sel.budget?.label].filter(Boolean);
       trackFilterUse("step_confirm", parts.length > 0 ? parts.join(" / ") : "条件なし");
     });
-
-    // お届け先: 商品一覧の絞り込みパネルと同じlocalStorageキー・同じ操作で連動させる。
-    // パネルのselectに値を入れてchangeを発火し、「商品を探す」を押すのと同じ経路で再取得するため、
-    // 取得・計測(filter_use)の経路は増やさない(二重計測を避ける)。
-    if (areaSelect) {
-      try {
-        const saved = window.localStorage.getItem(AREA_STORAGE_KEY);
-        if (saved) areaSelect.value = saved;
-      } catch {
-        // localStorageが使えない環境でも致命的にしない
-      }
-      areaSelect.addEventListener("change", () => {
-        const panelArea = document.querySelector<HTMLSelectElement>(`#commerce-filter-${SLUG} [data-role="area"]`);
-        const panelSubmit = document.querySelector<HTMLButtonElement>(`#commerce-filter-${SLUG} [data-role="submit"]`);
-        if (panelArea && panelSubmit) {
-          panelArea.value = areaSelect.value;
-          panelArea.dispatchEvent(new Event("change"));
-          panelSubmit.click();
-        }
-      });
-      document.addEventListener("commerce:filter-change", (event) => {
-        const d = (event as CustomEvent).detail as { slug: string; params?: { area?: string } };
-        if (d.slug === SLUG && areaSelect.value !== (d.params?.area ?? "")) areaSelect.value = d.params?.area ?? "";
-      });
-    }
   }
 </script>
 
@@ -334,5 +380,111 @@ const useCaseHints = Object.fromEntries(useCases.filter((u) => u.note).map((u) =
     .step-go {
       width: 100%;
     }
+  }
+</style>
+
+<style is:global>
+  /* 用途を選んだあとにJSで作る「おすすめ容量」「機器から計算」の要素(スコープ付きCSSは動的要素に効かないためグローバル) */
+  .step-reco {
+    margin: 0.5rem 0 0;
+    padding: 0.8rem 1rem;
+    background: var(--color-bg);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+  }
+  .step-reco-title {
+    margin: 0 0 0.5rem;
+    font-size: 0.9rem;
+    font-weight: 700;
+  }
+  .step-reco-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    gap: 0.7rem;
+  }
+  .step-reco-list li {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    align-items: flex-start;
+  }
+  .step-reco-desc,
+  .step-reco-note {
+    font-size: 0.8rem;
+    color: var(--color-text-muted);
+  }
+  .step-reco-note {
+    margin: 0.5rem 0 0;
+  }
+  .step-calc {
+    margin-top: 1rem;
+    padding-top: 0.9rem;
+    border-top: 1px dashed var(--color-border);
+  }
+  .step-calc-rows {
+    display: grid;
+    gap: 0.4rem;
+    margin-top: 0.6rem;
+  }
+  .step-calc-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.5rem 0.8rem;
+    padding: 0.4rem 0.5rem;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+  }
+  .step-calc-row input[type="checkbox"] {
+    width: 22px;
+    height: 22px;
+    flex: none;
+  }
+  .step-calc-name {
+    flex: 1 1 12rem;
+    font-size: 0.86rem;
+    font-weight: 600;
+  }
+  .step-calc-name small {
+    display: block;
+    font-weight: 400;
+    font-size: 0.72rem;
+    color: var(--color-text-muted);
+  }
+  .step-calc-unit {
+    font-size: 0.78rem;
+    color: var(--color-text-muted);
+    white-space: nowrap;
+  }
+  .step-calc-num,
+  .step-calc-text {
+    height: 44px;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    padding: 0 0.5rem;
+    font-size: 0.92rem;
+    background: var(--color-bg);
+    color: var(--color-text);
+  }
+  .step-calc-text {
+    width: 100%;
+  }
+  .step-calc-result {
+    margin-top: 0.8rem;
+  }
+  .step-calc-buttons {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.6rem;
+  }
+  .step-calc-buttons [hidden] {
+    display: none;
+  }
+  .step-calc-out {
+    margin: 0 0 0.6rem;
+    font-size: 0.95rem;
+    font-weight: 700;
   }
 </style>

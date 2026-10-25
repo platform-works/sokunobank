@@ -1,0 +1,264 @@
+---
+// 炊飯器カテゴリー専用ページ(2026-10-24)。発電機ページで確立した「条件で絞り込むYahoo!商品ページ」の共通部品
+// (StepSelector・UrgentProductsSection・LandingBanner・GeneratorRuntime・FoldSection)を、炊飯器のプロファイル
+// (src/lib/commerce/appliance/profiles/riceCooker.ts)で動かしている。商品取得(ProductGrid.astro)・フィルター
+// (CommerceFilterPanel.astro)は既存の共通コンポーネントをそのまま再利用しており、これらは変更していない。
+import Layout from "../../../layouts/Layout.astro";
+import Breadcrumbs from "../../../components/Breadcrumbs.astro";
+import Disclaimer from "../../../components/Disclaimer.astro";
+import FaqSection from "../../../components/FaqSection.astro";
+import CommerceFilterPanel from "../../../components/commerce/CommerceFilterPanel.astro";
+import ProductGrid from "../../../components/commerce/ProductGrid.astro";
+import GeneratorHero from "../../../components/commerce/generator/GeneratorHero.astro";
+import UrgentProductsSection from "../../../components/commerce/generator/UrgentProductsSection.astro";
+import FoldSection from "../../../components/commerce/generator/FoldSection.astro";
+import LandingBanner from "../../../components/commerce/generator/LandingBanner.astro";
+import StepSelector from "../../../components/commerce/generator/StepSelector.astro";
+import GeneratorRuntime from "../../../components/commerce/generator/GeneratorRuntime.astro";
+import { riceCookerConfig as c } from "../../../lib/commerce/categories/riceCooker.config";
+import { CONTENT_UPDATED_LABEL, CONTENT_UPDATED_ON, methods, sources, useCases, yahooSearchUrl } from "../../../lib/commerce/riceCookerContent";
+
+const canonicalUrl = new URL(Astro.url.pathname, Astro.site).toString();
+const pageJsonLd = {
+  "@context": "https://schema.org",
+  "@type": "WebPage",
+  "@id": `${canonicalUrl}#webpage`,
+  url: canonicalUrl,
+  name: c.h1,
+  description: c.metaDescription,
+  inLanguage: "ja",
+  dateModified: CONTENT_UPDATED_ON,
+  isPartOf: { "@type": "WebSite", name: "SOKUNOBANK(即納バンク)", url: new URL("/", Astro.site).toString() },
+};
+---
+
+<Layout title={c.pageTitle} description={c.metaDescription}>
+  <script type="application/ld+json" set:html={JSON.stringify(pageJsonLd)} />
+  <Breadcrumbs items={[{ label: "ホーム", href: "/" }, { label: "カテゴリー一覧", href: "/categories/" }, { label: c.name }]} />
+
+  <div class="container">
+    <GeneratorRuntime slug={c.slug} />
+
+    <GeneratorHero
+      h1={c.h1}
+      subheadline={c.subheadline}
+      deliveryNote={c.deliveryNote}
+      pcBannerHtml={c.ads?.pcBannerHtml}
+      updatedLabel={CONTENT_UPDATED_LABEL}
+    />
+
+    <LandingBanner slug={c.slug} />
+
+    <StepSelector slug={c.slug} heading="用途・炊飯容量・予算から、買う炊飯器を絞り込む" />
+
+    <UrgentProductsSection
+      slug={c.slug}
+      apiPath={c.apiPath}
+      intro="上で選んだ用途・加熱方式・炊飯容量・予算・ブランドに合う商品のうち、Yahoo!ショッピングのレビュー評価と件数が高い商品を表示します。評価は件数が少ないほど割り引いて比べています(カードに表示する評価はYahoo!ショッピングのものです)。"
+    />
+
+    <FoldSection label="加熱方式の違い(マイコン・IH・圧力IH・ガス)">
+      <section class="method-section" id="methods">
+        <h2>加熱方式の違い</h2>
+        <p class="method-lead">炊飯器の主な加熱方式です。説明はメーカー公式の記載の範囲に限っています(出典は下記)。</p>
+        <dl class="method-list">
+          {
+            methods.map((m) => (
+              <div class="method-item">
+                <dt>{m.label}</dt>
+                <dd>{m.description}</dd>
+              </div>
+            ))
+          }
+        </dl>
+      </section>
+    </FoldSection>
+
+    <FoldSection label="用途別に選ぶ(一人暮らし・新生活)">
+      <section class="usage-section" id="usage">
+        <h2>用途別に選ぶ</h2>
+        <p class="method-lead">炊飯容量は、人数と普段炊く量から選びます。商品を用途で絞り込むには、上のSTEP1で用途を選んでください。</p>
+        <div class="usage-grid">
+          {
+            useCases.map((u) => (
+              <article class="usage-card" id={`usecase-${u.id}`}>
+                <h3>{u.label}</h3>
+                <p>{u.description}</p>
+                <ul>
+                  {u.guide.map((g) => (
+                    <li>{g.label}</li>
+                  ))}
+                </ul>
+                <a
+                  class="usage-link"
+                  href={yahooSearchUrl(u.id === "single" ? "炊飯器 一人暮らし" : "炊飯器 新生活")}
+                  target="_blank"
+                  rel="sponsored noopener"
+                  data-event="generator_usage_outbound"
+                  data-value={u.id}
+                  data-link-type="yahoo_search"
+                  data-ga-link-text={`${u.label}の炊飯器`}
+                >
+                  {u.label}の炊飯器をYahoo!ショッピングで見る<span aria-hidden="true"> →</span>
+                </a>
+              </article>
+            ))
+          }
+        </div>
+      </section>
+    </FoldSection>
+
+    <section id="products" class="products-section">
+      <h2 class="products-heading">商品比較・絞り込み</h2>
+
+      <details class="filter-toggle" open>
+        <summary class="filter-toggle-summary">条件を絞り込む</summary>
+        <div class="filter-toggle-body">
+          <CommerceFilterPanel slug={c.slug} sortOptions={c.sortOptions} hideDelivery />
+        </div>
+      </details>
+
+      <p class="intro">{c.intro}</p>
+
+      <ProductGrid slug={c.slug} apiPath={c.apiPath} variant={c.slug} />
+
+      <Disclaimer text={c.deliveryNote} />
+    </section>
+
+    {
+      c.seoSections.map((section) => (
+        <section class="seo-section">
+          <h2>{section.heading}</h2>
+          {section.body.map((paragraph) => (
+            <p>{paragraph}</p>
+          ))}
+        </section>
+      ))
+    }
+
+    <section class="seo-section sources">
+      <h2>出典</h2>
+      <ul>
+        {
+          sources.map((s) => (
+            <li>
+              {s.org}「<a href={s.url} target="_blank" rel="noopener">{s.title}</a>」
+            </li>
+          ))
+        }
+      </ul>
+    </section>
+
+    <FaqSection items={c.faq} />
+  </div>
+
+  {c.ads?.mobileOverlayHtml && <div set:html={c.ads.mobileOverlayHtml} />}
+</Layout>
+
+<script is:inline>
+  // 「条件を絞り込む」と知識系セクションの開閉制御(発電機ページと同じ確立済みパターン)。サーバー側では常にopenで
+  // レンダリングし(JS無効環境では全文が見える)、モバイル幅の場合だけペイント前にopen属性を外す。PCは常に開いたまま。
+  (function () {
+    if (window.matchMedia && window.matchMedia("(max-width: 720px)").matches) {
+      var details = document.querySelector(".filter-toggle");
+      if (details) details.removeAttribute("open");
+      document.querySelectorAll(".fold").forEach(function (d) {
+        d.removeAttribute("open");
+      });
+    }
+  })();
+</script>
+
+<style>
+  .products-section {
+    margin: 2rem 0;
+  }
+  .products-heading {
+    margin: 0 0 1rem;
+  }
+  .filter-toggle-summary {
+    display: none;
+  }
+  .intro {
+    font-size: 0.88rem;
+    color: var(--color-text-muted);
+    margin: 0.5rem 0 1rem;
+  }
+  .seo-section {
+    margin-block: 2.25rem;
+  }
+  .method-section,
+  .usage-section {
+    margin: 2rem 0;
+  }
+  .method-lead {
+    font-size: 0.88rem;
+    color: var(--color-text-muted);
+  }
+  .method-list {
+    display: grid;
+    gap: 0.7rem;
+    margin: 0;
+  }
+  .method-item {
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    background: var(--color-bg);
+    padding: 0.8rem 1rem;
+  }
+  .method-item dt {
+    font-weight: 700;
+    margin-bottom: 0.2rem;
+  }
+  .method-item dd {
+    margin: 0;
+    font-size: 0.9rem;
+  }
+  .usage-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 1rem;
+  }
+  .usage-card {
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-lg);
+    background: var(--color-bg);
+    padding: 1rem 1.2rem;
+  }
+  .usage-card h3 {
+    margin: 0 0 0.4rem;
+  }
+  .usage-card p {
+    font-size: 0.88rem;
+  }
+  .usage-link {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+    font-weight: 600;
+  }
+
+  @media (max-width: 720px) {
+    .filter-toggle-summary {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      height: 44px;
+      width: 100%;
+      margin-bottom: 0.75rem;
+      border: 1px solid var(--color-accent);
+      border-radius: var(--radius-md);
+      background: var(--color-accent-soft);
+      color: var(--color-accent-dark);
+      font-weight: 700;
+      font-size: 0.92rem;
+      cursor: pointer;
+    }
+    .filter-toggle[open] .filter-toggle-summary::after {
+      content: " ▲";
+    }
+    .filter-toggle:not([open]) .filter-toggle-summary::after {
+      content: " ▼";
+    }
+  }
+</style>

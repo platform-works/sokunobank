@@ -3,6 +3,91 @@ import { isValidPrefectureCode } from "./prefectures";
 import { fetchCandidates } from "./fetchCandidates";
 import { scoreProduct } from "./ranking";
 import type { CommerceCategoryConfig, ScoredProduct, SortKey } from "./types";
+import { buildReviewSignals, fetchRakutenPool } from "../rakuten/signal";
+import { descriptionExcerpt } from "./descriptionExcerpt";
+import { mergeBrandExtras, prioritizeBrand } from "./brandPool";
+
+function descriptionField(raw: string): { description?: string } {
+  const d = descriptionExcerpt(raw);
+  return d ? { description: d } : {};
+}
+import type { RakutenEnv } from "../rakuten/client";
+import type { RakutenProduct } from "../rakuten/types";
+
+// 楽天の照合用商品群のキャッシュ保持期間(6時間)。レビュー件数順の売れ筋は短時間では変わらない
+const RAKUTEN_POOL_TTL_SECONDS = 21600;
+
+/**
+ * ブランド指定時の追加候補(brandPool.ts)。ブランドごとに30分キャッシュする(失敗しても呼び出し側が共通の商品群だけで続行する)。
+ * 楽天の評価との照合は、共通の商品群と同じ方法で行う。
+ */
+async function getBrandExtras(
+  config: CommerceCategoryConfig,
+  brandId: string,
+  appId: string,
+  env: Record<string, string>,
+  cache: Cache | undefined,
+  waitUntil: ((p: Promise<unknown>) => void) | undefined
+): Promise<ScoredProduct[]> {
+  const bs = config.brandSearch?.[brandId];
+  if (!bs) return [];
+  const key = new Request(
+    `https://cache.sokunobank.invalid/brand-extra/${config.slug}/${brandId}?v=${CACHE_SCHEMA_VERSION}${config.rakutenSignal ? "-r1" : ""}`
+  );
+  const hit = cache ? await cache.match(key) : undefined;
+  if (hit) return (await hit.json()) as ScoredProduct[];
+  const { candidates } = await fetchCandidates({
+    appId,
+    queries: bs.queries,
+    requiredKeywords: config.requiredKeywords,
+    excludeKeywords: config.excludeKeywords,
+    longLeadTimeExcludeKeywords: config.longLeadTimeExcludeKeywords,
+    minEstimatedCommission: config.minEstimatedCommission,
+    targetCount: bs.targetCount ?? 100,
+    maxPagesPerQuery: config.maxPagesPerQuery ?? MAX_PAGES_PER_QUERY,
+  });
+  let scored = candidates.map((p) => scoreProduct(p, config.weights, config.revenueScoreReferenceMax));
+  if (config.rakutenSignal) {
+    try {
+      const signals = buildReviewSignals(scored, await getRakutenPool(config, env, cache));
+      scored = scored.map((p) => {
+        const s = signals.get(p.code);
+        return s ? { ...p, reviewSignal: s.score } : p;
+      });
+    } catch {
+      // 楽天側の失敗は表示に影響させない
+    }
+  }
+  if (cache) {
+    const put = cache.put(
+      key,
+      new Response(JSON.stringify(scored), { headers: { "Cache-Control": `public, s-maxage=${CACHE_TTL_SECONDS}` } })
+    );
+    if (waitUntil) waitUntil(put);
+    else await put;
+  }
+  return scored;
+}
+
+async function getRakutenPool(
+  config: CommerceCategoryConfig,
+  env: RakutenEnv,
+  cache: Cache | undefined
+): Promise<RakutenProduct[]> {
+  if (!config.rakutenSignal || !env.RAKUTEN_APPLICATION_ID || !env.RAKUTEN_ACCESS_KEY) return [];
+  // 認証情報を含まない合成URLをキーにする
+  const key = new Request(`https://cache.sokunobank.invalid/rakuten-pool/${config.slug}?v=1`);
+  const hit = cache ? await cache.match(key) : undefined;
+  if (hit) return (await hit.json()) as RakutenProduct[];
+  const pool = await fetchRakutenPool(env, config.rakutenSignal.keywords, config.rakutenSignal.pagesPerKeyword);
+  if (cache && pool.length > 0) {
+    await cache.put(
+      key,
+      new Response(JSON.stringify(pool), { headers: { "Cache-Control": `public, s-maxage=${RAKUTEN_POOL_TTL_SECONDS}` } })
+    );
+  }
+  return pool;
+}
 
 // 「Yahoo!ショッピング商品ランキング型」カテゴリー共通のAPIハンドラー。
 // カテゴリーごとにコピーしない — src/pages/api/[slug]/products.ts (動的ルート)から
@@ -80,8 +165,8 @@ export async function handleProductsRequest(config: CommerceCategoryConfig, cont
   const url = new URL(request.url);
   const params = url.searchParams;
 
-  const area = validateArea(params.get("area"));
-  const delivery = validateDelivery(params.get("delivery"));
+  const area = config.ignoreDeliveryArea ? undefined : validateArea(params.get("area"));
+  const delivery = config.ignoreDeliveryArea ? undefined : validateDelivery(params.get("delivery"));
   const sort = validateSort(config, params.get("sort"));
 
   // お届け先(都道府県)が分かっているのに到着希望が未指定だと、Yahoo APIは配送日情報
@@ -103,7 +188,7 @@ export async function handleProductsRequest(config: CommerceCategoryConfig, cont
     area: area ?? "",
     delivery: effectiveDeliveryDay !== undefined ? String(effectiveDeliveryDay) : "",
     // 候補件数を個別に設定したカテゴリーだけキャッシュを分離する(他カテゴリーのキャッシュは無効化しない)
-    v: String(CACHE_SCHEMA_VERSION) + (config.candidatesTargetCount ? `-t${config.candidatesTargetCount}` : ""),
+    v: String(CACHE_SCHEMA_VERSION) + (config.candidatesTargetCount ? `-t${config.candidatesTargetCount}` : "") + (config.maxPagesPerQuery ? `-p${config.maxPagesPerQuery}` : "") + (config.rakutenSignal ? "-r1" : ""),
   }).toString();
   const candidatesCacheKey = new Request(candidatesCacheKeyUrl.toString());
   // 通常キャッシュと同じ内容を、Yahoo API障害時のフォールバック専用として長期保持する別キー
@@ -149,7 +234,7 @@ export async function handleProductsRequest(config: CommerceCategoryConfig, cont
         longLeadTimeExcludeKeywords: config.longLeadTimeExcludeKeywords,
         minEstimatedCommission: config.minEstimatedCommission,
         targetCount: config.candidatesTargetCount ?? CANDIDATES_TARGET_COUNT,
-        maxPagesPerQuery: MAX_PAGES_PER_QUERY,
+        maxPagesPerQuery: config.maxPagesPerQuery ?? MAX_PAGES_PER_QUERY,
       });
 
       // 2026-09-27導入(ValueCommerce LinkSwitch): 以前はここでbuildAffiliateUrl()により
@@ -159,6 +244,22 @@ export async function handleProductsRequest(config: CommerceCategoryConfig, cont
       // ブラウザ側で行うため、DB・JSON・キャッシュに保存するURLも常に元URLのままにする
       // (LinkSwitch変換後のURLを保存・キャッシュしないことが重要)。
       deduped = candidates.map((p) => scoreProduct(p, config.weights, config.revenueScoreReferenceMax));
+
+      // 楽天のレビューを裏側の順位付けに使う設定のカテゴリーだけ(2026-10-24導入)。失敗してもYahoo!の
+      // 表示は維持する(例外は握りつぶし、reviewSignalが付かないだけにする)。楽天の商品群は別キャッシュで
+      // 6時間保持し、お届け先ごとのキャッシュミスのたびに楽天APIを呼ばないようにする。
+      if (config.rakutenSignal) {
+        try {
+          const pool = await getRakutenPool(config, runtimeEnv, cache);
+          const signals = buildReviewSignals(deduped, pool);
+          deduped = deduped.map((p) => {
+            const s = signals.get(p.code);
+            return s ? { ...p, reviewSignal: s.score } : p;
+          });
+        } catch {
+          // 楽天側の失敗はYahoo!の表示に影響させない
+        }
+      }
 
       if (cache) {
         const candidatesResponse = new Response(JSON.stringify(deduped), {
@@ -186,7 +287,22 @@ export async function handleProductsRequest(config: CommerceCategoryConfig, cont
     }
   }
 
-  const sorted = sortProducts(deduped, sort).slice(0, config.maxDisplayCount ?? DEFAULT_MAX_DISPLAY_COUNT);
+  // ブランド指定(brand=<ID>)のとき、そのブランドの追加候補を共通の商品群へ足し、返す件数の上限で切るときも
+  // そのブランドの商品が先頭に残るようにする。未定義のIDや追加取得の失敗は無視し、共通の商品群だけで返す。
+  let brandWords: string[] | null = null;
+  const brandParam = params.get("brand");
+  if (brandParam && config.brandSearch && Object.prototype.hasOwnProperty.call(config.brandSearch, brandParam)) {
+    brandWords = config.brandSearch[brandParam].words;
+    try {
+      const extras = await getBrandExtras(config, brandParam, appId, runtimeEnv, cache, context.locals.runtime?.ctx?.waitUntil?.bind(context.locals.runtime.ctx));
+      deduped = mergeBrandExtras(deduped, extras);
+    } catch {
+      // 追加取得に失敗しても、共通の商品群は表示する
+    }
+  }
+  const sortedAll = sortProducts(deduped, sort);
+  const ordered = brandWords ? prioritizeBrand(sortedAll, brandWords) : sortedAll;
+  const sorted = ordered.slice(0, config.maxDisplayCount ?? DEFAULT_MAX_DISPLAY_COUNT);
   return new Response(
     JSON.stringify({
       products: sorted.map((p) => ({
@@ -201,6 +317,12 @@ export async function handleProductsRequest(config: CommerceCategoryConfig, cont
         storeIsBestSeller: p.storeIsBestSeller,
         deliveryDay: p.deliveryDay,
         productUrl: p.productUrl,
+        // 楽天と照合できた商品だけ(順位付け専用の合算評価。楽天のデータ自体は含めない)
+        ...(p.reviewSignal !== undefined ? { reviewSignal: p.reviewSignal } : {}),
+        // AmazonのJAN検索リンク用(設定したカテゴリーのみ、JANがある商品のみ)
+        ...(config.amazonJanLink && p.janCode ? { janCode: p.janCode } : {}),
+        // 商品説明の抜粋(設定したカテゴリーのみ、文章として読めるものがある商品のみ)
+        ...(config.showDescription ? descriptionField(p.descriptionText) : {}),
       })),
       count: sorted.length,
       generatedAt: new Date().toISOString(),

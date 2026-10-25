@@ -1,23 +1,33 @@
 ---
-// 「とにかく急ぎの方」セクション(2026-09-28導入)。発電機カテゴリー専用。
-// 既存のAPI(/api/generator/products/)をそのまま使い、取得済みの先頭数件を
-// 「配送・出力」を優先した簡易カードで表示する。ProductGrid.astro(全商品一覧、既存・未変更)とは
-// 別のクライアントスクリプトで、同じAPIエンドポイントに対して独立してfetchする
-// (商品取得ロジック・Yahoo APIの呼び出し方は一切変更していない)。
+// 「選んだ条件のおすすめ商品」セクション(2026-09-28導入、2026-10-24にレビュー優先へ変更、同日にカテゴリー共通化)。
+// カテゴリーの商品取得API(apiPath)をそのまま使い、取得済みの商品から、STEP選択に合うもののうち
+// Yahoo!ショッピングのレビュー評価・件数が最も高い1件を表示する(選定ロジックは lib/commerce/reviewPick.ts)。
+// ProductGrid.astro(全商品一覧、既存・未変更)とは別のクライアントスクリプトで、同じAPIエンドポイントに
+// 対して独立してfetchする(商品取得ロジック・Yahoo APIの呼び出し方は一切変更していない)。
 interface Props {
   slug: string;
   apiPath: string;
+  /** 見出し下の説明。未指定なら発電機ページの文言 */
+  intro?: string;
 }
-const { slug, apiPath } = Astro.props;
+const {
+  slug,
+  apiPath,
+  intro = "上で選んだ種類・容量・出力・用途に合う商品のうち、レビュー評価と件数が高い商品を表示します。Yahoo!ショッピングのレビューを基本に、同じ型番で価格帯の近い商品は他の通販サイトの評価も参考にしています。評価は件数が少ないほど割り引いて比べています(カードに表示する評価はYahoo!ショッピングのものです)。",
+} = Astro.props;
 const rootId = `generator-urgent-${slug}`;
 ---
 
 <section class="urgent-section" id="urgent">
   <div class="urgent-heading">
-    <h2>お届け先に早く届く商品</h2>
-    <p>上でお届け先を選ぶと、その宛先へ最短で届く対象の発電機・ポータブル電源を表示します。</p>
+    <h2>選んだ条件のおすすめ商品</h2>
+    <p>{intro}</p>
+    <p class="urgent-points">
+      急がない場合は、気になる商品をYahoo!ショッピングのカートに入れておき、毎月5・15・25日の「5のつく日」に購入するのがおすすめです。5のつく日は、PayPayポイントが5倍になる特典の対象日です(付与条件・上限はYahoo!ショッピングの案内でご確認ください)。カートに入れても価格・在庫は確保されず、変動や売り切れもあります。すぐに必要な場合は、Amazonでも購入できます(在庫・配達日はAmazonの表示でご確認ください)。
+      <strong data-gotsuku-today hidden>本日は5のつく日です。</strong>
+    </p>
   </div>
-  <div class="urgent-grid" id={rootId} data-api-path={apiPath}>
+  <div class="urgent-grid" id={rootId} data-urgent-root data-slug={slug} data-api-path={apiPath}>
     <p class="urgent-state urgent-loading" data-role="loading">商品情報を取得しています…</p>
     <p class="urgent-state urgent-empty" data-role="empty" hidden>
       現在ピックアップできる商品がありません。下の商品一覧からお探しください。
@@ -26,63 +36,118 @@ const rootId = `generator-urgent-${slug}`;
   </div>
 </section>
 
-<script define:vars={{ rootId, slug }}>
-  (function () {
-    const root = document.getElementById(rootId);
-    if (!root) return;
-    const apiPath = root.dataset.apiPath;
-    const loadingEl = root.querySelector('[data-role="loading"]');
-    const emptyEl = root.querySelector('[data-role="empty"]');
-    const listEl = root.querySelector('[data-role="list"]');
-    const MAX_ITEMS = 4;
+<script>
+  // 「選んだ条件のおすすめ商品」(2026-10-24、ユーザー指示で納期優先からレビュー優先に変更)。
+  // 取得済みの商品のうち、STEP選択(種類・容量・出力・用途)に合うものから、Yahoo!ショッピングの
+  // レビュー評価・件数(件数補正済み)が最も高い1件を表示する。納期・報酬額は選定に使わない
+  // (配送の目安は補足表示のみ)。選択の絞り込みは商品一覧と同じ純関数(filterBySelection)を使う。
+  import { getApplianceClient } from "../../../lib/commerce/appliance/clients";
+  import { DELIVERY_NOTICE } from "../../../lib/commerce/appliance/createApplianceClient";
+  import { adjustedRating, isGotsukuDay, pickByReview } from "../../../lib/commerce/reviewPick";
+  import { amazonJanUrl, amazonKeywordUrl } from "../../../lib/commerce/amazonLink";
+  import { yahooImageUrl } from "../../../lib/commerce/yahooImage";
 
-    function deliveryLabel(day) {
-      // 当日到着(day=0)は現実的に成立しづらいため約束しない。取得できない場合は
-      // 存在しない日付を作らず、確認を促す文言にフォールバックする(架空の配送日を作らない)。
-      if (day === 1) return "明日到着対象";
-      if (day === 2) return "翌々日到着対象";
-      return "配送日は商品ページでご確認ください";
-    }
+  interface PickProduct {
+    name: string;
+    image: string;
+    price: number;
+    brand: string | null;
+    productUrl: string;
+    deliveryDay: number | null;
+    reviewRate: number;
+    reviewCount: number;
+    reviewSignal?: number;
+    janCode?: string;
+    description?: string;
+    storeName?: string;
+  }
 
-    // 商品名から出力表記を抜き出す(extractPowerSpec.tsと同じロジックをクライアント用に複製)。
-    // ビルド時にモジュールをそのままブラウザへ出せないため、同等のロジックをここに持たせている。
-    function extractPowerSpec(name) {
-      const patterns = [
-        /定格出力\s*([0-9.]+\s*(?:kVA|kW|W))/i,
-        /定格\s*([0-9.]+\s*(?:kVA|kW|W))/i,
-        /出力\s*([0-9.]+\s*(?:kVA|kW|W))/i,
-        /([0-9.]+\s*kVA)/i,
-        /([0-9]{3,5}\s*W)(?!h)/i,
-      ];
-      for (const pattern of patterns) {
-        const m = name.match(pattern);
-        if (m && m[1]) return m[1].replace(/\s+/g, "");
-      }
-      return null;
-    }
+  const root = document.querySelector<HTMLElement>("[data-urgent-root]");
+  if (root) {
+    const slug = root.dataset.slug || "";
+    const apiPath = root.dataset.apiPath || "";
+    const client = getApplianceClient(slug);
+    const { filterBySelection, getSelection, isFiltering, specsOf, profile } = client;
+    const loadingEl = root.querySelector<HTMLElement>('[data-role="loading"]')!;
+    const emptyEl = root.querySelector<HTMLElement>('[data-role="empty"]')!;
+    const listEl = root.querySelector<HTMLElement>('[data-role="list"]')!;
+    const MAX_ITEMS = 1;
 
-    function setState(state) {
+    type W = Window & { sokunobankCardExtensions?: Record<string, any>; sokunobankDebounceClick?: any; sokunobankTrackOutboundClick?: any };
+    const w = window as W;
+    const getExt = () => (w.sokunobankCardExtensions ? w.sokunobankCardExtensions[slug] : undefined);
+
+    let allProducts: PickProduct[] = [];
+
+    function setState(state: "loading" | "empty" | "list") {
       loadingEl.hidden = state !== "loading";
       emptyEl.hidden = state !== "empty";
       listEl.hidden = state !== "list";
     }
 
-    // 2026-09-30: 商品一覧と同じ拡張(generatorClient.ts、GeneratorRuntime.astroが登録)を使い、
-    // 「東京都宛て:明日お届け対象」形式の配送表示とGA4パラメータの追加を行う。
-    // 拡張が未登録のタイミングでは従来の表示にフォールバックする。
-    let currentArea = "";
-    function getExt() {
-      return window.sokunobankCardExtensions ? window.sokunobankCardExtensions.generator : undefined;
-    }
-    function deliveryLabelFor(p) {
-      const ext = getExt();
-      const text = ext && ext.deliveryText ? ext.deliveryText(p, { params: { area: currentArea } }) : null;
-      return text || deliveryLabel(p.deliveryDay);
+    // 配送の目安は取得しない(取得はお届け先に依存しない)ため、固定の案内にする
+    function deliveryNote(_p: PickProduct): string {
+      return DELIVERY_NOTICE;
     }
 
-    function createCard(p, index) {
+    // 右側の「この商品について」。確認できる事実(商品名から読み取れる容量・出力、レビュー、価格、配送の目安、ストア)と、
+    // 出品者の商品説明(抜粋。文章として読めるものがある場合のみ)を出す。説明は出品者の記載でサイトは保証しない。
+    function createDetail(p: PickProduct) {
+      const d = document.createElement("div");
+      d.className = "urgent-detail";
+      const h = document.createElement("h3");
+      h.textContent = "この商品について";
+      d.appendChild(h);
+
+      const s = specsOf(p);
+      const facts: [string, string][] = [];
+      if (s.productType) facts.push(["種類", profile.typeFactLabels?.[s.productType] ?? profile.typeLabels[s.productType] ?? s.productType]);
+      if (p.brand) facts.push(["ブランド", p.brand]);
+      facts.push(...profile.specFacts(s));
+      facts.push(["価格", `${p.price.toLocaleString()}円`]);
+      facts.push(["レビュー", `Yahoo!ショッピング ${p.reviewRate.toFixed(2)}(${p.reviewCount.toLocaleString()}件)`]);
+      if (p.storeName) facts.push(["販売ストア", p.storeName]);
+      facts.push(["配送・在庫", deliveryNote(p)]);
+      const dl = document.createElement("dl");
+      dl.className = "urgent-facts";
+      for (const [k, v] of facts) {
+        const dt = document.createElement("dt");
+        dt.textContent = k;
+        const dd = document.createElement("dd");
+        dd.textContent = v;
+        dl.append(dt, dd);
+      }
+      d.appendChild(dl);
+
+      if (p.description) {
+        const desc = document.createElement("p");
+        desc.className = "urgent-desc";
+        desc.textContent = p.description;
+        const cap = document.createElement("p");
+        cap.className = "urgent-desc-caption";
+        cap.textContent = "出品者の商品説明より(抜粋)";
+        d.append(cap, desc);
+      }
+      // 買い方のおすすめ(急がない場合は5のつく日、すぐ必要ならAmazon)。ポイントの条件は案内で確認する旨を添える
+      const tip = document.createElement("p");
+      tip.className = "urgent-tip";
+      tip.textContent =
+        "急がない場合は、Yahoo!ショッピングのカートに入れておき、5のつく日(5・15・25日)に購入するとPayPayポイントが5倍になる特典の対象です(条件・上限は案内で確認)。すぐに必要な場合は、Amazonのボタンからも探せます。";
+      d.appendChild(tip);
+      const note = document.createElement("p");
+      note.className = "urgent-detail-note";
+      note.textContent = profile.text.detailNote;
+      d.appendChild(note);
+      return d;
+    }
+
+    function createCard(p: PickProduct, index: number) {
+      // PCは「左:商品カード(画像大きめ)/右:商品の説明」の2列、スマホは縦並び
       const li = document.createElement("li");
-      li.className = "urgent-card";
+      li.className = "urgent-feature";
+      const main = document.createElement("div");
+      main.className = "urgent-card";
+      li.appendChild(main);
 
       const a = document.createElement("a");
       a.className = "urgent-card-link";
@@ -90,15 +155,12 @@ const rootId = `generator-urgent-${slug}`;
       a.target = "_blank";
       a.rel = "sponsored noopener";
       a.addEventListener("click", () => {
-        // 既存のoutbound_product_click計測をそのまま使う(二重計測を避けるため、
-        // このセクション専用の別イベントは発火しない。GA4側でproduct_name等から
-        // 「急ぎセクション経由か」は判別しづらいが、それを理由に新イベントを増やすと
-        // 既存の計測設計(1クリック=1outbound_product_click)と重複するため見送った)。
-        if (window.sokunobankDebounceClick && window.sokunobankTrackOutboundClick) {
-          window.sokunobankDebounceClick(a, () => {
+        // 既存のoutbound_product_click計測をそのまま使う(新イベントは作らない)
+        if (w.sokunobankDebounceClick && w.sokunobankTrackOutboundClick) {
+          w.sokunobankDebounceClick(a, () => {
             const ext = getExt();
-            const extra = ext && ext.trackParams ? ext.trackParams(p, { params: { area: currentArea } }) : null;
-            window.sokunobankTrackOutboundClick(
+            const extra = ext && ext.trackParams ? ext.trackParams(p, { params: {} }) : null;
+            w.sokunobankTrackOutboundClick(
               Object.assign(
                 {
                   destination: "yahoo_shopping",
@@ -106,12 +168,10 @@ const rootId = `generator-urgent-${slug}`;
                   brand: p.brand || undefined,
                   product_name: p.name || undefined,
                   price: p.price,
-                  delivery_label: deliveryLabel(p.deliveryDay),
+                  delivery_label: deliveryNote(p),
                   page_path: window.location.pathname,
                   link_url: a.href,
-                  // カード全体が1つの<a>のため、a.textContentだと画像alt以外の全テキストが
-                  // 混ざってしまう。CTA文言(視認上のリンクラベルに相当するもの)に固定する。
-                  link_text: "Yahoo!ショッピングで納期を確認",
+                  link_text: "Yahoo!ショッピングで確認",
                   position: index,
                 },
                 extra || {}
@@ -123,16 +183,22 @@ const rootId = `generator-urgent-${slug}`;
 
       const badge = document.createElement("span");
       badge.className = "urgent-card-badge";
-      badge.textContent = deliveryLabelFor(p);
+      badge.textContent = "レビュー評価が高い";
       a.appendChild(badge);
 
       const img = document.createElement("img");
       img.className = "urgent-card-image";
-      img.src = p.image;
+      // 取得APIの画像(medium=146px)は大きく表示するとぼやけるため、同じ商品の600px版に差し替える。
+      // 読み込めない場合(該当サイズが無い等)は、元の画像へ戻す。
+      img.src = yahooImageUrl(p.image, "l");
+      img.addEventListener("error", () => {
+        if (img.src !== p.image) img.src = p.image;
+      }, { once: true });
       img.alt = p.name;
       img.loading = "lazy";
-      img.width = 160;
-      img.height = 160;
+      img.decoding = "async";
+      img.width = 600;
+      img.height = 600;
       a.appendChild(img);
 
       const name = document.createElement("p");
@@ -140,71 +206,133 @@ const rootId = `generator-urgent-${slug}`;
       name.textContent = p.name;
       a.appendChild(name);
 
-      const power = extractPowerSpec(p.name);
-      if (power) {
-        const powerEl = document.createElement("p");
-        powerEl.className = "urgent-card-power";
-        powerEl.textContent = `出力目安 ${power}`;
-        a.appendChild(powerEl);
-      }
+      const review = document.createElement("p");
+      review.className = "urgent-card-review";
+      review.textContent = `Yahoo!ショッピングのレビュー ${p.reviewRate.toFixed(2)}(${p.reviewCount.toLocaleString()}件)`;
+      review.title = `件数補正後の評価 ${adjustedRating(p.reviewRate, p.reviewCount).toFixed(2)}`;
+      a.appendChild(review);
 
       const price = document.createElement("p");
       price.className = "urgent-card-price";
       price.textContent = `${p.price.toLocaleString()}円`;
       a.appendChild(price);
 
+      const note = document.createElement("p");
+      note.className = "urgent-card-delivery";
+      note.textContent = deliveryNote(p);
+      a.appendChild(note);
+
       const cta = document.createElement("span");
       cta.className = "urgent-card-cta";
-      cta.textContent = "Yahoo!ショッピングで納期を確認 →";
+      cta.textContent = "Yahoo!ショッピングで確認 →";
       a.appendChild(cta);
 
-      li.appendChild(a);
+      main.appendChild(a);
+
+      // Yahoo!ボタンの下にAmazonへのリンク(カード全体が1つの<a>のため、リンクの外に置く)。
+      // JANがあれば「AmazonでJAN検索」、無ければブランド名+種類での検索。どちらも検索結果ページへのリンクのみ
+      const productType = specsOf(p).productType;
+      const typeWord = profile.amazonTypeWord(productType);
+      const janUrl = amazonJanUrl(p.janCode);
+      const keywordUrl = !janUrl && p.brand && typeWord ? amazonKeywordUrl(`${p.brand} ${typeWord}`) : null;
+      const amazonUrl = janUrl || keywordUrl;
+      const amazonKind = janUrl ? "amazon_jan" : "amazon_keyword";
+      const amazonLabel = janUrl ? "AmazonでJAN検索" : `Amazonで${p.brand}の${typeWord}を探す`;
+      if (amazonUrl) {
+        const wrap = document.createElement("div");
+        wrap.className = "urgent-amazon";
+        const am = document.createElement("a");
+        am.className = "btn btn-secondary urgent-amazon-btn";
+        am.href = amazonUrl;
+        am.target = "_blank";
+        am.rel = "sponsored noopener";
+        am.textContent = `${amazonLabel} →`;
+        am.addEventListener("click", () => {
+          if (w.sokunobankDebounceClick) {
+            w.sokunobankDebounceClick(am, () => {
+              (window as any).sokunobankTrackEvent?.("generator_usage_outbound", {
+                category: slug,
+                value: amazonKind,
+                link_type: amazonKind,
+                link_url: am.href,
+                link_text: amazonLabel,
+                page_path: window.location.pathname,
+              });
+            });
+          }
+        });
+        const note = document.createElement("p");
+        note.className = "urgent-amazon-note";
+        note.textContent = janUrl ? "PR・同じ商品の出品は保証されません" : "PR・同じ商品の出品は保証されません(ブランドでの検索結果です)";
+        wrap.append(am, note);
+        main.appendChild(wrap);
+      }
+
+      li.appendChild(createDetail(p));
       return li;
     }
 
+    function render() {
+      const sel = getSelection();
+      const { visible } = filterBySelection(allProducts, sel);
+      const picks = pickByReview(visible, MAX_ITEMS);
+      if (picks.length === 0) {
+        emptyEl.textContent = isFiltering(sel)
+          ? "選んだ条件に合い、レビューが十分にある商品を、取得済みの商品の中から見つけられませんでした。下の商品一覧もご確認ください。"
+          : "現在ピックアップできる商品がありません。下の商品一覧からお探しください。";
+        setState("empty");
+        return;
+      }
+      listEl.innerHTML = "";
+      picks.forEach((p, i) => listEl.appendChild(createCard(p, i)));
+      setState("list");
+    }
+
     let latestRequestId = 0;
-    async function load(areaOverride) {
+    let loadedBrand: string | null = null;
+    async function load() {
       const requestId = ++latestRequestId;
       setState("loading");
-      let area = "";
-      if (areaOverride !== undefined) {
-        area = areaOverride;
-      } else {
-        try {
-          area = window.localStorage.getItem(`sokunobank:commerce:${slug}:area`) || "";
-        } catch {
-          // no-op
-        }
-      }
-      currentArea = area;
+      // 取得はお届け先に依存しない(サーバー側でお届け先・到着希望を使わない設定)。ブランド指定のときは、
+      // そのブランドの追加候補も集めてもらう(商品一覧と同じURLなので、キャッシュも共有される)
       const query = new URLSearchParams();
-      if (area) query.set("area", area);
       query.set("sort", "recommended");
+      loadedBrand = getSelection().brand?.id ?? null;
+      if (loadedBrand) query.set("brand", loadedBrand);
       try {
         const res = await fetch(`${apiPath}?${query.toString()}`);
         const data = await res.json();
         if (requestId !== latestRequestId) return;
         if (data.error || !data.products || data.products.length === 0) {
+          allProducts = [];
+          emptyEl.textContent = "現在ピックアップできる商品がありません。下の商品一覧からお探しください。";
           setState("empty");
           return;
         }
-        listEl.innerHTML = "";
-        data.products.slice(0, MAX_ITEMS).forEach((p, i) => listEl.appendChild(createCard(p, i)));
-        setState("list");
+        allProducts = data.products;
+        render();
       } catch {
         if (requestId !== latestRequestId) return;
+        allProducts = [];
         setState("empty");
       }
     }
 
     load();
-    // お届け先が変更されたとき(上のSTEP選択、または商品一覧の絞り込みパネル)に再取得する。
-    document.addEventListener("commerce:filter-change", (event) => {
-      if (!event.detail || event.detail.slug !== slug) return;
-      const nextArea = (event.detail.params && event.detail.params.area) || "";
-      if (nextArea !== currentArea) load(nextArea);
+    // STEP選択(種類・容量・出力・用途・予算・ブランド)が変わったら、取得済みの商品から選び直す
+    document.addEventListener(client.EVENT_CHANGE, () => {
+      // ブランドが変わったときは、そのブランドの追加候補を含めて取り直す。それ以外は取得済みの商品から選び直す
+      if ((getSelection().brand?.id ?? null) !== loadedBrand) {
+        load();
+        return;
+      }
+      if (allProducts.length > 0) render();
     });
-  })();
+
+    // 「5のつく日」(5・15・25日)の当日だけ、案内に強調表示を出す
+    const gotsuku = document.querySelector<HTMLElement>("[data-gotsuku-today]");
+    if (gotsuku && isGotsukuDay()) gotsuku.hidden = false;
+  }
 </script>
 
 <style is:global>
@@ -231,9 +359,64 @@ const rootId = `generator-urgent-${slug}`;
     list-style: none;
     margin: 0;
     padding: 0;
+    display: block;
+  }
+  /* PC: 左に商品カード(画像大きめ)、右に商品の説明。1件だけ表示するため、カードを横に引き伸ばさない */
+  .urgent-feature {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-    gap: 1rem;
+    grid-template-columns: minmax(300px, 380px) 1fr;
+    gap: 1.5rem;
+    align-items: start;
+  }
+  .urgent-detail {
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-lg);
+    background: var(--color-bg-soft);
+    padding: 1.1rem 1.3rem;
+  }
+  .urgent-detail h3 {
+    margin: 0 0 0.7rem;
+    font-size: 1.05rem;
+  }
+  .urgent-facts {
+    display: grid;
+    grid-template-columns: max-content 1fr;
+    gap: 0.35rem 1rem;
+    margin: 0 0 0.9rem;
+    font-size: 0.9rem;
+  }
+  .urgent-facts dt {
+    color: var(--color-text-muted);
+    font-weight: 600;
+  }
+  .urgent-facts dd {
+    margin: 0;
+    overflow-wrap: anywhere;
+  }
+  .urgent-desc-caption {
+    margin: 0 0 0.2rem;
+    font-size: 0.78rem;
+    font-weight: 700;
+    color: var(--color-text-muted);
+  }
+  .urgent-desc {
+    margin: 0 0 0.8rem;
+    font-size: 0.9rem;
+    line-height: 1.7;
+  }
+  .urgent-tip {
+    margin: 0 0 0.8rem;
+    padding: 0.6rem 0.8rem;
+    background: var(--color-bg);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    font-size: 0.85rem;
+    line-height: 1.6;
+  }
+  .urgent-detail-note {
+    margin: 0;
+    font-size: 0.76rem;
+    color: var(--color-text-muted);
   }
   .urgent-list[hidden] {
     display: none;
@@ -267,7 +450,7 @@ const rootId = `generator-urgent-${slug}`;
   }
   .urgent-card-image {
     width: 100%;
-    height: 140px;
+    height: 300px;
     object-fit: contain;
     background: var(--color-bg-soft);
     border-radius: var(--radius-sm);
@@ -284,16 +467,38 @@ const rootId = `generator-urgent-${slug}`;
     -webkit-box-orient: vertical;
     overflow: hidden;
   }
-  .urgent-card-power {
-    font-size: 0.78rem;
+  .urgent-card-review {
+    font-size: 0.8rem;
     color: var(--color-accent-dark);
     font-weight: 600;
     margin: 0 0 0.2rem;
   }
+  .urgent-card-delivery {
+    font-size: 0.78rem;
+    color: var(--color-text-muted);
+    margin: 0 0 0.6rem;
+  }
+  .urgent-amazon {
+    padding: 0 1rem 1rem;
+  }
+  .urgent-amazon-btn {
+    width: 100%;
+    height: 40px;
+    font-size: 0.82rem;
+  }
+  .urgent-amazon-note {
+    margin: 0.25rem 0 0;
+    font-size: 0.7rem;
+    color: var(--color-text-muted);
+    text-align: center;
+  }
+  .urgent-points {
+    font-size: 0.82rem;
+  }
   .urgent-card-price {
     font-size: 1rem;
     font-weight: 700;
-    margin: 0 0 0.6rem;
+    margin: 0 0 0.2rem;
   }
   .urgent-card-cta {
     margin-top: auto;
@@ -309,15 +514,12 @@ const rootId = `generator-urgent-${slug}`;
   }
 
   @media (max-width: 720px) {
-    .urgent-list {
-      grid-auto-flow: column;
-      grid-auto-columns: minmax(180px, 70%);
-      overflow-x: auto;
-      scroll-snap-type: x mandatory;
-      padding-bottom: 0.4rem;
+    .urgent-feature {
+      grid-template-columns: 1fr;
+      gap: 1rem;
     }
-    .urgent-card {
-      scroll-snap-align: start;
+    .urgent-card-image {
+      height: 200px;
     }
   }
 </style>

@@ -8,6 +8,7 @@ import { shredderConfig } from "./categories/shredder.config";
 import { printerConfig } from "./categories/printer.config";
 import { whiteboardConfig } from "./categories/whiteboard.config";
 import { officeDeskConfig } from "./categories/officeDesk.config";
+import { riceCookerConfig } from "./categories/riceCooker.config";
 
 // 新カテゴリーを追加するときは、ここに1行追加するだけでページ(薄いラッパーファイル経由)と
 // APIルート(動的ルート経由)の両方から使えるようになる。
@@ -22,6 +23,7 @@ const configs: CommerceCategoryConfig[] = [
   printerConfig,
   whiteboardConfig,
   officeDeskConfig,
+  riceCookerConfig,
 ];
 
 function assertValidCommerceCategoryConfig(config: CommerceCategoryConfig): void {
