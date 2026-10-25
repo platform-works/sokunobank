@@ -186,6 +186,11 @@ export interface CommerceCategoryConfig {
    * (descriptionExcerpt、140字まで・文章として読めるものだけ)を含める。出品者の記載で、サイトは保証しない。
    */
   showDescription?: boolean;
+  /**
+   * 任意(2026-10-25導入、テレビが最初の利用者)。trueなら、APIレスポンスの各商品に、商品名・商品説明に明記された仕様
+   * (tvSpecs: サイズ・解像度・チューナー・録画・配信など。記載がなければnull=未確認)を含める(lib/commerce/tv/extractTvSpecs.ts)。
+   */
+  tvSpecs?: boolean;
   seoSections: { heading: string; body: string[] }[];
   faq: CommerceFaqItem[];
   /** 任意。ValueCommerce等の広告タグ(PC/スマホ)。無ければ何も表示しない */

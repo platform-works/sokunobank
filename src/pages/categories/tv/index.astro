@@ -1,89 +1,67 @@
 ---
-// テレビ専用ページ。共通テンプレート(CommerceCategoryPage)と同じ構成で、お届け先・到着希望の選択だけ非表示にする
-// (tv.config.tsのignoreDeliveryArea。共通テンプレートは変更しない)。
+// テレビ購入コンシェルジュ(2026-10-25 全面改修)。商品の羅列ではなく、診断・詳細検索・比較で選べるページ。
+// 商品取得は従来どおり /api/tv/products/ (共通のAPIハンドラー)。診断・検索・比較は components/commerce/tv/TvConcierge.astro と
+// lib/commerce/tv/ に実装し、共通テンプレート(CommerceCategoryPage・ProductGrid・CommerceFilterPanel)は変更していない。
 import Layout from "../../../layouts/Layout.astro";
 import Breadcrumbs from "../../../components/Breadcrumbs.astro";
 import Disclaimer from "../../../components/Disclaimer.astro";
 import FaqSection from "../../../components/FaqSection.astro";
-import CommerceFilterPanel from "../../../components/commerce/CommerceFilterPanel.astro";
-import PickupBrandSection from "../../../components/commerce/PickupBrandSection.astro";
-import ProductGrid from "../../../components/commerce/ProductGrid.astro";
+import TvConcierge from "../../../components/commerce/tv/TvConcierge.astro";
+import TvContent from "../../../components/commerce/tv/TvContent.astro";
 import { tvConfig } from "../../../lib/commerce/categories/tv.config";
 
 const c = tvConfig;
+const canonicalUrl = new URL(Astro.url.pathname, Astro.site).toString();
+// 構造化データ: ページ本文に実在する内容だけ(WebPage)。商品・価格・在庫・評価は動的に取得するため出さない。
+const pageJsonLd = {
+  "@context": "https://schema.org",
+  "@type": "WebPage",
+  "@id": `${canonicalUrl}#webpage`,
+  url: canonicalUrl,
+  name: c.pageTitle,
+  description: c.metaDescription,
+  inLanguage: "ja",
+  isPartOf: { "@type": "WebSite", name: "SOKUNOBANK(即納バンク)", url: new URL("/", Astro.site).toString() },
+};
 ---
 
 <Layout title={c.pageTitle} description={c.metaDescription}>
-  <Breadcrumbs
-    items={[{ label: "ホーム", href: "/" }, { label: "カテゴリー一覧", href: "/categories/" }, { label: c.name }]}
-  />
+  <script type="application/ld+json" set:html={JSON.stringify(pageJsonLd)} />
+  <Breadcrumbs items={[{ label: "ホーム", href: "/" }, { label: "カテゴリー一覧", href: "/categories/" }, { label: c.name }]} />
 
   <div class="container">
-    <section class="hero">
-      <div class="hero-main">
+    <section class="tv-hero">
+      <div class="tv-hero-main">
+        <p class="tv-hero-eyebrow">液晶・有機ELテレビを比較・購入</p>
         <h1>{c.h1}</h1>
-        <p class="subheadline">{c.subheadline}</p>
-        <p class="delivery-note">{c.deliveryNote}</p>
+        <p class="tv-hero-sub">{c.subheadline}</p>
+        <div class="tv-hero-cta">
+          <a class="btn btn-primary btn-lg" href="#tv-diagnosis" data-tv-open="diagnosis">
+            <span>無料でテレビ診断</span>
+            <small>5つの質問でおすすめ商品を提案</small>
+          </a>
+          <a class="btn btn-secondary btn-lg" href="#tv-search" data-tv-open="search">
+            <span>条件からテレビを探す</span>
+            <small>サイズ・予算・ブランド・機能で検索</small>
+          </a>
+        </div>
+        <p class="tv-hero-note">{c.deliveryNote}</p>
       </div>
-
       {
         c.ads?.pcBannerHtml && (
-          <div class="hero-ad">
-            <span class="hero-ad-label">PR</span>
-            <div class="hero-ad-embed" set:html={c.ads.pcBannerHtml} />
+          <div class="tv-hero-ad">
+            <span class="tv-hero-ad-label">PR</span>
+            <div set:html={c.ads.pcBannerHtml} />
           </div>
         )
       }
     </section>
 
-    {c.popularBrands && c.popularBrands.length > 0 && <PickupBrandSection brands={c.popularBrands} slug={c.slug} />}
+    <TvConcierge apiPath={c.apiPath} />
 
-    <CommerceFilterPanel slug={c.slug} sortOptions={c.sortOptions} hideDelivery />
-
-    <p class="intro">{c.intro}</p>
-
-    <ProductGrid slug={c.slug} apiPath={c.apiPath} />
+    <TvContent />
 
     <Disclaimer text={c.deliveryNote} />
-
-    {
-      c.sponsoredSection && c.sponsoredSection.active && (
-        <section class="sponsored-section">
-          <h2>{c.sponsoredSection.heading}</h2>
-          {c.sponsoredSection.body.map((paragraph) => (
-            <p>{paragraph}</p>
-          ))}
-          {c.sponsoredSection.checklist && c.sponsoredSection.checklist.length > 0 && (
-            <>
-              {c.sponsoredSection.checklistHeading && <h3>{c.sponsoredSection.checklistHeading}</h3>}
-              <ul>
-                {c.sponsoredSection.checklist.map((item) => (
-                  <li>{item}</li>
-                ))}
-              </ul>
-            </>
-          )}
-          <div class="sponsored-banner">
-            <p class="sponsored-caption">
-              <span class="sponsored-label">PR</span>
-              {c.sponsoredSection.caption}
-            </p>
-            <div class="sponsored-embed" set:html={c.sponsoredSection.bannerHtml} />
-          </div>
-        </section>
-      )
-    }
-
-    {
-      c.seoSections.map((section) => (
-        <section class="seo-section">
-          <h2>{section.heading}</h2>
-          {section.body.map((paragraph) => (
-            <p>{paragraph}</p>
-          ))}
-        </section>
-      ))
-    }
 
     <FaqSection items={c.faq} />
   </div>
@@ -91,8 +69,21 @@ const c = tvConfig;
   {c.ads?.mobileOverlayHtml && <div set:html={c.ads.mobileOverlayHtml} />}
 </Layout>
 
+<script is:inline>
+  // スマホでは「条件を絞り込む」を折りたたみ、診断・結果までのスクロールを減らす(PCは開いたまま)。
+  // サーバー側は常にopenで出力し、JS無効でも条件が見えるようにしている(他の絞り込みUIと同じ方式)。
+  (function () {
+    if (window.matchMedia && window.matchMedia("(max-width: 720px)").matches) {
+      document.addEventListener("DOMContentLoaded", function () {
+        var d = document.querySelector(".tv-filter-box");
+        if (d) d.removeAttribute("open");
+      });
+    }
+  })();
+</script>
+
 <style>
-  .hero {
+  .tv-hero {
     margin-top: 1.5rem;
     display: flex;
     flex-wrap: wrap;
@@ -100,14 +91,48 @@ const c = tvConfig;
     justify-content: space-between;
     gap: 1.25rem;
   }
-  .hero-main {
+  .tv-hero-main {
     flex: 1 1 480px;
     min-width: 0;
   }
-  .hero h1 {
-    margin-bottom: 0.6rem;
+  .tv-hero-eyebrow {
+    margin: 0 0 0.3rem;
+    font-size: 0.82rem;
+    font-weight: 700;
+    color: var(--color-accent-dark);
   }
-  .hero-ad {
+  .tv-hero h1 {
+    margin: 0 0 0.6rem;
+  }
+  .tv-hero-sub {
+    margin: 0 0 1rem;
+    font-size: 1.02rem;
+  }
+  .tv-hero-cta {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.75rem;
+    max-width: 640px;
+  }
+  .tv-hero-cta .btn {
+    flex-direction: column;
+    height: auto;
+    min-height: 64px;
+    padding: 0.6rem 1rem;
+    text-align: center;
+    gap: 0.1rem;
+  }
+  .tv-hero-cta small {
+    font-size: 0.72rem;
+    font-weight: 500;
+    opacity: 0.9;
+  }
+  .tv-hero-note {
+    margin: 0.9rem 0 0;
+    font-size: 0.8rem;
+    color: var(--color-text-muted);
+  }
+  .tv-hero-ad {
     flex: 0 0 auto;
     display: flex;
     flex-direction: column;
@@ -118,72 +143,19 @@ const c = tvConfig;
     border-radius: var(--radius-md);
     padding: 0.75rem;
   }
-  .hero-ad-label {
+  .tv-hero-ad-label {
     font-size: 0.68rem;
     font-weight: 700;
     letter-spacing: 0.04em;
     color: var(--color-text-muted);
   }
-  /* モバイルはスマートフォン専用バナー(オーバーレイ)を別途表示するため、
-     このPC向けバナーは重複表示を避けるためモバイル幅では非表示にする */
+  /* モバイルはスマートフォン専用バナー(オーバーレイ)を別途表示するため、PC向けバナーは非表示 */
   @media (max-width: 720px) {
-    .hero-ad {
+    .tv-hero-ad {
       display: none;
     }
-  }
-  .subheadline {
-    font-size: 1.02rem;
-    color: var(--color-text);
-    margin: 0 0 0.4rem;
-  }
-  .delivery-note {
-    font-size: 0.82rem;
-    color: var(--color-text-muted);
-    margin: 0;
-  }
-  .intro {
-    font-size: 0.88rem;
-    color: var(--color-text-muted);
-    margin: 0.5rem 0 1rem;
-  }
-  .seo-section {
-    margin-block: 2.25rem;
-  }
-  .sponsored-section {
-    margin-block: 2.25rem;
-  }
-  .sponsored-section ul {
-    margin: 0 0 1rem;
-    padding-left: 1.2rem;
-    font-size: 0.92rem;
-  }
-  .sponsored-banner {
-    margin-top: 1rem;
-    padding: 0.9rem 1rem 1rem;
-    background: var(--color-bg-soft);
-    border: 1px solid var(--color-border);
-    border-radius: var(--radius-md);
-  }
-  .sponsored-caption {
-    margin: 0 0 0.6rem;
-    font-size: 0.8rem;
-    color: var(--color-text-muted);
-  }
-  .sponsored-label {
-    display: inline-block;
-    margin-right: 0.5rem;
-    padding: 0 0.4rem;
-    border: 1px solid var(--color-border);
-    border-radius: var(--radius-sm);
-    background: var(--color-bg);
-    font-size: 0.68rem;
-    font-weight: 700;
-    letter-spacing: 0.04em;
-  }
-  /* 広告タグは改変禁止のため、バナー(468px幅)を縮小せずそのまま表示する。
-     スマホ幅では枠内を横スクロールさせて、ページ全体の横スクロールを防ぐ */
-  .sponsored-embed {
-    max-width: 100%;
-    overflow-x: auto;
+    .tv-hero-cta {
+      grid-template-columns: 1fr;
+    }
   }
 </style>

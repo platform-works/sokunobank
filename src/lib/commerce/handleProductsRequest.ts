@@ -6,6 +6,7 @@ import type { CommerceCategoryConfig, ScoredProduct, SortKey } from "./types";
 import { buildReviewSignals, fetchRakutenPool } from "../rakuten/signal";
 import { descriptionExcerpt } from "./descriptionExcerpt";
 import { mergeBrandExtras, prioritizeBrand } from "./brandPool";
+import { extractTvSpecs } from "./tv/extractTvSpecs";
 
 function descriptionField(raw: string): { description?: string } {
   const d = descriptionExcerpt(raw);
@@ -325,6 +326,8 @@ export async function handleProductsRequest(config: CommerceCategoryConfig, cont
         ...(config.amazonJanLink && p.janCode ? { janCode: p.janCode } : {}),
         // 商品説明の抜粋(設定したカテゴリーのみ、文章として読めるものがある商品のみ)
         ...(config.showDescription ? descriptionField(p.descriptionText) : {}),
+        // テレビの仕様(商品名・説明に明記されたものだけ。設定したカテゴリーのみ)
+        ...(config.tvSpecs ? { tvSpecs: extractTvSpecs(p.name, p.descriptionText, p.brand) } : {}),
       })),
       count: sorted.length,
       generatedAt: new Date().toISOString(),

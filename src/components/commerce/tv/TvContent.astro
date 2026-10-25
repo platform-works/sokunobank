@@ -1,0 +1,179 @@
+---
+// 購入前の不安を解決する解説(2026-10-25)。数値は計算式から作り、制度・規格の説明は一次情報(メーカー・省庁)の
+// 記載の範囲に限る。ブランドの優劣は断定しない。
+const sizes = [32, 43, 50, 55, 65].map((d) => {
+  // 16:9の画面。対角d型(インチ)から画面部分の幅・高さ(cm)を計算する
+  const diag = d * 2.54;
+  const k = Math.sqrt(16 * 16 + 9 * 9);
+  const w = (diag * 16) / k;
+  const hh = (diag * 9) / k;
+  return {
+    d,
+    w: Math.round(w),
+    h: Math.round(hh),
+    d4k: (hh * 1.5) / 100,
+    dfhd: (hh * 3) / 100,
+  };
+});
+const fmt = (n: number) => n.toFixed(1);
+---
+
+<section class="tvc-content" id="tv-guide">
+  <h2>テレビ選びのガイド</h2>
+
+  <article id="tv-size-guide" class="tvc-article">
+    <h3>32型・43型・50型・55型・65型、どれを選ぶ？</h3>
+    <p>
+      画面サイズは「V型(インチ)」で表され、画面の対角線の長さを示します。置く場所の幅・高さ、見る位置からの距離、使い方の3つで決めると迷いにくくなります。
+    </p>
+    <div class="tvc-table-wrap">
+      <table class="tvc-table">
+        <caption>画面サイズごとの画面部分の大きさと視聴距離の目安(16:9の画面・計算値)</caption>
+        <thead>
+          <tr><th scope="col">画面サイズ</th><th scope="col">画面の幅×高さ(約)</th><th scope="col">4Kの視聴距離の目安</th><th scope="col">フルHDの視聴距離の目安</th></tr>
+        </thead>
+        <tbody>
+          {sizes.map((s) => (
+            <tr>
+              <th scope="row">{s.d}V型</th>
+              <td>{s.w}cm × {s.h}cm</td>
+              <td>約{fmt(s.d4k)}m</td>
+              <td>約{fmt(s.dfhd)}m</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+    <p class="tvc-note">
+      視聴距離の目安は、画面の高さの約1.5倍(4Kテレビ)・約3倍(フルハイビジョン)とする考え方です(<a href="https://panasonic.jp/viera/digital_fun/room_4k.html" rel="noopener" target="_blank">パナソニックの解説</a>、フレームやスタンドを含まない画面の高さで計算)。上の表はその倍率から計算した概算で、本体の外形はこれより大きくなります。実際の外形寸法は商品ページで確認してください。
+    </p>
+    <ul>
+      <li><strong>32型以下:</strong>寝室・個室・2台目など、置き場所が限られる場合の候補です。</li>
+      <li><strong>40〜43型:</strong>ひとり暮らしの居室や、リビング以外の部屋で検討されるサイズです。</li>
+      <li><strong>50〜55型:</strong>リビングで家族で見る場合に検討されることが多いサイズです。</li>
+      <li><strong>65型以上:</strong>映画やスポーツを大画面で見たい場合の候補です。搬入経路と設置場所の寸法を購入前に確認してください。</li>
+    </ul>
+  </article>
+
+  <article id="tv-brand-guide" class="tvc-article">
+    <h3>ブランドを比べるときの見方</h3>
+    <p>
+      このページでは、どのブランドが優れているかは断定しません。ブランド名やシリーズ名は商品名に書かれていることが多いので、確認できる次の点で比べてください。
+    </p>
+    <div class="tvc-table-wrap">
+      <table class="tvc-table">
+        <caption>商品名に出てくる主なブランド表記</caption>
+        <thead><tr><th scope="col">ブランド</th><th scope="col">商品名での主な表記</th></tr></thead>
+        <tbody>
+          <tr><th scope="row">ソニー</th><td>ソニー、SONY、BRAVIA(ブラビア)</td></tr>
+          <tr><th scope="row">パナソニック</th><td>パナソニック、Panasonic、VIERA(ビエラ)</td></tr>
+          <tr><th scope="row">シャープ</th><td>シャープ、SHARP、AQUOS(アクオス)</td></tr>
+          <tr><th scope="row">REGZA(レグザ)</th><td>REGZA、レグザ、TVS REGZA、東芝</td></tr>
+          <tr><th scope="row">ハイセンス</th><td>ハイセンス、Hisense</td></tr>
+          <tr><th scope="row">TCL</th><td>TCL</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <ul>
+      <li><strong>保証:</strong>メーカー保証の期間と、販売店の延長保証の有無は商品ページに記載があります。</li>
+      <li><strong>サポート:</strong>修理の受付窓口や、故障時の連絡先をメーカーのサイトで確認できます。</li>
+      <li><strong>仕様:</strong>同じ画面サイズでも、チューナーの数・4K放送の対応・録画の方式・動画配信の対応は機種ごとに異なります。診断・比較の「未確認」の項目は、商品ページで確認してください。</li>
+    </ul>
+  </article>
+
+  <article id="tv-4k-guide" class="tvc-article">
+    <h3>4K液晶・有機EL・Mini LED、4K画面と4K放送の違い</h3>
+    <dl class="tvc-dl">
+      <div><dt>4K画面</dt><dd>画素数が多い(フルハイビジョンの約4倍)高精細な画面です。4K画面があることと、4K放送を受信できることは別の話です。</dd></div>
+      <div><dt>4K液晶</dt><dd>液晶パネルとバックライトで映像を表示する方式です。画面サイズや価格の選択肢が多い傾向があります。</dd></div>
+      <div><dt>有機EL</dt><dd>画素そのものが発光する方式で、バックライトを使いません。商品名に「有機EL」とある商品が該当します。</dd></div>
+      <div><dt>Mini LED</dt><dd>液晶テレビのバックライトに、小さなLEDを多数使う方式です。商品名に「Mini LED」と書かれていることがあります。</dd></div>
+      <div><dt>4K放送(BS4K・110度CS4K)</dt><dd>4Kテレビ単体では映りません。4Kチューナー内蔵のテレビ、または別売の4Kチューナーが必要です(<a href="https://www.sony.jp/bravia/products/DST-SHV1/" rel="noopener" target="_blank">ソニーの案内</a>)。アンテナや配線も4K放送に対応している必要があります。</dd></div>
+    </dl>
+    <p class="tvc-note">「4K対応」と書かれていても、4K放送を受信できるとは限りません。4K放送を見たい場合は、「4Kチューナー内蔵」の記載を確認してください。</p>
+  </article>
+
+  <article id="tv-recording-guide" class="tvc-article">
+    <h3>録画機能の選び方</h3>
+    <dl class="tvc-dl">
+      <div><dt>外付けHDD録画</dt><dd>USB接続の外付けHDDに録画する方式です。HDDは別売のことが多く、対応する機種・容量は商品ページやメーカーの案内で確認します。</dd></div>
+      <div><dt>裏番組録画</dt><dd>見ている番組とは別の番組を録画することです。放送を受信するチューナーが複数必要です。</dd></div>
+      <div><dt>同時録画・チューナー数</dt><dd>同時に録画できる番組の数は、チューナーの数で決まります。「ダブルチューナー」などの記載を確認します。</dd></div>
+      <div><dt>ブルーレイ・HDD内蔵</dt><dd>録画機器を内蔵したモデルもあります。内蔵の記載がなければ、録画には別の機器が必要と考えて確認してください。</dd></div>
+    </dl>
+  </article>
+
+  <article id="tv-tunerless-guide" class="tvc-article">
+    <h3>チューナーレステレビとは</h3>
+    <p>
+      放送(地上デジタル・BS・CS)を受信するチューナーを持たず、YouTubeやNetflixなどの動画配信を中心に使うテレビです。商品名に「チューナーレス」と書かれています。
+    </p>
+    <ul>
+      <li><strong>向いている使い方:</strong>動画配信、ゲーム、パソコンの表示が中心で、放送を見ない場合。</li>
+      <li><strong>制約:</strong>アンテナをつないでも放送は映りません。録画もできません(別に放送を受信する機器が必要です)。</li>
+      <li><strong>確認すること:</strong>NHKの受信契約が必要かどうかは、受信設備の有無などの事情で異なります。不安な場合はNHKの案内で確認してください。</li>
+    </ul>
+    <p class="tvc-note">このページの診断では、放送を見る用途や、放送・録画の機能を選んだ場合は、チューナーレスのテレビを提案しません。</p>
+  </article>
+
+  <article id="tv-urgent-guide" class="tvc-article">
+    <h3>故障・急ぎの買い替えで確認すること</h3>
+    <ul>
+      <li><strong>配送日と在庫:</strong>このページでは配送日を判定していません。商品ページでお届け先を指定して、お届け予定日と在庫を確認してください。</li>
+      <li><strong>設置:</strong>設置サービスの有無・料金・対応地域は、店舗と商品ごとに異なります。「標準設置無料」などの記載は、対象地域と条件まで確認してください。</li>
+      <li><strong>古いテレビの処分:</strong>液晶・プラズマ式のテレビは家電リサイクル法の対象で、処分にはリサイクル料金と収集運搬料金がかかります。収集運搬料金は小売店が定め、料金は大きさやメーカーで異なります(<a href="https://www.meti.go.jp/policy/it_policy/kaden_recycle/case1/case1_02.html" rel="noopener" target="_blank">経済産業省の案内</a>、料金は<a href="https://www.rkc.aeha.or.jp/" rel="noopener" target="_blank">家電リサイクル券センター</a>で確認できます)。新しいテレビの購入と同時に引き取りを依頼できるかは、販売店ごとに確認してください。</li>
+      <li><strong>搬入:</strong>大型の商品は、玄関・廊下・階段の幅と、設置場所の寸法を購入前に測っておくと安心です。</li>
+    </ul>
+  </article>
+</section>
+
+<style>
+  .tvc-content {
+    margin: 2.5rem 0;
+  }
+  .tvc-article {
+    margin: 1.75rem 0;
+  }
+  .tvc-article h3 {
+    margin: 0 0 0.5rem;
+    font-size: 1.15rem;
+  }
+  .tvc-table-wrap {
+    overflow-x: auto;
+    margin: 0.75rem 0;
+  }
+  .tvc-table {
+    border-collapse: collapse;
+    width: 100%;
+    min-width: 420px;
+    font-size: 0.88rem;
+  }
+  .tvc-table caption {
+    text-align: left;
+    font-weight: 700;
+    padding-bottom: 0.4rem;
+  }
+  .tvc-table th,
+  .tvc-table td {
+    border: 1px solid var(--color-border);
+    padding: 0.5rem 0.65rem;
+    text-align: left;
+  }
+  .tvc-table thead th {
+    background: var(--color-bg-soft);
+  }
+  .tvc-dl > div {
+    padding: 0.55rem 0;
+    border-bottom: 1px solid var(--color-border);
+  }
+  .tvc-dl dt {
+    font-weight: 700;
+  }
+  .tvc-dl dd {
+    margin: 0.15rem 0 0;
+  }
+  .tvc-note {
+    font-size: 0.82rem;
+    color: var(--color-text-muted);
+  }
+</style>
