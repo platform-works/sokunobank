@@ -23,3 +23,8 @@ npm-debug.log*
 Thumbs.db
 .vscode/*
 !.vscode/extensions.json
+
+# affiliate-lp-factory から npm run lp:sync で取り込む生成物(コミットしない)
+public/lp/
+public/_lp-assets/
+src/data/generated/

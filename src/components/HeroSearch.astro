@@ -1,0 +1,300 @@
+---
+// トップのファーストビューのサイト内検索。
+// 公開済みのページ(カテゴリー・ガイド・LP)を、候補としてその場で絞り込み表示する。
+// JSなしでは /categories/?q= へのフォーム送信にフォールバックする。
+export interface SearchEntry {
+  /** 表示タイトル */
+  t: string;
+  /** 遷移先 */
+  h: string;
+  /** 検索対象の追加キーワード(同義語・説明文) */
+  k?: string;
+  /** 種別ラベル(カテゴリー/ガイド/確認ガイド) */
+  g: string;
+}
+interface Props {
+  entries: SearchEntry[];
+}
+const { entries } = Astro.props;
+const json = JSON.stringify(entries).replace(/</g, "\\u003c");
+---
+
+<div class="hs" id="search" data-hero-search>
+  <form class="hs-form" action="/categories/" method="get" role="search">
+    <label class="hs-label" for="hs-q">悩み・商品・サービスを検索</label>
+    <svg class="hs-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><circle cx="11" cy="11" r="7" /><path d="M20 20l-4-4" stroke-linecap="round" /></svg>
+    <input
+      id="hs-q"
+      type="search"
+      name="q"
+      placeholder="悩み・商品・サービスを検索(例:NISA、脱毛、名刺)"
+      autocomplete="off"
+      role="combobox"
+      aria-expanded="false"
+      aria-controls="hs-list"
+      aria-autocomplete="list"
+    />
+    <button type="submit">検索</button>
+  </form>
+  <ul class="hs-list" id="hs-list" role="listbox" hidden></ul>
+  <script type="application/json" id="hs-data" set:html={json} />
+</div>
+
+<style>
+  .hs {
+    position: relative;
+    max-width: 560px;
+  }
+  @media (max-width: 900px) {
+    .hs { max-width: none; }
+  }
+  .hs-form {
+    position: relative;
+    display: flex;
+    height: 48px;
+    background: #fff;
+    border: 1px solid #c9dfd2;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: var(--shadow-sm);
+  }
+  .hs-form:focus-within {
+    border-color: var(--color-accent-dark);
+    box-shadow: 0 0 0 3px var(--color-accent-soft);
+  }
+  .hs-label {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+  }
+  .hs-icon {
+    position: absolute;
+    left: 0.85rem;
+    top: 50%;
+    width: 20px;
+    height: 20px;
+    margin-top: -10px;
+    color: #8aa093;
+    pointer-events: none;
+  }
+  .hs input {
+    flex: 1;
+    min-width: 0;
+    border: 0;
+    outline: 0;
+    padding: 0 0.75rem 0 2.7rem;
+    font-size: 0.95rem;
+    background: transparent;
+    font-family: inherit;
+  }
+  .hs button {
+    border: 0;
+    background: var(--color-accent-dark);
+    color: #fff;
+    font-weight: 700;
+    font-size: 0.95rem;
+    padding: 0 1.4rem;
+    cursor: pointer;
+    font-family: inherit;
+  }
+  .hs button:hover {
+    background: #046b4b;
+  }
+  .hs-list {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: calc(100% + 6px);
+    z-index: 30;
+    margin: 0;
+    padding: 0.3rem;
+    list-style: none;
+    background: #fff;
+    border: 1px solid var(--color-border);
+    border-radius: 8px;
+    box-shadow: 0 8px 24px rgba(16, 36, 62, 0.14);
+    max-height: 340px;
+    overflow-y: auto;
+  }
+  .hs-list[hidden] {
+    display: none;
+  }
+  .hs-list :global(li) {
+    margin: 0;
+  }
+  .hs-list :global(a) {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    min-height: 44px;
+    padding: 0.4rem 0.7rem;
+    border-radius: 6px;
+    color: var(--color-text);
+    text-decoration: none;
+    font-size: 0.92rem;
+  }
+  .hs-list :global(a:hover),
+  .hs-list :global(a[aria-selected="true"]) {
+    background: var(--color-accent-soft);
+  }
+  .hs-list :global(.hs-tag) {
+    flex: none;
+    font-size: 0.7rem;
+    color: var(--color-accent-dark);
+    border: 1px solid var(--color-border);
+    border-radius: 999px;
+    padding: 0.05rem 0.5rem;
+    background: #fff;
+  }
+  .hs-list :global(.hs-empty) {
+    padding: 0.7rem 0.8rem;
+    font-size: 0.88rem;
+    color: var(--color-text-muted);
+  }
+  .hs-list :global(.hs-empty a) {
+    display: inline;
+    min-height: 0;
+    padding: 0;
+    color: var(--color-accent-dark);
+    font-weight: 600;
+    text-decoration: underline;
+  }
+</style>
+
+<script>
+  type Entry = { t: string; h: string; k?: string; g: string };
+  const root = document.querySelector<HTMLElement>("[data-hero-search]");
+  if (root) {
+    const input = root.querySelector<HTMLInputElement>("#hs-q")!;
+    const form = root.querySelector<HTMLFormElement>("form")!;
+    const list = root.querySelector<HTMLUListElement>("#hs-list")!;
+    let entries: Entry[] = [];
+    try {
+      entries = JSON.parse(root.querySelector("#hs-data")?.textContent ?? "[]");
+    } catch {
+      entries = [];
+    }
+
+    // 全角/半角・大文字/小文字・カタカナ/ひらがなの違いを吸収する
+    const norm = (s: string) =>
+      s
+        .normalize("NFKC")
+        .toLowerCase()
+        .replace(/[ァ-ヶ]/g, (c) => String.fromCharCode(c.charCodeAt(0) - 0x60));
+    const index = entries.map((e) => ({ e, title: norm(e.t), kw: norm(`${e.k ?? ""} ${e.g}`) }));
+
+    let results: Entry[] = [];
+    let active = -1;
+
+    const search = (q: string): Entry[] => {
+      const terms = norm(q).split(/[\s　,、]+/).filter(Boolean);
+      if (!terms.length) return [];
+      const scored: { e: Entry; s: number }[] = [];
+      for (const it of index) {
+        let s = 0;
+        let ok = true;
+        for (const t of terms) {
+          if (it.title.startsWith(t)) s += 4;
+          else if (it.title.includes(t)) s += 3;
+          else if (it.kw.includes(t)) s += 1;
+          else {
+            ok = false;
+            break;
+          }
+        }
+        if (ok) scored.push({ e: it.e, s });
+      }
+      return scored.sort((a, b) => b.s - a.s).slice(0, 7).map((x) => x.e);
+    };
+
+    const close = () => {
+      list.hidden = true;
+      input.setAttribute("aria-expanded", "false");
+      input.removeAttribute("aria-activedescendant");
+      active = -1;
+    };
+    const mark = () => {
+      list.querySelectorAll("a").forEach((a, i) => {
+        a.setAttribute("aria-selected", String(i === active));
+        if (i === active) input.setAttribute("aria-activedescendant", a.id);
+      });
+    };
+    const render = () => {
+      const q = input.value.trim();
+      if (!q) return close();
+      results = search(q);
+      active = -1;
+      list.textContent = "";
+      if (!results.length) {
+        const li = document.createElement("li");
+        li.className = "hs-empty";
+        li.append("「" + q + "」に一致するページは見つかりませんでした。");
+        const a = document.createElement("a");
+        a.href = "/categories/";
+        a.textContent = "カテゴリー一覧から探す";
+        li.append(a);
+        list.append(li);
+      } else {
+        results.forEach((r, i) => {
+          const li = document.createElement("li");
+          li.setAttribute("role", "presentation");
+          const a = document.createElement("a");
+          a.href = r.h;
+          a.id = "hs-opt-" + i;
+          a.setAttribute("role", "option");
+          a.setAttribute("aria-selected", "false");
+          const name = document.createElement("span");
+          name.textContent = r.t;
+          const tag = document.createElement("span");
+          tag.className = "hs-tag";
+          tag.textContent = r.g;
+          a.append(name, tag);
+          li.append(a);
+          list.append(li);
+        });
+      }
+      list.hidden = false;
+      input.setAttribute("aria-expanded", "true");
+    };
+
+    input.addEventListener("input", render);
+    input.addEventListener("focus", () => {
+      if (input.value.trim()) render();
+    });
+    input.addEventListener("keydown", (ev) => {
+      if (ev.key === "Escape") return close();
+      if (list.hidden || !results.length) return;
+      if (ev.key === "ArrowDown") {
+        ev.preventDefault();
+        active = (active + 1) % results.length;
+        mark();
+      } else if (ev.key === "ArrowUp") {
+        ev.preventDefault();
+        active = (active - 1 + results.length) % results.length;
+        mark();
+      }
+    });
+    document.addEventListener("click", (ev) => {
+      if (!root.contains(ev.target as Node)) close();
+    });
+
+    // Enter / 検索ボタン: 選択中の候補、なければ最上位の候補へ。一致なしの時だけ従来の /categories/?q= へ
+    form.addEventListener("submit", (ev) => {
+      const q = input.value.trim();
+      if (!q) {
+        ev.preventDefault();
+        input.focus();
+        return;
+      }
+      const found = results.length ? results : search(q);
+      if (found.length) {
+        ev.preventDefault();
+        location.href = (found[active >= 0 ? active : 0] ?? found[0]).h;
+      }
+    });
+  }
+</script>

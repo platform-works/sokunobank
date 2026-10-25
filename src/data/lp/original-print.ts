@@ -67,11 +67,11 @@ export const HEADLINE_BY_ANSWER: Record<string, { headline: string; sub: string 
   },
   "design:rough": {
     headline: "ラフ案があれば、そこから始められます。",
-    sub: "デザインの進め方は、Up-T公式で確認できます。",
+    sub: "ラフ案をもとに、進め方を決めていきましょう。",
   },
   "design:none": {
     headline: "デザインがなくても、オリジナルグッズを。",
-    sub: "デザイン方法の選択肢は、Up-T公式で確認できます。",
+    sub: "デザイン方法を決めてから、商品を選びます。",
   },
   "deadline:fastest": {
     headline: "イベントに間に合わせたい。急ぎの発注方法をチェック。",
@@ -79,11 +79,11 @@ export const HEADLINE_BY_ANSWER: Record<string, { headline: string; sub: string 
   },
   "deadline:date": {
     headline: "使用日から逆算して、発注の準備を。",
-    sub: "発送日・到着日は商品や時期で異なります。公式の表示を確認しましょう。",
+    sub: "発送日・到着日は商品や時期で異なります。注文前に表示された日付を見ておきましょう。",
   },
   "qty:small": {
     headline: "少しだけ作りたい。まず条件を確認。",
-    sub: "少数での注文可否は商品ごとに異なります。公式で確認できます。",
+    sub: "少数での注文可否は商品ごとに異なります。",
   },
   "qty:mid": {
     headline: "仲間やチームの分をまとめて。条件を整理して発注。",
@@ -104,8 +104,8 @@ export interface Guide {
 
 const METHOD: Record<DesignAnswer, string> = {
   data: "入稿データを使って、商品を選んで注文する流れが基本です。入稿の形式・サイズ・印刷位置は商品ごとの案内に従います。",
-  rough: "ラフ案をもとに、デザインの進め方(自分で整える・相談するなど)をUp-T公式で確認してから注文します。",
-  none: "まずUp-T公式で、デザイン方法(自分で作る・相談するなど)の選択肢を確認してから、商品を選んで注文します。",
+  rough: "ラフ案をもとに、デザインの進め方(自分で整える・相談するなど)を決めてから注文します。",
+  none: "まずデザイン方法(自分で作る・相談するなど)を決めてから、商品を選んで注文します。",
 };
 
 const PREPARE_DESIGN: Record<DesignAnswer, string[]> = {
@@ -115,15 +115,15 @@ const PREPARE_DESIGN: Record<DesignAnswer, string[]> = {
 };
 
 const PREPARE_QTY: Record<QtyAnswer, string> = {
-  small: "少数での注文可否と1点あたりの条件(商品ごとに公式で確認)",
+  small: "少数での注文可否と1点あたりの条件(商品ごとに異なります)",
   mid: "サイズ・色ごとの内訳と、予備の要否",
-  large: "集金・承認者・支払い方法(請求書払い等の可否は公式で確認)と、サイズ・色ごとの内訳",
+  large: "集金・承認者・支払い方法と、サイズ・色ごとの内訳",
 };
 
 const CTA_LEAD: Record<DesignAnswer, string> = {
-  data: "準備ができていれば、Up-T公式サイトで商品と条件を確認できます。",
-  rough: "ラフ案を手元に、Up-T公式サイトでデザインの進め方と商品を確認できます。",
-  none: "Up-T公式サイトで、デザイン方法と商品を確認できます。",
+  data: "準備ができていれば、Up-Tで商品を選んで注文に進めます。",
+  rough: "ラフ案を手元に、Up-Tで商品を選んで進められます。",
+  none: "Up-Tで、商品を選んで注文に進めます。",
 };
 
 export const DEADLINE_NOTE_COMMON =

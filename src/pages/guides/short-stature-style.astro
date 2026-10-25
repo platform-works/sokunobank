@@ -1,0 +1,124 @@
+---
+import Layout from "../../layouts/Layout.astro";
+import Breadcrumbs from "../../components/Breadcrumbs.astro";
+import Disclaimer from "../../components/Disclaimer.astro";
+import FaqSection from "../../components/FaqSection.astro";
+
+const title = "身長が低めの方の服選び｜サイズの測り方・丈の直し方・試着のコツ";
+const description =
+  "身長が低めの大人の方が、服や靴を選ぶときに失敗しにくい方法をまとめた非医療の実用ガイド。自分の寸法の測り方、サイズ表の読み方、裾上げ・お直しの相談の仕方、試着で確認する点を整理します。";
+const publishedDate = "2026-10-17";
+
+const faqItems = [
+  {
+    question: "サイズ表の「Sサイズ」を選べば合いますか？",
+    answer:
+      "合うとは限りません。S・M・Lの基準はブランドや商品ごとに異なります。S・M・Lの表記だけで選ばず、商品ページのサイズ表(着丈・肩幅・身幅・袖丈・股下など)の実寸と、手持ちの服の寸法を比べて選びます。",
+  },
+  {
+    question: "裾上げは、買う前に相談できますか？",
+    answer:
+      "店舗や商品によって異なります。購入前に、裾上げやお直しの対応の可否、料金、仕上がりまでの日数を確認しておくと、買った後に困りにくくなります。通販では、返品・交換の条件とあわせて確認します。",
+  },
+  {
+    question: "子どもの成長が心配なときは、このページを参考にできますか？",
+    answer:
+      "このページは、大人の方の服選びを扱う非医療の情報です。お子さまの成長について心配なことがある場合は、かかりつけの医師など医療機関に相談してください。",
+  },
+];
+
+const articleJsonLd = {
+  "@context": "https://schema.org",
+  "@type": "Article",
+  headline: title,
+  description,
+  datePublished: publishedDate,
+  dateModified: publishedDate,
+  author: { "@type": "Organization", name: "SOKUNOBANK運営事務局" },
+  publisher: { "@type": "Organization", name: "SOKUNOBANK運営事務局" },
+};
+---
+
+<Layout title={title} description={description}>
+  <Breadcrumbs items={[{ label: "ホーム", href: "/" }, { label: "身長が低めの方の服選び" }]} />
+
+  <div class="container section-tight prose">
+    <h1>身長が低めの方の服選び</h1>
+    <p class="meta">非医療の実用ガイド・特定の商品やブランドの紹介はしません</p>
+
+    <p>
+      「サイズが合わない」「裾や袖が余る」と感じる大人の方が、買い物で失敗しにくくなるための手順をまとめました。
+      医療や健康の話ではなく、服選びの実用的な方法です。身長を変えることや、見た目の評価を目的にするものでもありません。
+      広告・アフィリエイトのリンクはありません。
+    </p>
+
+    <h2>結論:3つの手順で失敗が減る</h2>
+    <ol>
+      <li><strong>手持ちの「合っている服」の寸法を測る</strong>(着丈・肩幅・袖丈・股下)。</li>
+      <li><strong>S・M・Lではなく、実寸のサイズ表で比べる</strong>。</li>
+      <li><strong>お直しできる前提で選ぶ</strong>(裾上げ・袖丈)。直せない部分(肩幅)を優先して合わせる。</li>
+    </ol>
+
+    <h2>1. 自分の基準寸法を作る</h2>
+    <p>
+      一番確実なのは、今持っていて「ちょうどよい」と感じる服を平らに置いて測る方法です。次の寸法を控えておくと、通販のサイズ表と直接比べられます。
+    </p>
+    <table class="responsive-table">
+      <thead><tr><th>測る場所</th><th>見る服</th><th>測り方の目安</th></tr></thead>
+      <tbody>
+        <tr><td data-label="測る場所">着丈</td><td data-label="見る服">トップス</td><td data-label="測り方の目安">襟ぐり(首の付け根)の一番高い所から、裾まで</td></tr>
+        <tr><td data-label="測る場所">肩幅</td><td data-label="見る服">トップス・ジャケット</td><td data-label="測り方の目安">左右の肩の縫い目の端から端まで</td></tr>
+        <tr><td data-label="測る場所">袖丈</td><td data-label="見る服">シャツ・ジャケット</td><td data-label="測り方の目安">肩の縫い目から袖口まで(商品の表記方法に合わせる)</td></tr>
+        <tr><td data-label="測る場所">股下</td><td data-label="見る服">パンツ</td><td data-label="測り方の目安">股の縫い目の交わる所から、裾まで</td></tr>
+      </tbody>
+    </table>
+    <p class="note">測り方はブランドごとに少しずつ違います。通販では、商品ページの「採寸方法」の説明に合わせて測り直してください。</p>
+
+    <h2>2. サイズ表の読み方</h2>
+    <ul>
+      <li><strong>S・M・Lの基準は共通ではない</strong>:同じ「S」でも、ブランドや商品で実寸が違います。</li>
+      <li><strong>数値で比べる</strong>:基準寸法と、商品の実寸を比べて、差が小さいものを選びます。</li>
+      <li><strong>伸びる素材か</strong>:ニットやストレッチ素材は実寸より余裕が出ることがあります。</li>
+      <li><strong>丈は着方で変わる</strong>:ジャケットやシャツは、羽織る・出す・入れるで必要な丈が変わります。</li>
+    </ul>
+
+    <h2>3. お直しを前提に選ぶ</h2>
+    <p>
+      服は、直せる部分と直しにくい部分があります。一般に、裾や袖口の長さの調整は対応している店が多く、肩幅や身幅の調整は難しい、または費用が大きくなることがあります。
+      そのため、<strong>肩幅と身幅を優先して合わせ、丈(裾・袖)はお直しで調整する</strong>という順で選ぶと、選択肢が広がります。
+    </p>
+    <ul>
+      <li>購入前に、裾上げ・袖丈直しの<strong>可否・料金・日数</strong>を確認する。</li>
+      <li>デザインによっては直しにくいことがある(裾のデザイン、切り替え、ポケットの位置など)。</li>
+      <li>通販では、<strong>返品・交換の条件</strong>とお直しの扱いを確認する(お直し後は返品できない店もある)。</li>
+    </ul>
+
+    <h2>4. 試着で確認すること</h2>
+    <ol>
+      <li><strong>肩の縫い目</strong>が、自分の肩の端に近い位置にあるか。</li>
+      <li><strong>袖</strong>を曲げたときに、手首のあたりで余りすぎないか。</li>
+      <li><strong>パンツの裾</strong>を、普段履く靴で確認する(靴で必要な丈が変わる)。</li>
+      <li><strong>座る・腕を上げる</strong>など、日常の動きで突っ張らないか。</li>
+    </ol>
+
+    <h2>5. 靴やベルトなど小物の考え方</h2>
+    <ul>
+      <li>靴は、サイズのほかに<strong>ソールの厚みとデザイン</strong>で全体のバランスが変わります。履き心地と歩きやすさを優先し、無理のあるものは選ばない。</li>
+      <li>ベルトや袖口など、<strong>長さが余る小物は調整できるもの</strong>を選ぶ。</li>
+    </ul>
+
+    <Disclaimer text="このページは服選びの一般的な方法を整理したもので、特定の商品・ブランドの紹介や、見た目・身長の変化を保証するものではありません。医療や健康に関する助言ではありません。お子さまの成長など、健康上の心配がある場合は、医療機関に相談してください。" />
+
+    <FaqSection items={faqItems} />
+
+    <p class="note">
+      このサイトについて:<a href="/about/">運営者情報</a>・<a href="/advertising/">広告掲載について</a>。このページは広告ではありません。
+    </p>
+  </div>
+</Layout>
+<script type="application/ld+json" set:html={JSON.stringify(articleJsonLd)} />
+
+<style>
+  .meta { color: var(--color-text-muted); font-size: 0.9rem; margin-top: -0.5rem; }
+  .note { color: var(--color-text-muted); font-size: 0.85rem; }
+</style>

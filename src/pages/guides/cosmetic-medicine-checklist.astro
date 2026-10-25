@@ -1,0 +1,124 @@
+---
+import Layout from "../../layouts/Layout.astro";
+import Breadcrumbs from "../../components/Breadcrumbs.astro";
+import Disclaimer from "../../components/Disclaimer.astro";
+import FaqSection from "../../components/FaqSection.astro";
+
+const title = "美容医療のクリニック選びで見ておきたい情報｜費用・リスク・契約の確認点";
+const description =
+  "美容医療(自由診療)のクリニックのウェブサイトを見るときに、載っているべき情報と注意したい表示を、厚生労働省の医療広告ガイドラインと消費者庁の公式情報に基づいて整理。クーリング・オフの対象条件も確認日つきで解説します。";
+const checkedAt = "2026-10-17";
+
+const faqItems = [
+  {
+    question: "ビフォーアフターの写真や体験談が載っていれば、信頼できますか？",
+    answer:
+      "判断材料にはなりません。厚生労働省のガイドラインでは、患者などの主観や伝聞に基づく治療の内容・効果の体験談の広告や、患者を誤認させるおそれがある治療前後の写真の広告は禁止されています。載っていないことを不安に思う必要はなく、載っていても、それだけで効果の根拠にはなりません。",
+  },
+  {
+    question: "契約後に解約できますか？",
+    answer:
+      "消費者庁の案内では、美容医療は、期間が1か月を超え、かつ金額が5万円を超える契約が「特定継続的役務提供」の対象で、契約書面を受け取った日から8日以内ならクーリング・オフ(書面または電磁的記録での解除)ができます。対象になる契約かどうかは、契約書面と消費者庁の案内で確認してください。",
+  },
+  {
+    question: "検索結果の広告(スポンサー表示)に出てくる情報だけで決めてよいですか？",
+    answer:
+      "おすすめできません。ガイドラインでは、インターネット上のバナー広告や、検索サイトのスポンサー表示などは、「患者などが自ら求めて入手する情報」にあたらず、広告可能事項の限定を解除する条件を満たさないとされています。広告の表示だけで決めず、公式サイトで料金・リスクの説明を確認してください。",
+  },
+];
+
+const articleJsonLd = {
+  "@context": "https://schema.org",
+  "@type": "Article",
+  headline: title,
+  description,
+  datePublished: checkedAt,
+  dateModified: checkedAt,
+  author: { "@type": "Organization", name: "SOKUNOBANK運営事務局" },
+  publisher: { "@type": "Organization", name: "SOKUNOBANK運営事務局" },
+};
+---
+
+<Layout title={title} description={description}>
+  <Breadcrumbs items={[{ label: "ホーム", href: "/" }, { label: "美容医療のクリニック選びで見ておきたい情報" }]} />
+
+  <div class="container section-tight prose">
+    <h1>美容医療のクリニック選びで見ておきたい情報</h1>
+    <p class="meta">厚生労働省・消費者庁の公式情報で確認(確認日 {checkedAt})・一般的な情報の整理</p>
+
+    <p>
+      美容医療のクリニックを探すとき、ウェブサイトの情報をどう読めばよいかを整理しました。このページは特定のクリニックや治療を紹介・推奨するものではなく、医学的な助言でもありません。
+      クリニックの名前も、送客のリンクも載せていません。
+    </p>
+
+    <h2>結論:3つを確認する</h2>
+    <ol>
+      <li><strong>費用の全体</strong>が書かれているか(治療の内容・標準的な費用・期間・回数)。</li>
+      <li><strong>リスクや副作用</strong>の説明が、利点と同じくらい分かりやすく書かれているか。</li>
+      <li><strong>問い合わせ先</strong>(電話番号やメールアドレス)があり、気になる点を確認できるか。</li>
+    </ol>
+
+    <h2>自由診療のサイトに載っているべき情報</h2>
+    <p>
+      厚生労働省の医療広告ガイドラインでは、自由診療について、広告できる事項の範囲を超えた情報を載せるには、次のすべてを満たす必要があるとされています(ガイドライン 第3-3)。
+    </p>
+    <ul>
+      <li>患者などが自ら求めて入手する情報を表示するウェブサイトなどであること</li>
+      <li>表示している情報について、問い合わせ先(電話番号、メールアドレスなど)を明示していること</li>
+      <li>通常必要とされる<strong>治療の内容、標準的な費用、治療期間、回数</strong>を分かりやすく載せていること。標準的な費用が明確でない場合は、最低金額から最高金額(発生頻度の高い追加費用を含む)までの範囲を示すなど、可能な限り分かりやすく示すこと</li>
+      <li>主な<strong>リスクや副作用</strong>を分かりやすく載せていること</li>
+    </ul>
+    <p>
+      また、ガイドラインは、これらの情報をリンク先のページだけに載せたり、利点に比べて極端に小さな文字で載せたりしないことを求めています。
+      「施術名と最低価格だけ」が目立ち、費用の全体やリスクが見つからないサイトは、この点で情報が不足しているサイン、と読めます。
+    </p>
+    <p class="note">出典:厚生労働省「医業若しくは歯科医業又は病院若しくは診療所に関する広告等に関する指針(医療広告等ガイドライン)」(<a href="https://www.mhlw.go.jp/content/001683594.pdf" target="_blank" rel="noopener">mhlw.go.jp</a>)、確認日 {checkedAt}。</p>
+
+    <h2>注意したい表示</h2>
+    <p>ガイドラインでは、次の類型の広告が禁止されています。見かけたら、内容をうのみにせず、公式の説明を確認します。</p>
+    <ul>
+      <li><strong>比較優良広告</strong>(他と比べて優れていると示すもの)</li>
+      <li><strong>誇大広告</strong></li>
+      <li><strong>体験談</strong>:患者その他の者の主観や伝聞に基づく、治療の内容や効果に関する体験談</li>
+      <li><strong>治療前後の写真</strong>:治療の内容や効果について、患者を誤認させるおそれがあるもの</li>
+      <li><strong>虚偽の広告</strong>(罰則付きで禁止)</li>
+    </ul>
+    <p>
+      虚偽広告の具体例としてガイドラインが挙げているものに、「絶対安全な手術です」「どんなに難しい症例でも必ず成功します」、加工・修正した術前術後の写真、根拠や調査方法を示さない「○％の満足度」などがあります。
+      医学上、「絶対」や「必ず」はあり得ないため、こうした言葉があるときは慎重に見ます。
+    </p>
+
+    <h2>契約の前に確認すること</h2>
+    <table class="responsive-table">
+      <thead><tr><th>確認すること</th><th>内容</th></tr></thead>
+      <tbody>
+        <tr><td data-label="確認すること">費用の総額</td><td data-label="内容">診察料・薬代・検査代・再診料・追加の施術の費用を含めた総額と、支払いの時期。</td></tr>
+        <tr><td data-label="確認すること">回数と期間</td><td data-label="内容">必要な回数と期間、途中でやめた場合の扱い。</td></tr>
+        <tr><td data-label="確認すること">リスクの説明</td><td data-label="内容">主なリスク・副作用と、起きたときの対応(連絡先、費用の負担)。</td></tr>
+        <tr><td data-label="確認すること">解約・返金</td><td data-label="内容">クーリング・オフの対象か、対象外の場合の解約と返金の条件。契約書面で確認する。</td></tr>
+        <tr><td data-label="確認すること">その場で決めない</td><td data-label="内容">説明を受けた日に契約しなくてよい。契約書面を持ち帰って確認できるか。</td></tr>
+      </tbody>
+    </table>
+
+    <h2>クーリング・オフの対象になる条件</h2>
+    <p>
+      消費者庁の特定商取引法ガイドでは、美容医療は「特定継続的役務提供」の対象に含まれています。対象となるのは、<strong>期間が1か月を超え、かつ金額が5万円を超える</strong>契約です。金額は、契約金の総額(入会金や教材費などを含む)で判断されます。
+      対象の契約では、契約書面を受け取った日から数えて<strong>8日以内</strong>であれば、書面または電磁的記録で契約を解除できます。ただし、使うと商品価値がほとんどなくなる消耗品(化粧品など)を使ってしまった場合は対象外です。
+    </p>
+    <p class="note">出典:消費者庁 特定商取引法ガイド「特定継続的役務提供」(<a href="https://www.no-trouble.caa.go.jp/what/continuousservices/" target="_blank" rel="noopener">no-trouble.caa.go.jp</a>)、確認日 {checkedAt}。個別の契約が対象かどうかは、契約書面と消費者庁の案内で確認してください。契約について困ったときは、消費者ホットライン188(最寄りの消費生活センター等の相談窓口を案内する全国共通の番号)に相談できます(<a href="https://www.caa.go.jp/policies/policy/local_cooperation/local_consumer_administration/hotline/" target="_blank" rel="noopener">消費者庁</a>)。</p>
+
+    <Disclaimer text="このページは一般的な情報の整理であり、医学的な診断・助言・特定の治療や医療機関の推奨ではありません。治療の適否や効果、費用は、医師の診察と各医療機関の説明で確認してください。法令・ガイドラインは改正されることがあります。最新の内容は厚生労働省・消費者庁の公式ページで確認してください。" />
+
+    <FaqSection items={faqItems} />
+
+    <p class="note">
+      このサイトについて:<a href="/about/">運営者情報</a>・<a href="/advertising/">広告掲載について</a>。このページは広告ではありません。
+    </p>
+  </div>
+</Layout>
+<script type="application/ld+json" set:html={JSON.stringify(articleJsonLd)} />
+
+<style>
+  .meta { color: var(--color-text-muted); font-size: 0.9rem; margin-top: -0.5rem; }
+  .note { color: var(--color-text-muted); font-size: 0.85rem; }
+</style>

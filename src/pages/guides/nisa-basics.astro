@@ -1,0 +1,118 @@
+---
+import Layout from "../../layouts/Layout.astro";
+import Breadcrumbs from "../../components/Breadcrumbs.astro";
+import Disclaimer from "../../components/Disclaimer.astro";
+import FaqSection from "../../components/FaqSection.astro";
+
+const title = "新しいNISAの仕組み｜2つの投資枠・年間上限・非課税保有限度額";
+const description =
+  "新しいNISAの口座を開く前に知っておきたい制度の基本を、金融庁の公式情報に基づいて整理。つみたて投資枠と成長投資枠、年間の上限、生涯の非課税保有限度額、枠の再利用、口座の数を確認日つきで解説します。";
+const checkedAt = "2026-10-17";
+
+const faqItems = [
+  {
+    question: "NISA口座はいくつ開けますか？",
+    answer:
+      "金融庁の案内では、1人につき1口座のみ開設できます。金融機関の変更は年単位で可能ですが、未成年者は変更できないとされています。詳細は金融庁の公式ページで確認してください。",
+  },
+  {
+    question: "売却した分の枠は、また使えますか？",
+    answer:
+      "金融庁の案内では、商品を売却すると、翌年以降に、売却した商品の簿価(取得金額)の分の非課税投資枠が復活します。復活するのは売却した翌年以降で、その年のうちには復活しません。",
+  },
+  {
+    question: "NISAなら損をしませんか？",
+    answer:
+      "いいえ。NISAは運用で得た利益にかかる税金が非課税になる制度で、価格が下がって元本を割り込む可能性をなくすものではありません。金融庁の案内でも、NISA口座で保有する商品を売却しても損益がなくなるわけではないとされています。",
+  },
+];
+
+const articleJsonLd = {
+  "@context": "https://schema.org",
+  "@type": "Article",
+  headline: title,
+  description,
+  datePublished: checkedAt,
+  dateModified: checkedAt,
+  author: { "@type": "Organization", name: "SOKUNOBANK運営事務局" },
+  publisher: { "@type": "Organization", name: "SOKUNOBANK運営事務局" },
+};
+---
+
+<Layout title={title} description={description}>
+  <Breadcrumbs items={[{ label: "ホーム", href: "/" }, { label: "新しいNISAの仕組み" }]} />
+
+  <div class="container section-tight prose">
+    <h1>新しいNISAの仕組み</h1>
+    <p class="meta">金融庁の公式情報で確認(確認日 {checkedAt})・一般的な制度の解説</p>
+
+    <p>
+      NISA(少額投資非課税制度)の口座を開く前に、制度の基本を整理しました。このページは制度の説明だけを扱い、特定の証券会社や金融商品をすすめるものではありません。
+      広告・アフィリエイトのリンクもありません。
+    </p>
+
+    <h2>結論:まず押さえる4つの数字</h2>
+    <ul>
+      <li><strong>投資枠は2つ</strong>:つみたて投資枠(年120万円まで)と成長投資枠(年240万円まで)。併用すると年360万円まで。</li>
+      <li><strong>生涯の非課税保有限度額は1,800万円</strong>(簿価ベース)。成長投資枠はそのうち1,200万円まで。</li>
+      <li><strong>非課税で保有できる期間は無期限</strong>。</li>
+      <li><strong>口座は1人1口座</strong>。</li>
+    </ul>
+
+    <h2>2つの投資枠の違い</h2>
+    <table class="responsive-table">
+      <thead>
+        <tr><th>項目</th><th>つみたて投資枠</th><th>成長投資枠</th></tr>
+      </thead>
+      <tbody>
+        <tr><td data-label="項目">年間の投資上限</td><td data-label="つみたて投資枠">120万円</td><td data-label="成長投資枠">240万円</td></tr>
+        <tr><td data-label="項目">生涯の上限への関係</td><td data-label="つみたて投資枠">総枠1,800万円の内</td><td data-label="成長投資枠">総枠1,800万円の内、1,200万円まで</td></tr>
+        <tr><td data-label="項目">対象商品</td><td data-label="つみたて投資枠">金融庁が公表する対象商品(届出のあるもの)</td><td data-label="成長投資枠">投資信託の一覧は資産運用業協会のサイトで確認できると案内されている</td></tr>
+      </tbody>
+    </table>
+    <p class="note">出典:金融庁「新しいNISA」(<a href="https://www.fsa.go.jp/policy/nisa2/about/index.html" target="_blank" rel="noopener">fsa.go.jp</a>)、確認日 {checkedAt}。つみたて投資枠の対象商品の条件は、金融庁の「つみたて投資枠対象商品」のページで確認してください。</p>
+
+    <h2>口座を開ける人</h2>
+    <p>
+      日本国内に住んでいて、利用する年の1月1日時点で18歳以上の方です。金融庁の案内では、2027年1月から、つみたて投資枠の年齢要件がなくなり、0〜17歳の未成年の方も口座を開設できるようになります。
+      未成年の方が使えるのは、つみたて投資枠のみです。
+    </p>
+
+    <h2>枠の使い方で知っておくこと</h2>
+    <ul>
+      <li><strong>売却すると、枠が戻る</strong>:商品を売却すると、翌年以降に、売却した商品の簿価の分の非課税投資枠が復活します。たとえば簿価100万円の商品を売ると、翌年に100万円分の枠が戻ります。</li>
+      <li><strong>生涯の枠は「簿価」で数える</strong>:値上がりしても、買った時の金額で数えます。</li>
+      <li><strong>これまでのNISAの分は別枠</strong>:2023年までのNISAで保有していた分は、1,800万円の外側で管理されます。</li>
+      <li><strong>金融機関の変更</strong>:1人1口座で、金融機関の変更は年単位で行います。</li>
+    </ul>
+
+    <h2>NISA口座以外(課税口座)との違い</h2>
+    <p>
+      NISA口座の外で、上場株式などを売却して得た利益には税金がかかります。国税庁の案内では、上場株式等の譲渡益の税率は20%(所得税15%、住民税5%)で、ほかの所得とは分けて税額を計算する「申告分離課税」です。
+      所得税には、別途、復興特別所得税(基準所得税額の2.1%)がかかります。NISA口座の枠の中では、この税金がかからない、というのが制度の中心です。
+    </p>
+    <p class="note">出典:国税庁 タックスアンサー No.1463(<a href="https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/1463.htm" target="_blank" rel="noopener">nta.go.jp</a>)、確認日 {checkedAt}。特定口座・一般口座の違いや確定申告の要否は、国税庁の案内で確認してください。</p>
+
+    <h2>口座を開く前に、自分で決めておくこと</h2>
+    <ol>
+      <li><strong>目的と期間</strong>:何のためのお金で、いつまで使わないお金か。</li>
+      <li><strong>どちらの枠を使うか</strong>:積み立てを中心にするのか、まとまった金額でも投資するのか。</li>
+      <li><strong>費用の確認</strong>:売買手数料、投資信託の運用中にかかる費用(信託報酬など)は、金融機関と商品ごとに異なります。各社の公式サイトと、商品の目論見書で確認します。</li>
+      <li><strong>損失の可能性</strong>:価格が下がって元本を割り込むことがあります。無理のない金額で始めます。</li>
+    </ol>
+
+    <Disclaimer text="このページは制度の一般的な説明で、投資の助言や特定の金融商品・金融機関の推奨ではありません。制度は改正されることがあります。最新の内容と詳細は金融庁・国税庁の公式ページで確認してください。投資の判断はご自身で行ってください。" />
+
+    <FaqSection items={faqItems} />
+
+    <p class="note">
+      このサイトについて:<a href="/about/">運営者情報</a>・<a href="/advertising/">広告掲載について</a>。このページは広告ではありません。
+    </p>
+  </div>
+</Layout>
+<script type="application/ld+json" set:html={JSON.stringify(articleJsonLd)} />
+
+<style>
+  .meta { color: var(--color-text-muted); font-size: 0.9rem; margin-top: -0.5rem; }
+  .note { color: var(--color-text-muted); font-size: 0.85rem; }
+</style>

@@ -1,22 +1,71 @@
 ---
 import Layout from "../layouts/Layout.astro";
-import SearchHero from "../components/SearchHero.astro";
 import UptPromoBanner from "../components/UptPromoBanner.astro";
 import CategoryCard from "../components/CategoryCard.astro";
-import ComparisonTable from "../components/ComparisonTable.astro";
 import GuideCard from "../components/GuideCard.astro";
 import { getPublishedCategories } from "../data/loadCategories";
-import {
-  popularKeywords,
-  purposeFinder,
-  departmentFinder,
-  commerceCategories,
-  upcomingCategories,
-  urgentGuides,
-} from "../data/site-nav";
+import HeroSearch from "../components/HeroSearch.astro";
+import { commerceCategories, upcomingCategories, purposeFinder, departmentFinder, urgentGuides } from "../data/site-nav";
+
+// サービス選びの確認ガイド(affiliate-lp-factory で公開済みのLP)。`npm run lp:sync` が生成するデータで、無ければ何も表示しない。
+// 未公開のLPにはリンクしない。公開済みが0本の間はセクション自体を出さない。
+type GuideLp = { lpId: string; path: string; title: string; description: string };
+type GuideGenre = { slug: string; name: string; lps: GuideLp[] };
+const guideModules = import.meta.glob("../data/generated/lp-guide.json", { eager: true }) as Record<string, { default?: { genres?: GuideGenre[] } }>;
+const guideGenres: GuideGenre[] = Object.values(guideModules)[0]?.default?.genres ?? [];
 
 const categories = getPublishedCategories();
-const featuredCategory = categories[0];
+
+// ヒーローの導線(すべて既存の公開ページ)。LP Factory 由来のLPは公開済みのものがあればそちらを優先し、無ければ既存ガイドへ寄せる。
+const genrePath = (slug: string) => guideGenres.find((g) => g.slug === slug)?.lps[0]?.path;
+const guideHref = guideGenres.length > 0 ? "/#service-guides" : "/guides/nisa-basics/";
+const heroKeywords = [
+  { label: "名刺印刷", href: "/guides/business-card-printing/" },
+  { label: "会議用プロジェクター", href: "/categories/projector/" },
+  { label: "オフィスチェア", href: "/categories/office-chair/" },
+  { label: "ノベルティ", href: "/guides/novelty-goods/" },
+  { label: "封筒印刷", href: "/guides/envelope-printing/" },
+];
+const concerns = [
+  { id: "money", thumb: "money", label: "お金・資産形成", description: "資産運用・保険・節約など\nお金の悩みを解決", href: "/guides/nisa-basics/" },
+  { id: "work", thumb: "work", label: "仕事・ビジネス", description: "業務効率化・オフィス用品\nビジネスツールを探す", href: "/guides/office-supplies/" },
+  { id: "life", thumb: "life", label: "暮らし・生活", description: "住まい・家電・日用品など\n毎日の暮らしを快適に", href: genrePath("water-server") ?? "/guides/short-stature-style/" },
+  { id: "beauty", thumb: "beauty", label: "美容・健康", description: "美容ケア・健康グッズで\nよりよい毎日を", href: genrePath("hair-removal") ?? "/guides/cosmetic-medicine-checklist/" },
+  { id: "marriage", thumb: "marriage", label: "結婚・人間関係", description: "結婚準備・ギフト・\n人間関係の悩みを解決", href: genrePath("marriage") ?? "/guides/greeting-cards/" },
+  { id: "urgent", thumb: "urgent", label: "急ぎの商品・発注", description: "即納・短納期で探せる\n商品・サービス", href: "/categories/" },
+];
+
+// ヒーロー検索の対象。公開済みのページだけを、既存データから組み立てる(重複は href で統合)。
+const genreSynonyms: Record<string, string> = {
+  hosting: "レンタルサーバー サーバー ホームページ ブログ wordpress ワードプレス サイト",
+  "water-server": "ウォーターサーバー 水 飲料水 家族 暮らし 生活 家庭",
+  "hair-removal": "脱毛 脱毛サロン 医療脱毛 ひげ ムダ毛 美容 サロン",
+  marriage: "結婚 婚活 結婚相談所 お見合い 出会い 恋愛 人間関係",
+  "pest-control": "シロアリ 駆除 羽アリ 害虫 害獣 見積り 業者 床下 住まい 暮らし 急なトラブル",
+  "water-heater": "給湯器 お湯が出ない 故障 修理 交換 エコキュート 見積り 業者 水まわり 暮らし 住まい 急なトラブル",
+  fx: "FX 外国為替証拠金取引 口座 スプレッド スワップ 自動売買 スキャルピング 取引 投資 お金 資産形成 レバレッジ",
+  career: "転職 キャリア 仕事 悩み 年収 営業 エンジニア セキュリティ 管理職 ハイクラス 職場 人間関係 評価 辞めたい",
+  fortune: "占い 電話占い オンライン占い 恋愛 相性 人間関係 悩み",
+  diet: "ダイエット 痩せる 減量 食事 運動 健康 美容",
+};
+const searchMap = new Map<string, { t: string; k: string[]; g: string }>();
+const addEntry = (href: string | undefined, title: string, group: string, kw: string[] = []) => {
+  if (!href) return;
+  const cur = searchMap.get(href);
+  if (cur) cur.k.push(title, ...kw);
+  else searchMap.set(href, { t: title, k: kw, g: group });
+};
+categories.forEach((c) => addEntry(`/categories/${c.slug}/`, c.name, "カテゴリー", [c.summary ?? ""]));
+commerceCategories.forEach((c) => addEntry(c.href, c.name, "カテゴリー"));
+upcomingCategories.forEach((u) => addEntry(u.href, u.name, "ガイド"));
+purposeFinder.forEach((p) => addEntry(p.href, p.label, p.href?.startsWith("/categories/") ? "カテゴリー" : "ガイド"));
+departmentFinder.forEach((d) => d.items.forEach((i) => addEntry(i.href, i.label, i.href?.startsWith("/categories/") ? "カテゴリー" : "ガイド", [d.label])));
+urgentGuides.forEach((u) => addEntry(u.href, u.title, "ガイド", [u.description]));
+guideGenres.forEach((g) => g.lps.forEach((lp) => addEntry(lp.path, lp.title, "確認ガイド", [g.name, genreSynonyms[g.slug] ?? "", lp.description])));
+addEntry("/guides/nisa-basics/", "新しいNISAの仕組み", "ガイド", ["お金 資産形成 投資 つみたて 積立 資産運用 証券 口座 節約 保険"]);
+addEntry("/guides/cosmetic-medicine-checklist/", "美容医療のクリニック選び", "ガイド", ["美容 美容皮膚科 クリニック 医療 健康"]);
+addEntry("/guides/short-stature-style/", "身長が低めの方の服選び", "ガイド", ["服 ファッション 低身長 コーデ 暮らし"]);
+const searchEntries = [...searchMap.entries()].map(([h, v]) => ({ t: v.t, h, g: v.g, k: [...new Set(v.k.filter(Boolean))].join(" ") }));
 
 function primaryProvider(category: (typeof categories)[number]) {
   return category.providers.find((p) => p.isPrimary) ?? category.providers[0];
@@ -24,81 +73,165 @@ function primaryProvider(category: (typeof categories)[number]) {
 function speedKey(category: (typeof categories)[number]) {
   return category.comparisonFields[0]?.key;
 }
-
-const allGuides = categories.flatMap((c) => c.guides ?? []);
 ---
 
 <Layout
-  title="急ぎ発注・最短納期の比較サイト"
-  description="「今日中/明日までに欲しい」法人の発注担当者向けに、DM発送・印刷・販促物などの即納サービスを納期・価格・対応条件から比較します。"
+  title="その悩み、即解決へ。｜仕事・暮らし・お金の悩みを素早く解決｜SOKUNOBANK(即納バンク)"
+  description="仕事も、暮らしも、お金のことも。商品・サービスの条件や注意点を整理し、納得できる選択をサポートする情報プラットフォーム「SOKUNOBANK(即納バンク)」"
 >
-  <SearchHero keywords={popularKeywords} />
-  <UptPromoBanner />
+  <!-- ============================================ -->
+  <!-- ① ファーストビュー: 悩みベースのヒーロー(2026-10-17 デザインモック準拠) -->
+  <section class="fv" aria-labelledby="fv-title">
+    <div class="fv-bg" aria-hidden="true"></div>
+    <div class="container fv-inner">
+      <div class="fv-copy">
+        <h1 id="fv-title" class="fv-title">その悩み、<br /><span class="fv-title-accent">即解決へ。</span></h1>
+        <p class="fv-lead">
+          仕事も、暮らしも、お金のことも。<br />あなたの悩みに合った解決策を、すばやく見つける。
+        </p>
+        <p class="fv-sub">商品・サービスの条件や注意点を整理し、納得できる選択をサポートします。</p>
 
-  <section class="section section-soft">
-    <div class="container">
-      <div class="section-head">
-        <span class="eyebrow">FIND BY PURPOSE</span>
-        <h2>急ぎの目的から探す</h2>
+        <div class="fv-ctas">
+          <a href={guideHref} class="fv-btn fv-btn-primary">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><circle cx="12" cy="12" r="9" /><path d="M15.5 8.5l-2 5-5 2 2-5z" stroke-linejoin="round" /></svg>
+            <span>サービス選びの確認ガイドを見る</span>
+            <svg class="fv-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6" stroke-linecap="round" stroke-linejoin="round" /></svg>
+          </a>
+          <a href="/categories/" class="fv-btn fv-btn-secondary">
+            <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M13 2L5 13.5h5.5L9.5 22 19 9.5h-5.8z" /></svg>
+            <span>急ぎの商品を探す</span>
+            <svg class="fv-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6" stroke-linecap="round" stroke-linejoin="round" /></svg>
+          </a>
+        </div>
+
+        <HeroSearch entries={searchEntries} />
+
+        <div class="fv-keywords">
+          <span class="fv-keywords-label">よく検索されているキーワード：</span>
+          <ul>
+            {heroKeywords.map((k) => <li><a class="fv-chip" href={k.href}>{k.label}</a></li>)}
+          </ul>
+        </div>
       </div>
-      <ul class="purpose-grid">
+
+      <div class="fv-visual">
+        <img
+          src="/images/top/hero-visual.webp"
+          width="788"
+          height="579"
+          alt="仕事・暮らし・お金・美容・結婚・急ぎの発注の悩みを解決するイメージ。今日の悩みを明日の嬉しいに。"
+          fetchpriority="high"
+          decoding="async"
+        />
+      </div>
+    </div>
+
+    <!-- 6つの悩みカテゴリカード(全面リンク) -->
+    <div class="container">
+      <ul class="fv-concerns">
         {
-          purposeFinder.map((item) => (
+          concerns.map((c) => (
             <li>
-              {item.href ? (
-                <a class="purpose-item" href={item.href}>
-                  <span class="dot" aria-hidden="true" />
-                  {item.label}
-                </a>
-              ) : (
-                <span class="purpose-item is-disabled">
-                  <span class="dot" aria-hidden="true" />
-                  {item.label}
-                  <span class="badge-soon">準備中</span>
+              <a href={c.href} class="fv-concern" data-concern={c.id}>
+                <img src={`/images/top/concern-${c.thumb}.webp`} width="188" height="93" alt="" loading="lazy" decoding="async" />
+                <span class="fv-concern-head">
+                  <strong>{c.label}</strong>
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M9 5l7 7-7 7" stroke-linecap="round" stroke-linejoin="round" /></svg>
                 </span>
-              )}
+                <span class="fv-concern-desc">{c.description}</span>
+              </a>
             </li>
           ))
         }
       </ul>
+
+      {
+        guideGenres.some((g) => g.slug === "pest-control") && (
+          <p class="fv-concern-sub">
+            暮らし・生活の急なトラブル:<a href="/lp/pest-control/termite/">シロアリ駆除の見積り前の確認ポイント(表示料金・契約)→</a>
+          </p>
+        )
+      }
+
+      {
+        guideGenres.some((g) => g.slug === "water-heater") && (
+          <p class="fv-concern-sub">
+            暮らし・生活の急なトラブル:<a href="/lp/water-heater/emergency/">給湯器が壊れたときの確認ポイント(見積り・表示料金・契約)→</a>{guideGenres.find((g) => g.slug === "water-heater")?.lps.some((l) => l.path === "/lp/water-heater/ecocute/") && <> / <a href="/lp/water-heater/ecocute/">エコキュートの修理か交換か、見積りの確認ポイント→</a></>}
+          </p>
+        )
+      }
+
+      {
+        guideGenres.some((g) => g.slug === "fx") && (
+          <p class="fv-concern-sub">
+            お金・資産形成の悩み:<a href="/lp/fx/">FX口座の選び方ガイド(取引コスト・スワップ・約定条件・リスク)→</a>
+          </p>
+        )
+      }
+
+      {
+        guideGenres.some((g) => g.slug === "career") && (
+          <p class="fv-concern-sub">
+            仕事・ビジネスの悩み:<a href="/#career-guides">転職・キャリアの確認ガイド(営業・ハイクラス・IT・セキュリティ・仕事の悩み)→</a>
+          </p>
+        )
+      }
+
+      <ul class="fv-features">
+        <li>
+          <svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true"><path d="M24 8v32M14 40h20M10 14h28M10 14l-6 14a6 6 0 0012 0zM38 14l-6 14a6 6 0 0012 0z" stroke-linecap="round" stroke-linejoin="round" /></svg>
+          <div><strong>比較しやすい</strong><span>複数の商品・サービスを横断して比較</span></div>
+        </li>
+        <li>
+          <svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true"><circle cx="24" cy="24" r="17" /><path d="M16 19h16M16 25h16M16 31h10" stroke-linecap="round" /></svg>
+          <div><strong>条件が見やすい</strong><span>料金・納期・対応範囲などの条件を整理</span></div>
+        </li>
+        <li>
+          <svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true"><path d="M24 5l15 6v11c0 9-6 16-15 20C15 38 9 31 9 22V11z" stroke-linejoin="round" /><path d="M17 24l5 5 9-10" stroke-linecap="round" stroke-linejoin="round" /></svg>
+          <div><strong>注意点がわかる</strong><span>選ぶ前に知っておきたいポイントを解説</span></div>
+        </li>
+      </ul>
     </div>
   </section>
 
-  <section class="section">
-    <div class="container">
-      <div class="section-head">
-        <span class="eyebrow">FIND BY DEPARTMENT</span>
-        <h2>部署から探す</h2>
-      </div>
-      <div class="department-grid">
-        {
-          departmentFinder.map((group) => (
-            <div class="card department-card">
-              <h3>{group.label}</h3>
-              <ul>
-                {group.items.map((item) => (
-                  <li>
-                    {item.href ? (
-                      <a href={item.href}>{item.label}</a>
-                    ) : (
-                      <span class="is-disabled">{item.label}<span class="badge-soon">準備中</span></span>
-                    )}
-                  </li>
-                ))}
-              </ul>
-            </div>
-          ))
-        }
-      </div>
-    </div>
-  </section>
+  <!-- ============================================ -->
+  <!-- ③ サービス選びの確認ガイド -->
+  <!-- ============================================ -->
+  {
+    guideGenres.length > 0 && (
+      <section class="section" id="service-guides">
+        <div class="container">
+          <div class="section-head">
+            <span class="eyebrow">SERVICE GUIDE</span>
+            <h2>サービス選びの確認ガイド</h2>
+            <p>お金・美容・健康・結婚など、悩み別にサービス比較ガイドを提供</p>
+          </div>
+          <div class="service-guides-grid">
+            {guideGenres.map((genre) =>
+              genre.lps.map((lp, i) => (
+                <a href={lp.path} class="service-guide-card card" id={genre.slug === "career" && i === 0 ? "career-guides" : undefined}>
+                  <p class="service-guide-category">{genre.name}</p>
+                  <p class="service-guide-title">{lp.title}</p>
+                  <p class="service-guide-description">{lp.description}</p>
+                  <span class="service-guide-more">続きを読む →</span>
+                </a>
+              ))
+            )}
+          </div>
+        </div>
+      </section>
+    )
+  }
 
-  <section class="section section-soft">
+  <!-- ============================================ -->
+  <!-- ④ 急ぎの商品・発注先を探す -->
+  <!-- ============================================ -->
+  <section class="section section-soft" id="products">
     <div class="container">
       <div class="section-head">
-        <span class="eyebrow">CATEGORIES</span>
-        <h2>即納カテゴリーから探す</h2>
-        <p>現在はDM発送代行カテゴリーを公開中です。他カテゴリーも順次追加予定です。</p>
+        <span class="eyebrow">PRODUCTS & SERVICES</span>
+        <h2>急ぎの商品・発注先を探す</h2>
+        <p>DM・印刷・発電機・オフィス用品など、最短納期の商品・サービスを比較</p>
       </div>
       <div class="category-grid">
         {
@@ -138,204 +271,270 @@ const allGuides = categories.flatMap((c) => c.guides ?? []);
     </div>
   </section>
 
-  {
-    featuredCategory && (
-      <section class="section">
-        <div class="container">
-          <div class="section-head">
-            <span class="eyebrow">POPULAR COMPARISON</span>
-            <h2>{featuredCategory.name}</h2>
-          </div>
-          <ComparisonTable
-            id="home-comparison"
-            fields={featuredCategory.comparisonFields}
-            providers={featuredCategory.providers}
-          />
-          <p class="see-all">
-            <a class="btn btn-secondary" href={`/categories/${featuredCategory.slug}/`}>
-              すべての比較条件を見る
-            </a>
-          </p>
+  <!-- ============================================ -->
+  <!-- ⑤ オリジナルTシャツ・グッズ（UP-T） -->
+  <!-- ============================================ -->
+  <UptPromoBanner />
+
+  <!-- ============================================ -->
+  <!-- ⑥ 困ったときの確認ガイド -->
+  <!-- ============================================ -->
+  <section class="section" id="guides">
+    <div class="container">
+      <div class="section-head">
+        <span class="eyebrow">QUICK GUIDE</span>
+        <h2>困ったときの確認ガイド</h2>
+      </div>
+      <div class="guide-grid">
+        <GuideCard
+          guide={{
+            title: "新しいNISAの仕組み",
+            description: "口座選びのポイント・手数料・取扱商品",
+            href: "/lp/affiliate/securities/nisa/",
+          }}
+        />
+        <GuideCard
+          guide={{
+            title: "今日中に発電機を手配する",
+            description: "最短配送と注意点",
+            href: "/guides/urgent-handle-generator-today/",
+          }}
+        />
+        <GuideCard
+          guide={{
+            title: "会議を明日開く時に必要な機器",
+            description: "プロジェクター・モニター・チェア",
+            href: "/guides/urgent-meeting-equipment/",
+          }}
+        />
+        <GuideCard
+          guide={{
+            title: "ダイレクトメール発送のポイント",
+            description: "スピード優先プランと料金比較",
+            href: "/categories/dm/",
+          }}
+        />
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================ -->
+  <!-- ⑦ サイト紹介・運営情報 -->
+  <!-- ============================================ -->
+  <section class="section section-soft" id="about">
+    <div class="container">
+      <div class="site-intro card">
+        <h2>SOKUNOBANK(即納バンク)について</h2>
+        <p>
+          SOKUNOBANK(即納バンク)は、商品やサービスを選ぶための条件・費用・注意点を整理し、悩みを解決するための判断材料を提供する情報サイトです。
+        </p>
+        <p>
+          「仕事の急な対応」「暮らしの悩み」「お金の選択肢」など、様々な場面で必要な情報を、最短で見つけられるプラットフォームを目指します。
+        </p>
+        <p class="disclaimer">
+          <strong>※重要:</strong>
+          本サイトで提供する情報は、商品・サービス選びの判断材料です。成果や効果を保証するものではありません。ご利用は自己責任でお願いします。
+        </p>
+        <div class="footer-links">
+          <a href="/privacy/">プライバシーポリシー</a> |
+          <a href="/about/">運営者情報</a> |
+          <a href="/advertising/">広告掲載方針</a>
         </div>
-      </section>
-    )
-  }
-
-  <section class="section" id="urgent-guides">
-    <div class="container">
-      <div class="section-head">
-        <span class="eyebrow">URGENT GUIDE</span>
-        <h2>即納が必要な時のガイド</h2>
       </div>
-      <div class="urgent-guide-grid">
-        {
-          urgentGuides.map((guide) => (
-            <a href={guide.href} class="urgent-guide-card">
-              <h3>{guide.title}</h3>
-              <p>{guide.description}</p>
-            </a>
-          ))
-        }
-      </div>
-    </div>
-  </section>
-
-  <section class="section section-soft" id="guides">
-    <div class="container">
-      <div class="section-head">
-        <span class="eyebrow">GUIDE</span>
-        <h2>急ぎの人向けガイド</h2>
-      </div>
-      {
-        allGuides.length > 0 ? (
-          <div class="guide-grid">
-            {allGuides.map((g) => (
-              <GuideCard guide={g} />
-            ))}
-          </div>
-        ) : (
-          <p>準備中です。</p>
-        )
-      }
-    </div>
-  </section>
-
-  <section class="section" id="about">
-    <div class="container prose">
-      <h2>SOKUNOBANKについて</h2>
-      <p>
-        SOKUNOBANKは法人向け即納サービスを、納期・価格・対応条件から比較できる情報サイトです。
-        「今日中/明日までに欲しい」という発注担当者が、あとは「どこで最速で依頼できるか」だけを探している状態を想定して設計しています。
-      </p>
-      <p>
-        <a href="/about/">運営者情報はこちら →</a>
-      </p>
     </div>
   </section>
 </Layout>
 
-<style>
-  .purpose-grid {
-    list-style: none;
-    margin: 0;
-    padding: 0;
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-    gap: 0.75rem;
-  }
-  .purpose-item {
-    display: flex;
-    align-items: center;
-    gap: 0.6rem;
-    min-height: 48px;
-    padding: 0 1rem;
-    background: var(--color-bg);
-    border: 1px solid var(--color-border);
-    border-radius: var(--radius-md);
-    text-decoration: none;
-    color: var(--color-text);
-    font-weight: 500;
-    font-size: 0.92rem;
-  }
-  a.purpose-item:hover {
-    border-color: var(--color-accent);
-    color: var(--color-accent-dark);
-  }
-  .purpose-item.is-disabled {
-    color: var(--color-text-muted);
-  }
-  .dot {
-    width: 8px;
-    height: 8px;
-    border-radius: 50%;
-    background: var(--color-accent);
-    flex-shrink: 0;
-  }
-  .purpose-item.is-disabled .dot {
-    background: var(--color-border);
-  }
-  .purpose-item .badge-soon {
-    margin-left: auto;
-  }
+<style is:global>
+  /* ファーストビュー(2026-10-17 デザインモック準拠) */
+  .fv { position: relative; padding: 2.5rem 0 2.25rem; overflow: hidden; background: linear-gradient(180deg, #f4fbf7 0%, #fff 70%); }
+  .fv-bg { position: absolute; inset: 0; pointer-events: none;
+    background: radial-gradient(60% 70% at 85% 25%, #dcefff 0%, rgba(220,239,255,0) 70%), radial-gradient(40% 50% at 0% 10%, #dff5e8 0%, rgba(223,245,232,0) 70%); }
+  .fv-inner { position: relative; display: grid; grid-template-columns: minmax(0, 1.18fr) minmax(0, 1fr); gap: 1rem; align-items: center; }
+  .fv-copy { position: relative; z-index: 2; display: flex; flex-direction: column; gap: 1rem; min-width: 0; }
+  .fv-title { font-size: clamp(2.6rem, 5.4vw, 4.6rem); font-weight: 800; line-height: 1.12; letter-spacing: 0.02em; margin: 0; color: var(--color-text); }
+  .fv-title-accent { color: var(--color-accent-dark); }
+  .fv-lead { font-size: clamp(1rem, 1.5vw, 1.2rem); font-weight: 700; line-height: 1.75; margin: 0.25rem 0 0; color: var(--color-text); }
+  .fv-sub { font-size: 0.88rem; color: var(--color-text-muted); margin: 0; }
+  .fv-ctas { display: flex; gap: 0.75rem; flex-wrap: wrap; margin-top: 0.5rem; }
+  .fv-btn { display: inline-flex; align-items: center; gap: 0.5rem; min-height: 46px; padding: 0 0.9rem; border-radius: 8px; font-weight: 700; font-size: 0.9rem; text-decoration: none; border: 2px solid var(--color-accent-dark); transition: background-color 0.15s, transform 0.15s, box-shadow 0.15s; }
+  .fv-btn svg { width: 19px; height: 19px; flex: none; }
+  .fv-btn .fv-arrow { width: 15px; height: 15px; }
+  .fv-btn-primary { background: var(--color-accent-dark); color: #fff; }
+  .fv-btn-primary:hover { background: #046b4b; transform: translateY(-1px); box-shadow: var(--shadow-sm); }
+  .fv-btn-secondary { background: #fff; color: var(--color-accent-dark); }
+  .fv-btn-secondary:hover { background: var(--color-accent-soft); transform: translateY(-1px); }
+  .fv-btn:active { transform: translateY(0); }
+  .fv-btn:focus-visible, .fv-concern:focus-visible, .fv-chip:focus-visible { outline: 3px solid var(--color-urgent); outline-offset: 2px; }
+  .fv-keywords { display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap; font-size: 0.82rem; color: var(--color-text-muted); }
+  .fv-keywords ul { display: flex; flex-wrap: wrap; gap: 0.4rem; list-style: none; margin: 0; padding: 0; }
+  .fv-chip { display: inline-flex; align-items: center; min-height: 36px; padding: 0 0.85rem; border: 1px solid #c9dfd2; border-radius: 999px; background: rgba(255,255,255,0.85); color: var(--color-text); font-size: 0.82rem; text-decoration: none; }
+  .fv-chip:hover { border-color: var(--color-accent-dark); background: var(--color-accent-soft); }
+  .fv-visual { position: relative; z-index: 1; margin-left: -4%; }
+  .fv-visual img { -webkit-mask-image: linear-gradient(to bottom, transparent 0, #000 9%), linear-gradient(to left, transparent 0, #000 7%); -webkit-mask-composite: source-in; mask-image: linear-gradient(to bottom, transparent 0, #000 9%), linear-gradient(to left, transparent 0, #000 7%); mask-composite: intersect; display: block; width: 104%; max-width: none; height: auto; }
 
-  .department-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-    gap: 1.1rem;
-  }
-  .department-card h3 {
-    margin: 0 0 0.9rem;
-  }
-  .department-card ul {
-    list-style: none;
-    margin: 0;
-    padding: 0;
-    display: grid;
-    gap: 0.6rem;
-  }
-  .department-card a,
-  .department-card .is-disabled {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 0.5rem;
-    min-height: 44px;
-    font-size: 0.92rem;
-    text-decoration: none;
-    color: var(--color-text);
-  }
-  .department-card a:hover {
-    color: var(--color-accent-dark);
-  }
-  .department-card .is-disabled {
-    color: var(--color-text-muted);
-  }
+  .fv-concerns { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 0.9rem; list-style: none; margin: 0.5rem 0 1.1rem; padding: 0; position: relative; z-index: 3; }
+  .fv-concern { display: flex; flex-direction: column; gap: 0.4rem; height: 100%; padding: 0.65rem 0.65rem 0.85rem; background: #fff; border: 1px solid var(--color-border); border-radius: 10px; box-shadow: var(--shadow-sm); text-decoration: none; color: var(--color-text); transition: transform 0.15s, box-shadow 0.15s, border-color 0.15s; }
+  .fv-concern:hover { transform: translateY(-3px); border-color: var(--color-accent-vivid); box-shadow: 0 6px 16px rgba(16,36,62,0.1); }
+  .fv-concern img { display: block; width: 100%; height: auto; aspect-ratio: 2 / 1; object-fit: cover; border-radius: 6px; }
+  .fv-concern-head { display: flex; align-items: center; justify-content: space-between; gap: 0.25rem; font-size: 1.02rem; }
+  .fv-concern-head svg { width: 16px; height: 16px; color: var(--color-text-muted); flex: none; }
+  .fv-concern:hover .fv-concern-head svg { color: var(--color-accent-dark); }
+  .fv-concern-desc { white-space: pre-line; font-size: 0.8rem; line-height: 1.55; color: var(--color-text-muted); }
 
-  .category-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
-    gap: 1.1rem;
-  }
+  .fv-features { display: grid; grid-template-columns: repeat(3, 1fr); list-style: none; margin: 0; padding: 1.1rem 1rem; background: #fff; border: 1px solid var(--color-border); border-radius: 10px; box-shadow: var(--shadow-sm); }
+  .fv-features li { display: flex; align-items: center; gap: 1rem; padding: 0 1.25rem; }
+  .fv-features li + li { border-left: 1px solid var(--color-border); }
+  .fv-features svg { width: 46px; height: 46px; flex: none; color: var(--color-accent-dark); }
+  .fv-features strong { display: block; font-size: 1.05rem; }
+  .fv-features span { font-size: 0.82rem; color: var(--color-text-muted); }
 
-  .urgent-guide-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
-    gap: 1.1rem;
-  }
-  .urgent-guide-card {
-    display: block;
-    padding: 1.25rem;
-    background: var(--color-bg);
-    border: 1px solid var(--color-border);
-    border-radius: var(--radius-md);
-    text-decoration: none;
-    transition: all 0.2s ease;
-  }
-  .urgent-guide-card:hover {
-    border-color: var(--color-accent);
-    box-shadow: var(--shadow-sm);
-    transform: translateY(-2px);
-  }
-  .urgent-guide-card h3 {
-    margin: 0 0 0.5rem;
-    font-size: 1rem;
-    font-weight: 600;
-    color: var(--color-text);
-  }
-  .urgent-guide-card p {
-    margin: 0;
-    font-size: 0.9rem;
-    color: var(--color-text-muted);
-    line-height: 1.5;
-  }
+  /* ヘッダー・フッターの /#search /#guides /#about の着地点 */
+  #search, #guides, #about, #service-guides, #products, #career-guides { scroll-margin-top: 5rem; }
+  .fv-concern-sub { margin: -0.4rem 0 1rem; font-size: 0.88rem; color: var(--color-text-muted); position: relative; z-index: 3; }
+  .fv-concern-sub a { margin-left: 0.4rem; font-weight: 600; color: var(--color-accent-dark); text-decoration: underline; padding: 0.5rem 0; display: inline-block; }
 
+  /* サービス選びの確認ガイド / 困ったときの確認ガイド: 3カラム(PC) / 2カラム(タブレット) / 1カラム(スマホ)。
+     カードの角丸・枠線・余白・hover・下部導線は「急ぎの商品・発注先を探す」(CategoryCard)・GuideCard と共通 */
+  .service-guides-grid,
   .guide-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: 1.1rem;
+    align-items: stretch;
   }
 
-  .see-all {
-    margin-top: 1.25rem;
+  .service-guide-card {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    height: 100%;
+    padding: 1.25rem 1.35rem;
+    background: var(--color-bg);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-lg);
+    text-decoration: none;
+    color: var(--color-text);
+    transition: border-color 0.15s, background-color 0.15s, box-shadow 0.15s;
+  }
+
+  .service-guide-card:hover {
+    border-color: var(--color-accent-vivid);
+    background: var(--color-bg-soft);
+    box-shadow: 0 4px 14px rgba(16, 36, 62, 0.1);
+  }
+
+  .service-guide-card:focus-visible {
+    outline: 3px solid var(--color-urgent);
+    outline-offset: 2px;
+  }
+
+  .service-guide-category {
+    font-size: 0.8rem;
+    color: var(--color-accent-dark);
+    font-weight: 600;
+    margin: 0;
+  }
+
+  .service-guide-title {
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--color-text);
+    margin: 0;
+  }
+
+  .service-guide-description {
+    font-size: 0.88rem;
+    color: var(--color-text-muted);
+    margin: 0;
+    line-height: 1.6;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 3;
+    line-clamp: 3;
+    overflow: hidden;
+  }
+
+  .service-guide-more {
+    margin-top: auto;
+    padding-top: 0.5rem;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--color-accent-dark);
+  }
+  @media (max-width: 1023px) {
+    .service-guides-grid,
+    .guide-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  }
+  @media (max-width: 639px) {
+    .service-guides-grid,
+    .guide-grid { grid-template-columns: minmax(0, 1fr); }
+  }
+
+  /* サイト紹介 */
+  .site-intro {
+    padding: 2rem;
+    text-align: center;
+  }
+
+  .site-intro h2 {
+    margin-bottom: 1.5rem;
+  }
+
+  .site-intro p {
+    margin-bottom: 1rem;
+    line-height: 1.6;
+    color: var(--color-text-muted);
+  }
+
+  .disclaimer {
+    background: var(--color-bg-soft);
+    padding: 1rem;
+    border-left: 4px solid var(--color-urgent);
+    margin: 1.5rem 0;
+    text-align: left;
+  }
+
+  .footer-links {
+    margin-top: 1.5rem;
+    font-size: 0.9rem;
+  }
+
+  .footer-links a {
+    color: var(--color-accent);
+    text-decoration: none;
+  }
+
+  .footer-links a:hover {
+    text-decoration: underline;
+  }
+
+  /* 急ぎの商品・発注先: 3カラム(PC) / 2カラム(タブレット) / 1カラム(スマホ)。同一行の高さは揃える */
+  .category-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1.1rem; align-items: stretch; }
+  @media (max-width: 1023px) { .category-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+  @media (max-width: 639px) { .category-grid { grid-template-columns: minmax(0, 1fr); } }
+
+  /* レスポンシブ */
+  @media (max-width: 1100px) {
+    .fv-concerns { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  }
+  @media (max-width: 900px) {
+    .fv { padding: 1.75rem 0 1.5rem; }
+    .fv-inner { grid-template-columns: 1fr; }
+    .fv-visual { display: none; }
+    .fv-features { grid-template-columns: 1fr; gap: 0.9rem; }
+    .fv-features li { padding: 0; }
+    .fv-features li + li { border-left: 0; border-top: 1px solid var(--color-border); padding-top: 0.9rem; }
+  }
+  @media (max-width: 640px) {
+    .fv-ctas { flex-direction: column; }
+    .fv-btn { width: 100%; justify-content: flex-start; }
+    .fv-btn .fv-arrow { margin-left: auto; }
+    .fv-concerns { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0.65rem; }
+    .fv-concern-head { font-size: 0.92rem; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .fv-btn, .fv-concern { transition: none; }
+    .fv-btn:hover, .fv-concern:hover { transform: none; }
   }
 </style>

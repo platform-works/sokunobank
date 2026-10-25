@@ -25,7 +25,9 @@ const { guide } = Astro.props;
 
 <style>
   .guide-card {
-    display: block;
+    display: flex;
+    flex-direction: column;
+    transition: border-color 0.15s, background-color 0.15s, box-shadow 0.15s;
     background: var(--color-bg);
     border: 1px solid var(--color-border);
     border-radius: var(--radius-lg);
@@ -35,21 +37,34 @@ const { guide } = Astro.props;
     height: 100%;
   }
   a.guide-card:hover {
-    border-color: var(--color-accent);
-    box-shadow: var(--shadow-sm);
+    border-color: var(--color-accent-vivid);
+    background: var(--color-bg-soft);
+    box-shadow: 0 4px 14px rgba(16, 36, 62, 0.1);
+  }
+  a.guide-card:focus-visible {
+    outline: 3px solid var(--color-urgent);
+    outline-offset: 2px;
   }
   .guide-card h3 {
     margin: 0.5rem 0 0.5rem;
     font-size: 1rem;
+    font-weight: 700;
   }
   .guide-card p {
     color: var(--color-text-muted);
     font-size: 0.88rem;
     margin: 0;
+    line-height: 1.6;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 3;
+    line-clamp: 3;
+    overflow: hidden;
   }
   .read-more {
     display: inline-block;
-    margin-top: 0.75rem;
+    margin-top: auto;
+    padding-top: 0.75rem;
     font-size: 0.85rem;
     font-weight: 600;
     color: var(--color-accent-dark);

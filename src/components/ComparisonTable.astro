@@ -10,7 +10,7 @@ interface Props {
 const { fields, providers, id = "comparison-table" } = Astro.props;
 
 function formatValue(v: string | number | boolean | null): string {
-  if (v === null || v === undefined) return "要確認";
+  if (v === null || v === undefined) return "—";
   if (typeof v === "boolean") return v ? "あり" : "なし";
   return String(v);
 }

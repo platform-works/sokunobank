@@ -37,7 +37,7 @@ const isUrgentText = (v?: string) => !!v && /(当日|即日|翌日)/.test(v);
     speedValue ? (
       <p class="stat-row">
         <span class="stat-label">{speedLabel}</span>
-        <span class:list={["stat-value", { urgent: isUrgentText(speedValue) }]}>{speedValue}</span>
+        <span class:list={["stat-value", { urgent: isUrgentText(speedValue) }]} title={speedValue}>{speedValue}</span>
       </p>
     ) : !href ? (
       <p class="stat-row">
@@ -47,10 +47,14 @@ const isUrgentText = (v?: string) => !!v && /(当日|即日|翌日)/.test(v);
   }
 
   {
+    speedValue && speedValue.length > 45 && <p class="stat-more">※納期の全文は詳細ページで確認できます</p>
+  }
+
+  {
     minQuantityValue && (
       <p class="stat-row secondary">
         <span class="stat-label">対応</span>
-        <span class="stat-value-sm">{minQuantityValue}</span>
+        <span class="stat-value-sm" title={minQuantityValue}>{minQuantityValue}</span>
       </p>
     )
   }
@@ -79,6 +83,8 @@ const isUrgentText = (v?: string) => !!v && /(当日|即日|翌日)/.test(v);
 
 <style>
   .category-card {
+    position: relative;
+    transition: border-color 0.15s, background-color 0.15s, box-shadow 0.15s;
     display: flex;
     flex-direction: column;
     background: var(--color-bg);
@@ -86,6 +92,12 @@ const isUrgentText = (v?: string) => !!v && /(当日|即日|翌日)/.test(v);
     border-radius: var(--radius-lg);
     padding: 1.25rem 1.35rem;
     height: 100%;
+  }
+  .category-card:not(.is-upcoming):hover,
+  .category-card:not(.is-upcoming):focus-within {
+    border-color: var(--color-accent-vivid);
+    background: var(--color-bg-soft);
+    box-shadow: 0 4px 14px rgba(16, 36, 62, 0.1);
   }
   .category-card.is-upcoming {
     background: var(--color-bg-soft);
@@ -122,6 +134,22 @@ const isUrgentText = (v?: string) => !!v && /(当日|即日|翌日)/.test(v);
   .stat-row.secondary {
     font-size: 0.82rem;
   }
+  /* 長い納期説明は3行までに丸める(全文は title 属性と詳細ページで確認できる) */
+  .stat-value,
+  .stat-value-sm {
+    min-width: 0;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 3;
+    line-clamp: 3;
+    overflow: hidden;
+    overflow-wrap: anywhere;
+  }
+  .stat-more {
+    margin: 0 0 0.35rem;
+    font-size: 0.75rem;
+    color: var(--color-text-muted);
+  }
   .stat-label {
     color: var(--color-text-muted);
     flex-shrink: 0;
@@ -140,6 +168,20 @@ const isUrgentText = (v?: string) => !!v && /(当日|即日|翌日)/.test(v);
   .stat-value-sm {
     font-weight: 600;
     color: var(--color-text);
+  }
+  /* カード全体をクリック可能にする(リンクの当たり判定をカード全面へ拡張) */
+  .card-cta[href]::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: var(--radius-lg);
+  }
+  .card-cta:focus-visible {
+    outline: none;
+  }
+  .card-cta:focus-visible::after {
+    outline: 3px solid var(--color-urgent);
+    outline-offset: 2px;
   }
   .card-cta {
     margin-top: auto;
